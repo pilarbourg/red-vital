@@ -1,7 +1,5 @@
-# RedVital
-## Gestor de Donaciones de Sangre
 ![Logo](logo_RedVital.jpg)
-
+# RedVital ## - Gestor de Donaciones de Sangre
 
 ## Descripción
 Aplicación web para facilitar la conexión entre hospitales y donantes de sangre en tiempo real.  
