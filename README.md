@@ -1,4 +1,4 @@
-### RedVital
+# RedVital
 
 ## Miembros de Grupo
 * Olivia Gallego
