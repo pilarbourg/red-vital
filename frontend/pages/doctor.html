@@ -1,12 +1,156 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedVital</title>
-    <link rel="stylesheet" href="frontend/css/doctor.css" />
-</head>
-<body>
-    
-</body>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RedVital | Área Hospitalaria</title>
+
+    <!-- Link to hospital.css -->
+    <link rel="stylesheet" href="../css/doctor.css" />
+  </head>
+  <body>
+    <header>
+      <section class="title-header">
+        <h4>Área Hospitalaria</h4>
+        <span>|</span>
+        <h4>Gestión de solicitudes y donantes</h4>
+      </section>
+
+      <section class="header">
+        <div class="icon-title-header">
+          <img src="../assets/svgs/icon_logo.svg" alt="Small Logo" />
+          <h1>RedVital</h1>
+        </div>
+
+        <nav class="button-container">
+          <a href="../../index.html" class="button">Home</a>
+          <a href="../../index.html" class="button">About Us</a>
+          <a href="../../index.html" class="button">Services</a>
+          <a href="doctor.html" class="button active">Área Hospitalaria</a>
+          <a href="../../index.html" class="button">Contact</a>
+        </nav>
+      </section>
+    </header>
+
+    <main class="hospital-dashboard">
+      <section class="dashboard-actions">
+        <button>Crear solicitud de sangre</button>
+        <button>Buscar donantes compatibles</button>
+        <button>Enviar notificaciones</button>
+        <button>Actualizar estado de solicitud</button>
+        <button>Registrar resultados de donaciones</button>
+        <button>Panel estadístico hospitalario</button>
+      </section>
+
+      <section class="blood-request">
+        <h2>Solicitud de Sangre</h2>
+
+        <form>
+          <div class="form-left">
+            <button type="submit" class="btn-create">Crear Solicitud</button>
+          </div>
+
+          <div class="form-right">
+            <label>Tipo de Sangre:
+              <select name="tipo">
+                <option>A+</option>
+                <option>A−</option>
+                <option>B+</option>
+                <option>B−</option>
+                <option>O+</option>
+                <option>O−</option>
+                <option>AB+</option>
+                <option>AB−</option>
+              </select>
+            </label>
+
+            <label>Cantidad:
+              <input type="number" min="1" max="10" placeholder="Unidades" />
+            </label>
+
+            <label>Prioridad:
+              <select>
+                <option>Alta</option>
+                <option>Media</option>
+                <option>Baja</option>
+              </select>
+            </label>
+
+            <label>Fecha límite:
+              <input type="date" />
+            </label>
+
+            <label>Observaciones:
+              <textarea rows="2" placeholder="Notas adicionales..."></textarea>
+            </label>
+          </div>
+        </form>
+      </section>
+
+      <!-- Donor search section -->
+      <section class="donor-search">
+        <h2>Buscar donantes compatibles</h2>
+
+        <div class="filter-section">
+          <button class="btn-filter">Filtrar</button>
+
+          <div class="filters">
+            <label>Sangre:
+              <select>
+                <option>Todos</option>
+                <option>A+</option>
+                <option>A−</option>
+                <option>B+</option>
+                <option>B−</option>
+                <option>O+</option>
+                <option>O−</option>
+                <option>AB+</option>
+                <option>AB−</option>
+              </select>
+            </label>
+
+            <label>Ubicación:
+              <input type="text" placeholder="Ciudad o región" />
+            </label>
+
+            <label>Disponibilidad:
+              <select>
+                <option>Todos</option>
+                <option>Disponible</option>
+                <option>No disponible</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Edad</th>
+              <th>Grupo Sanguíneo</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Juan Pérez</td>
+              <td>34</td>
+              <td>O+</td>
+              <td>juan@example.com</td>
+              <td>+57 321 567 890</td>
+            </tr>
+            <tr>
+              <td>María López</td>
+              <td>28</td>
+              <td>A−</td>
+              <td>maria@example.com</td>
+              <td>+57 300 123 456</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
 </html>
