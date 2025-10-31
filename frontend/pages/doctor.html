@@ -80,9 +80,9 @@
       </section>
 
       <section class="donor-search" id="buscar-donantes">
-        <h2>Buscar donantes compatibles</h2>
         <div class="filter-section">
           <div class="filter-btn-section">
+            <h2>Buscar donantes compatibles</h2>
             <button class="btn-create">Filtrar</button>
           </div>
           <div class="filters">
@@ -325,85 +325,81 @@
         </div>
       </section>
 
-
       <section class="hospital-statistics" id="hospital-statistics">
         <h2>Estadísticas del hospital</h2>
         <section class="statistics-grid">
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
-          <div class="grid-item"></div>
+
+          <div class="grid-item" data-grid="blood-types">
+            <h3>Tipos de Sangre</h3>
+            <div class="stacked-bar">
+              <div class="bar-type" style="width: 30%; background-color: #932323cf;">A+</div>
+              <div class="bar-type" style="width: 25%; background-color: #0c4061cb;">O+</div>
+              <div class="bar-type" style="width: 20%; background-color: #136e57df;">B+</div>
+              <div class="bar-type" style="width: 15%; background-color: #2a9d9067;">AB+</div>
+              <div class="bar-type" style="width: 10%; background-color: #79185ec4;">O−</div>
+            </div>
+          </div>
+
+          <div class="grid-item" data-grid="weekly-donations">
+            <h3>Donaciones Semanales</h3>
+            <div class="mini-bar-chart">
+              <div class="bar" style="height: 60%;" data-value="6"></div>
+              <div class="bar" style="height: 40%;" data-value="4"></div>
+              <div class="bar" style="height: 80%;" data-value="8"></div>
+              <div class="bar" style="height: 50%;" data-value="5"></div>
+              <div class="bar" style="height: 70%;" data-value="7"></div>
+            </div>
+          </div>
+
+          <div class="grid-item" data-grid="patients">
+            <h3>Pacientes Atendidos</h3>
+            <div class="stat-circle">
+              <span>85</span>
+            </div>
+          </div>
+
+          <div class="grid-item" data-grid="avg-units">
+            <h3>Promedio Unidades/Día</h3>
+            <div class="stat-bar">
+              <div class="stat-fill" style="width: 55%;"></div>
+            </div>
+            <span>55 unidades</span>
+          </div>
+
+          <div class="grid-item" data-grid="donations-completed">
+            <h3>Donaciones Completadas</h3>
+            <div class="pie-chart">
+              <div class="slice slice1"></div>
+              <div class="slice slice2"></div>
+            </div>
+          </div>
+
+          <div class="grid-item" data-grid="pending-requests">
+            <h3>Solicitudes Pendientes</h3>
+            <div class="stat-number">
+              <span>12</span>
+            </div>
+          </div>
+
+          <div class="grid-item" data-grid="staff-availability">
+            <h3>Personal Disponible</h3>
+            <div class="mini-bar-chart">
+              <div class="bar" style="height: 80%;" data-value="8"></div>
+              <div class="bar" style="height: 60%;" data-value="6"></div>
+              <div class="bar" style="height: 70%;" data-value="7"></div>
+              <div class="bar" style="height: 50%;" data-value="5"></div>
+            </div>
+          </div>
+
+          <div class="grid-item" data-grid="avg-wait-time">
+            <h3>Tiempo Promedio Espera</h3>
+            <div class="progress-circle">
+              <span>45 min</span>
+            </div>
+          </div>
+
         </section>
       </section>
-    </section>
-
-
-    <script>
-      const updateBtn = document.getElementById('updateBtn');
-
-      updateBtn.addEventListener('click', () => {
-        const selects = document.querySelectorAll('.estado-select');
-        selects.forEach(select => {
-          applyColor(select, select.value);
-        });
-        alert('Estados actualizados correctamente ✅');
-      });
-
-      function applyColor(select, estado) {
-        select.style.fontWeight = '600';
-        select.style.color =
-          estado === 'Pendiente' ? '#d90429' :
-          estado === 'En Proceso' ? '#ffb703' :
-          '#2a9d8f';
-      }
-
-      document.addEventListener('change', e => {
-        if (e.target.classList.contains('estado-select')) {
-          applyColor(e.target, e.target.value);
-        }
-      });
-
-      document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.estado-select').forEach(select => {
-          applyColor(select, select.value);
-        });
-      });
-
-const donorResults = document.querySelector('.donor-results');
-const messageBox = document.querySelector('.message-box');
-const searchBtn = document.querySelector('.btn-search');
-const sendBtn = document.querySelector('.btn-send');
-const donorCheckboxes = document.querySelectorAll('.select-donor');
-
-searchBtn.addEventListener('click', () => {
-  donorResults.classList.remove('hidden');
-});
-
-donorResults.addEventListener('change', (e) => {
-  if (e.target.classList.contains('select-donor')) {
-    const anySelected = document.querySelectorAll('.select-donor:checked').length > 0;
-    if (anySelected) {
-      messageBox.classList.remove('hidden');
-    } else {
-      messageBox.classList.add('hidden');
-    }
-  }
-});
-
-sendBtn.addEventListener('click', () => {
-  const selected = document.querySelectorAll('.select-donor:checked').length;
-  if (selected === 0) {
-    alert('Por favor selecciona al menos un donante antes de enviar.');
-    return;
-  }
-  alert('¡Notificación enviada exitosamente! ✅');
-});
-
-    </script>
     <script src="../js/doctor.js"></script>
   </body>
 </html>
