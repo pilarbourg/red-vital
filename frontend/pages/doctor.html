@@ -41,12 +41,12 @@
       </section>
 
       <section class="blood-request" id="crear-solicitud">
-        <h2>Solicitud de Sangre</h2>
-        <form>
-          <div class="form-left">
-            <button type="submit" class="btn-create">Crear Solicitud</button>
-          </div>
-          <div class="form-right">
+        <div class="blood-request-left">
+          <h2>Solicitud de Sangre</h2>
+          <button type="submit" class="btn-create main-request-btn">Crear Solicitud</button>
+        </div>
+        <div class="blood-request-right">
+          <form class="blood-form">
             <label>Tipo de Sangre:
               <select name="tipo">
                 <option>A+</option>
@@ -75,14 +75,16 @@
             <label>Observaciones:
               <textarea rows="2" placeholder="Observaciones..."></textarea>
             </label>
-          </div>
-        </form>
+          </form>
+        
       </section>
 
       <section class="donor-search" id="buscar-donantes">
         <h2>Buscar donantes compatibles</h2>
         <div class="filter-section">
-          <button class="btn-filter">Filtrar</button>
+          <div class="filter-btn-section">
+            <button class="btn-create">Filtrar</button>
+          </div>
           <div class="filters">
             <label>Grupo Sanguíneo:
               <select>
@@ -96,9 +98,6 @@
                 <option>AB+</option>
                 <option>AB−</option>
               </select>
-            </label>
-            <label>Ubicación:
-              <input type="text" placeholder="Ciudad o región" />
             </label>
             <label>Disponibilidad:
               <select>
@@ -139,48 +138,194 @@
       </section>
 
       <section class="send-notifications" id="enviar-notificaciones">
-        <h2>Enviar notificaciones</h2>
-        <div class="form-send">
-            <button type="submit" class="btn-create">Enviar Notificación</button>
-        </div>
-        <div class="form-search">
-          <label>Buscar donante:</label>
-          <label>Nombre:
-              <textarea rows="2" placeholder="Nombre completo"></textarea>
-          </label>
-          <label>Grupo Sanguíneo:
-              <select>
-                <option>Todos</option>
-                <option>A+</option>
-                <option>A−</option>
-                <option>B+</option>
-                <option>B−</option>
-                <option>O+</option>
-                <option>O−</option>
-                <option>AB+</option>
-                <option>AB−</option>
-              </select>
-          </label>
-        </div>
-        <div class="form-select-donor">
-          <button type="submit" class="btn-create">Seleccionar Donante</button>
-        </div>
-        <div class="message">
-          <label>Mensaje:
-              <textarea rows="2" placeholder="Mensaje..."></textarea>
-            </label>
+        <div class="send-container">
+          <div class="send-left">
+            <h2>Enviar notificaciones</h2>
+            <button type="button" class="btn-create btn-send">Enviar Notificación</button>
+          </div>
+
+          <div class="send-right">
+            <form class="donor-search-form">
+              <label>Buscar donante:</label>
+
+              <label>Nombre:
+                <input type="text" placeholder="Nombre completo" />
+              </label>
+
+              <label>Grupo Sanguíneo:
+                <select>
+                  <option>Todos</option>
+                  <option>A+</option>
+                  <option>A−</option>
+                  <option>B+</option>
+                  <option>B−</option>
+                  <option>O+</option>
+                  <option>O−</option>
+                  <option>AB+</option>
+                  <option>AB−</option>
+                </select>
+              </label>
+
+              <button type="button" class="btn-create btn-search">Buscar</button>
+            </form>
+
+            <div class="donor-results hidden">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Seleccionar</th>
+                    <th>Nombre</th>
+                    <th>Grupo Sanguíneo</th>
+                    <th>Correo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="checkbox" class="select-donor"></td>
+                    <td>Leonor Díez</td>
+                    <td>O+</td>
+                    <td>leonor@gmail.com</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="select-donor"></td>
+                    <td>Carmen Montero</td>
+                    <td>A−</td>
+                    <td>carmen@gmail.com</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="message-box hidden">
+              <label>Mensaje:</label>
+              <textarea rows="3" placeholder="Escribe el mensaje a enviar..."></textarea>
+            </div>
+          </div>
         </div>
       </section>
 
+
       <section class="update-application-status" id="update-application">
         <h2>Actualizar el estado de la solicitud</h2>
-        <button class="btn-filter">Actualizar</button>
+        
+        <div class="update-container">
+          <div class="update-left">
+            <button class="btn-update" id="updateBtn">Actualizar</button>
+          </div>
+
+          <div class="update-right">
+            <table class="status-table" id="statusTable">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Tipo de Sangre</th>
+                  <th>Cantidad</th>
+                  <th>Estado Solicitud</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Leonor Díez</td>
+                  <td>O+</td>
+                  <td>3 unidades</td>
+                  <td>
+                    <select class="estado-select">
+                      <option>Pendiente</option>
+                      <option>En Proceso</option>
+                      <option>Completado</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Carmen Montero</td>
+                  <td>A−</td>
+                  <td>2 unidades</td>
+                  <td>
+                    <select class="estado-select">
+                      <option>En Proceso</option>
+                      <option>Pendiente</option>
+                      <option>Completado</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Javier Soto</td>
+                  <td>B+</td>
+                  <td>1 unidad</td>
+                  <td>
+                    <select class="estado-select">
+                      <option>Completado</option>
+                      <option>Pendiente</option>
+                      <option>En Proceso</option>
+                    </select>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section class="register-donations-results" id="register-donations">
         <h2>Registrar los resultados de donaciones</h2>
+
+        <div class="donations-container">
+          <div class="donations-left">
+            <button class="btn-create" id="addDonationBtn">Añadir Resultado</button>
+
+            <form id="donationForm" class="donation-form hidden">
+              <label>Fecha:
+                <input type="date" name="fecha" required />
+              </label>
+              <label>Cantidad recibida:
+                <input type="number" name="cantidad" min="1" placeholder="Unidades" required />
+              </label>
+              <label>Donante asignado:
+                <input type="text" name="donante" placeholder="Nombre del donante" required />
+              </label>
+              <button type="submit" class="btn-create">Guardar</button>
+            </form>
+          </div>
+
+          <div class="donations-right" id="donationsList">
+            <div class="donation-card">
+              <table>
+                <tr>
+                  <td><strong>Fecha:</strong></td>
+                  <td>2025-10-30</td>
+                </tr>
+                <tr>
+                  <td><strong>Cantidad recibida:</strong></td>
+                  <td>3 unidades</td>
+                </tr>
+                <tr>
+                  <td><strong>Donante asignado:</strong></td>
+                  <td>Leonor Díez</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="donation-card">
+              <table>
+                <tr>
+                  <td><strong>Fecha:</strong></td>
+                  <td>2025-10-29</td>
+                </tr>
+                <tr>
+                  <td><strong>Cantidad recibida:</strong></td>
+                  <td>2 unidades</td>
+                </tr>
+                <tr>
+                  <td><strong>Donante asignado:</strong></td>
+                  <td>Carmen Montero</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
       </section>
-      
+
+
       <section class="hospital-statistics" id="hospital-statistics">
         <h2>Estadísticas del hospital</h2>
         <section class="statistics-grid">
@@ -195,5 +340,70 @@
         </section>
       </section>
     </section>
+
+
+    <script>
+      const updateBtn = document.getElementById('updateBtn');
+
+      updateBtn.addEventListener('click', () => {
+        const selects = document.querySelectorAll('.estado-select');
+        selects.forEach(select => {
+          applyColor(select, select.value);
+        });
+        alert('Estados actualizados correctamente ✅');
+      });
+
+      function applyColor(select, estado) {
+        select.style.fontWeight = '600';
+        select.style.color =
+          estado === 'Pendiente' ? '#d90429' :
+          estado === 'En Proceso' ? '#ffb703' :
+          '#2a9d8f';
+      }
+
+      document.addEventListener('change', e => {
+        if (e.target.classList.contains('estado-select')) {
+          applyColor(e.target, e.target.value);
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.estado-select').forEach(select => {
+          applyColor(select, select.value);
+        });
+      });
+
+const donorResults = document.querySelector('.donor-results');
+const messageBox = document.querySelector('.message-box');
+const searchBtn = document.querySelector('.btn-search');
+const sendBtn = document.querySelector('.btn-send');
+const donorCheckboxes = document.querySelectorAll('.select-donor');
+
+searchBtn.addEventListener('click', () => {
+  donorResults.classList.remove('hidden');
+});
+
+donorResults.addEventListener('change', (e) => {
+  if (e.target.classList.contains('select-donor')) {
+    const anySelected = document.querySelectorAll('.select-donor:checked').length > 0;
+    if (anySelected) {
+      messageBox.classList.remove('hidden');
+    } else {
+      messageBox.classList.add('hidden');
+    }
+  }
+});
+
+sendBtn.addEventListener('click', () => {
+  const selected = document.querySelectorAll('.select-donor:checked').length;
+  if (selected === 0) {
+    alert('Por favor selecciona al menos un donante antes de enviar.');
+    return;
+  }
+  alert('¡Notificación enviada exitosamente! ✅');
+});
+
+    </script>
+    <script src="../js/doctor.js"></script>
   </body>
 </html>
