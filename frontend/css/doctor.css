@@ -192,27 +192,9 @@ body {
 }
 
 .blood-request h2 {
-  color: #d53a3a;
+  color: #1d3557;
   font-size: 1.8rem;
   font-weight: 700;
-}
-
-.blood-request .main-request-btn {
-  background-color: #d53a3a;
-  color: white;
-  padding: 0.7rem 1.4rem;
-  border-radius: 2rem;
-  font-weight: 600;
-  margin-top: 1.2rem; 
-  padding: 0.9rem 2rem;
-  font-size: 1rem;
-  border: none;
-  outline: none;
-}
-
-.blood-request-left .main-request-btn:hover {
-  background-color: #e35d5d;
-  transform: scale(1.02);
 }
 
 .blood-request-right {
@@ -488,24 +470,6 @@ tbody tr:hover {
 
 .update-right {
   flex: 1;
-}
-
-.btn-update {
-  background-color: #457b9d;
-  color: white;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.7rem 1.4rem;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.25s ease;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-}
-
-.btn-update:hover {
-  background-color: #1d3557;
-  transform: translateY(-2px);
 }
 
 .update-application-status,
