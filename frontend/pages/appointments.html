@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RedVital | Pedir cita</title>
+    <!--Estilo global del header y el footer-->
+    <link rel="stylesheet" href="../css/index.css" />
+    <!--Estilo específico de la página de citas-->
+    <link rel="stylesheet" href="../css/appointments.css" />
+  </head>
+  <body>
+     <header>
+    <section class="title-header">
+      <h4>Centro de Donaciones de Sangre</h4>
+      <span>|</span>
+      <h4>Donar Sangre es Donar Vida</h4>
+    </section>
+
+    <section class="header">
+      <div class="icon-title-header">
+        <img src="../assets/svgs/icon_logo.svg" alt="Small Logo" />
+        <h1>RedVital</h1>
+      </div>
+
+      <nav class="button-container">
+        <a href="../../index.html" class="button">Home</a>
+        <a href="../../index.html" class="button">About Us</a>
+        <a href="../../index.html" class="button">Services</a>
+        <a href="../../index.html" class="button">Doctors</a>
+        <a href="../../index.html" class="button">News</a>
+        <a href="../../index.html" class="button">Contact</a>
+        <a href="../../index.html" class="button">Register</a>
+        <a href="../../index.html" class="button">Login</a>
+      </nav>
+    </section>
+  </header>
+
+  <section class="appt-hero">
+    <img src="../assets/images/akram-huseyn-fKC9eWRnlGY-unsplash.jpg" alt="Sala de donación" />
+  </section>
+
+  <!-- Contenido principal: formulario + horario -->
+  <main class="appt-wrap">
+    <section class="appt-grid">
+      <!-- Columna izquierda: Pedir Cita -->
+      <section class="appt-card">
+        <h2>Pedir Cita</h2>
+        <p class="appt-lead">
+          Completa el formulario y guardaremos tu cita.
+        </p>
+
+        <form id="apptForm" class="appt-form" onsubmit="return false">
+          <label> Name
+            <input id="name" placeholder="Tu nombre completo" required />
+          </label>
+          <label> Gender
+            <select id="gender">
+              <option>F</option><option>M</option><option>Otro</option>
+            </select>
+          </label>
+          <label> Email
+            <input id="email" type="email" placeholder="tucorreo@ejemplo.com" required />
+          </label>
+          <label> Phone
+            <input id="phone" placeholder="+34 600 000 000" />
+          </label>
+          <label> Date
+            <input id="date" type="date" required />
+          </label>
+          <label> Time
+            <input id="time" type="time" required />
+          </label>
+          <label> Doctor
+            <input id="doctor" placeholder="Dr./Dra." />
+          </label>
+          <label> Department
+            <select id="dept">
+              <option>Banco de Sangre</option>
+              <option>Hematología</option>
+              <option>General</option>
+            </select>
+          </label>
+          <label class="full"> Message
+            <textarea id="msg" rows="3" placeholder="Comentarios…"></textarea>
+          </label>
+
+          <button id="submit" class="appt-primary full">SUBMIT</button>
+        </form>
+
+        <p id="feedback" class="appt-feedback" hidden>¡Cita registrada! Revisa el panel de “Horario”.</p>
+      </section>
+
+      <!-- Columna derecha: Horario (lista de citas) -->
+      <aside class="appt-card appt-schedule">
+        <h2>Horario</h2>
+        <ul id="slots" class="appt-slotlist"><!-- render JS --></ul>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Banda de imagen grande (otro rectángulo del wireframe) -->
+  <section class="appt-banner">
+    <img src="../assets/images/logo_RedVital.png" alt="RedVital"/>
+  </section>
+
+  <!-- ===== JS mínimo (todo local, sin backend) ===== -->
+  <script>
+    const KEY = "appointments";
+    const load = () => JSON.parse(localStorage.getItem(KEY) || "[]");
+    const save = (v) => localStorage.setItem(KEY, JSON.stringify(v));
+
+    // Semilla para que no esté vacío la primera vez
+    if (load().length === 0) {
+      save([
+        {name:"Ana", email:"ana@example.com", date:"2025-11-05", time:"10:00", doctor:"Dra. Ruiz", dept:"Banco de Sangre"},
+        {name:"Luis", email:"luis@example.com", date:"2025-11-08", time:"12:30", doctor:"Dr. Pérez", dept:"Hematología"}
+      ]);
+    }
+
+    function renderSlots() {
+      const list = load().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+      const html = list.map((i,idx)=>`
+        <li class="appt-slot">
+          <div class="appt-slot-main">
+            <strong>${i.date}</strong> · ${i.time}
+            <span class="appt-badge">${i.dept}</span>
+          </div>
+          <div class="appt-slot-sub">Paciente: ${i.name} — ${i.doctor || "Por asignar"}</div>
+          <div class="appt-actions">
+            <button data-act="done" data-i="${idx}">Completada</button>
+            <button data-act="resched" data-i="${idx}">Reprogramar</button>
+            <button data-act="cancel" data-i="${idx}">Cancelar</button>
+          </div>
+        </li>`).join("");
+      document.getElementById("slots").innerHTML = html || "<p class='appt-empty'>No hay citas.</p>";
+    }
+
+    document.getElementById("submit").addEventListener("click", ()=>{
+      const v = id => document.getElementById(id).value.trim();
+      if(!v("name") || !v("email") || !v("date") || !v("time")) { alert("Completa nombre, email, fecha y hora."); return; }
+      const list = load();
+      list.push({ name:v("name"), gender:v("gender"), email:v("email"), phone:v("phone"),
+                  date:v("date"), time:v("time"), doctor:v("doctor"), dept:v("dept"), msg:v("msg") });
+      save(list);
+      document.getElementById("apptForm").reset();
+      const fb = document.getElementById("feedback"); fb.hidden=false; setTimeout(()=>fb.hidden=true, 2500);
+      renderSlots();
+    });
+
+    document.getElementById("slots").addEventListener("click", (e)=>{
+      const btn = e.target.closest("button[data-act]"); if(!btn) return;
+      const i = +btn.dataset.i; const act = btn.dataset.act;
+      const list = load();
+      if (act === "cancel") list.splice(i,1);
+      if (act === "done")   list[i].done = true;
+      if (act === "resched") {
+        const nf = prompt("Nueva fecha (YYYY-MM-DD):", list[i].date);
+        const nh = prompt("Nueva hora (HH:MM):", list[i].time);
+        if (nf && nh) { list[i].date = nf; list[i].time = nh; }
+      }
+      save(list); renderSlots();
+    });
+
+    renderSlots();
+  </script>
+</body>
+</html>
