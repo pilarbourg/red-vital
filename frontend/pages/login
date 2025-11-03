@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDVITAL | Login</title>
+    <link rel="stylesheet" href="../css/register-login.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">REDVITAL</div>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="#">About us</a>
+            <a href="#">Services</a>
+            <a href="#">Doctors</a>
+            <a href="#">News</a>
+            <a href="#">Contact</a>
+        </nav>
+        <button class="btn-login">Register/Login</button>
+    </header>
+    <main class="form-container">
+        <h1>REDVITAL</h1>
+        <form action="#" method="POST" class="form">
+            <label>Email:</label>
+            <input type="email" placeholder="Correo electrónico" required>
+
+            <label>Password:</label>
+            <input type="password" placeholder="Contraseña" required>
+
+            <button type="submit">Iniciar sesión</button>
+
+            <p class="register-link">
+                ¿No tienes cuenta? 
+                <a href="register.html">Regístrate</a>
+            </p>
+        </form>
+    </main>
+</body>
+</html>
