@@ -1,161 +1,333 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>REDVITAL – Área Admin (Blue)</title>
-  <link rel="stylesheet" href="../css/areaadmin.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <div class="wrap">
-    <!-- NAV superior (azul claro) -->
-    <div class="navwrap">
-      <strong>REDVITAL</strong>
-      <nav class="nav">
-        <a href="#">Home</a>
-        <a href="#">About us</a>
-        <a href="#">Services</a>
-        <a href="#">Doctors</a>
-        <a href="#">News</a>
-        <a href="#">Contact</a>
-      </nav>
-      <div class="spacer"></div>
-      <div class="search"><input id="globalSearch" placeholder="Buscar" /></div>
-      <div class="login">Register / Login</div>
-    </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REDVITAL – Área Admin</title>
+    <link rel="stylesheet" href="../css/index.css" />
+    <link rel="stylesheet" href="../css/areaadmin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <header>
+      <section class="title-header">
+        <h4>Centro de Donaciones de Sangre</h4>
+        <span>|</span>
+        <h4>Donar Sangre es Donar Vida</h4>
+      </section>
+      <section class="header">
+        <div class="icon-title-header">
+          <img src="../assets/svgs/icon_logo.svg" alt="Small Logo" />
+          <h1>REDVITAL</h1>
+        </div>
 
-    <h2>Gestión de usuarios</h2>
-    <section class="grid cols-2">
-      <!-- Crear hospital (botón azul claro) -->
-      <div class="card">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <strong>Crear nuevo hospital</strong>
-          <button class="primary" id="btnAdd">Crear hospital</button>
+        <nav class="button-container">
+          <a href="../../index.html" class="button">Home</a>
+          <a href="appointments.html" class="button">Citas</a>
+          <a href="areaadmin.html" class="button">Área Administración</a>
+          <a href="areadonante.html" class="button">Área Donante</a>
+          <a href="areahospitalaria.html" class="button">Área Hospitalaria</a>
+          <a href="register.html" class="button">Register</a>
+          <a href="login.html" class="button">Login</a>
+        </nav>
+      </section>
+    </header>
+    <div class="wrap">
+      <h2>Gestión de usuarios</h2>
+      <section class="grid cols-2">
+        <div class="card">
+          <div
+            class="row"
+            style="justify-content: space-between; align-items: center"
+          >
+            <strong>Crear nuevo hospital</strong>
+            <button class="primary" id="btnAdd">Crear hospital</button>
+          </div>
+          <div class="row" style="margin-top: 8px">
+            <div class="field">
+              <label>Nombre</label
+              ><input id="hName" type="text" placeholder="Hospital Central" />
+            </div>
+            <div class="field">
+              <label>Localización</label
+              ><input id="hLoc" type="text" placeholder="Madrid" />
+            </div>
+            <div class="field">
+              <label>Mail</label
+              ><input id="hEmail" type="email" placeholder="info@hospital.es" />
+            </div>
+          </div>
         </div>
-        <div class="row" style="margin-top:8px">
-          <div class="field"><label>Nombre</label><input id="hName" type="text" placeholder="Hospital Central"/></div>
-          <div class="field"><label>Localización</label><input id="hLoc" type="text" placeholder="Madrid"/></div>
-          <div class="field"><label>Mail</label><input id="hEmail" type="email" placeholder="info@hospital.es"/></div>
+
+        <!-- Buscar usuarios (misma info, estética distinta y sin ejemplos) -->
+        <div class="card">
+          <div
+            class="row"
+            style="justify-content: space-between; align-items: center"
+          >
+            <strong>Buscar usuarios</strong>
+            <button id="btnBuscar">Buscar</button>
+          </div>
+          <div class="detail grid cols-2">
+            <div>
+              <p>
+                <span class="label">Rol:</span>
+                <span class="value" id="uRol">—</span>
+              </p>
+              <p>
+                <span class="label">Historial donación:</span><br />
+                <span class="placeholder">(sin datos)</span>
+              </p>
+              <p>
+                <span class="label">Enfermedades crónicas:</span><br />
+                <span class="placeholder">(sin datos)</span>
+              </p>
+            </div>
+            <div>
+              <p>
+                <span class="label">Grupo sanguíneo:</span>
+                <span class="value" id="uGrupo">—</span>
+              </p>
+              <p>
+                <span class="label">Historial receptor:</span><br />
+                <span class="placeholder">(sin datos)</span>
+              </p>
+              <p class="placeholder" id="uNombre">(nombre)</p>
+            </div>
+          </div>
+          <input
+            id="userSearch"
+            placeholder="Nombre, rol o email"
+            style="margin: 10px 0; width: 100%"
+          />
+          <table id="tblUsers">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>Email</th>
+                <th>Hospital</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
+      </section>
+
+      <h2>Gráficos</h2>
+      <div class="row" style="align-items: center; margin: 6px 0">
+        <span class="tag">Localidad</span>
+        <select id="selCity">
+          <option>Madrid</option>
+          <option>Bilbao</option>
+          <option>Sevilla</option>
+        </select>
       </div>
+      <section class="grid cols-2">
+        <div class="card">
+          <strong>Actividad</strong
+          ><canvas id="chartActivity" height="130"></canvas>
+        </div>
+        <div class="card">
+          <strong>Inventario de grupos sanguíneos</strong
+          ><canvas id="chartInventory" height="130"></canvas>
+        </div>
+      </section>
 
-      <!-- Buscar usuarios (misma info, estética distinta y sin ejemplos) -->
-      <div class="card">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <strong>Buscar usuarios</strong>
-          <button id="btnBuscar">Buscar</button>
-        </div>
-        <div class="detail grid cols-2">
-          <div>
-            <p><span class="label">Rol:</span> <span class="value" id="uRol">—</span></p>
-            <p><span class="label">Historial donación:</span><br>
-              <span class="placeholder">(sin datos)</span>
-            </p>
-            <p><span class="label">Enfermedades crónicas:</span><br>
-              <span class="placeholder">(sin datos)</span>
-            </p>
-          </div>
-          <div>
-            <p><span class="label">Grupo sanguíneo:</span> <span class="value" id="uGrupo">—</span></p>
-            <p><span class="label">Historial receptor:</span><br>
-              <span class="placeholder">(sin datos)</span>
-            </p>
-            <p class="placeholder" id="uNombre">(nombre)</p>
-          </div>
-        </div>
-        <input id="userSearch" placeholder="Nombre, rol o email" style="margin:10px 0;width:100%"/>
-        <table id="tblUsers">
-          <thead><tr><th>Nombre</th><th>Rol</th><th>Email</th><th>Hospital</th></tr></thead>
+      <h2>Niveles de sangre</h2>
+      <div class="row" style="align-items: center; margin: 6px 0">
+        <span class="tag">Localidad</span>
+        <select id="selCity2">
+          <option>Madrid</option>
+          <option>Bilbao</option>
+          <option>Sevilla</option>
+        </select>
+      </div>
+      <section class="card">
+        <table id="tblBlood">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Unidades</th>
+              <th>Nivel</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
           <tbody></tbody>
         </table>
+      </section>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="../assets/svgs/icon_logo.svg" alt="RedVital Logo" />
+          <span>RedVital</span>
+        </div>
+        <div class="footer-links">
+          <a href="areaadmin.html">Admin</a>
+          <a href="areadonante.html">Donante</a>
+          <a href="areahospitalaria.html">Hospital</a>
+        </div>
+        <div class="footer-copy">
+          &copy; 2025 RedVital | All rights reserved
+        </div>
       </div>
-    </section>
+    </footer>
 
-    <h2>Gráficos</h2>
-    <div class="row" style="align-items:center;margin:6px 0"><span class="tag">Localidad</span>
-      <select id="selCity"><option>Madrid</option><option>Bilbao</option><option>Sevilla</option></select>
-    </div>
-    <section class="grid cols-2">
-      <div class="card"><strong>Actividad</strong><canvas id="chartActivity" height="130"></canvas></div>
-      <div class="card"><strong>Inventario de grupos sanguíneos</strong><canvas id="chartInventory" height="130"></canvas></div>
-    </section>
+    <script>
+      // --- Datos (por ciudad) ---
+      const dataByCity = {
+        Madrid: {
+          users: [{ name: "", role: "", email: "", hospital: "" }],
+          activity: [30, 55, 80],
+          blood: {
+            "O-": 16,
+            "O+": 95,
+            "A+": 22,
+            "A-": 10,
+            "B+": 22,
+            "B-": 9,
+            "AB+": 8,
+            "AB-": 25,
+          },
+        },
+        Bilbao: {
+          users: [{ name: "", role: "", email: "", hospital: "" }],
+          activity: [25, 48, 70],
+          blood: {
+            "O-": 12,
+            "O+": 70,
+            "A+": 18,
+            "A-": 11,
+            "B+": 18,
+            "B-": 7,
+            "AB+": 6,
+            "AB-": 20,
+          },
+        },
+        Sevilla: {
+          users: [{ name: "", role: "", email: "", hospital: "" }],
+          activity: [20, 40, 60],
+          blood: {
+            "O-": 10,
+            "O+": 60,
+            "A+": 20,
+            "A-": 9,
+            "B+": 14,
+            "B-": 6,
+            "AB+": 5,
+            "AB-": 18,
+          },
+        },
+      };
+      let city = "Madrid";
 
-    <h2>Niveles de sangre</h2>
-    <div class="row" style="align-items:center;margin:6px 0"><span class="tag">Localidad</span>
-      <select id="selCity2"><option>Madrid</option><option>Bilbao</option><option>Sevilla</option></select>
-    </div>
-    <section class="card">
-      <table id="tblBlood">
-        <thead><tr><th>Tipo</th><th>Unidades</th><th>Nivel</th><th>Estado</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </div>
+      // Crear hospital (mock)
+      document.getElementById("btnAdd").addEventListener("click", () => {
+        const n = hName.value.trim(),
+          l = hLoc.value.trim(),
+          m = hEmail.value.trim();
+        if (!n || !l || !m)
+          return alert("Completa nombre, localización y mail");
+        alert("Hospital creado");
+        hName.value = hLoc.value = hEmail.value = "";
+      });
 
-<script>
-  // --- Datos (por ciudad) ---
-  const dataByCity={
-    Madrid:{
-      users:[{name:'',role:'',email:'',hospital:''}],
-      activity:[30,55,80],
-      blood:{'O-':16,'O+':95,'A+':22,'A-':10,'B+':22,'B-':9,'AB+':8,'AB-':25}
-    },
-    Bilbao:{users:[{name:'',role:'',email:'',hospital:''}],activity:[25,48,70],blood:{'O-':12,'O+':70,'A+':18,'A-':11,'B+':18,'B-':7,'AB+':6,'AB-':20}},
-    Sevilla:{users:[{name:'',role:'',email:'',hospital:''}],activity:[20,40,60],blood:{'O-':10,'O+':60,'A+':20,'A-':9,'B+':14,'B-':6,'AB+':5,'AB-':18}}
-  };
-  let city='Madrid';
+      // Usuarios (filtro)
+      function paintUsers(list) {
+        tblUsers.querySelector("tbody").innerHTML = list
+          .map(
+            (u) =>
+              `<tr><td>${u.name || "—"}</td><td>${u.role || "—"}</td><td>${
+                u.email || "—"
+              }</td><td>${u.hospital || "—"}</td></tr>`
+          )
+          .join("");
+      }
+      function renderUsers() {
+        paintUsers(dataByCity[city].users);
+      }
+      btnBuscar.addEventListener("click", renderUsers);
+      userSearch.addEventListener("input", (e) => {
+        const q = e.target.value.toLowerCase();
+        const res = dataByCity[city].users.filter((u) =>
+          [u.name, u.role, u.email, u.hospital].some((v) =>
+            (v || "").toLowerCase().includes(q)
+          )
+        );
+        paintUsers(res);
+      });
+      globalSearch.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          userSearch.value = e.target.value;
+          userSearch.dispatchEvent(new Event("input"));
+        }
+      });
 
-  // Crear hospital (mock)
-  document.getElementById('btnAdd').addEventListener('click',()=>{
-    const n=hName.value.trim(), l=hLoc.value.trim(), m=hEmail.value.trim();
-    if(!n||!l||!m) return alert('Completa nombre, localización y mail');
-    alert('Hospital creado');
-    hName.value=hLoc.value=hEmail.value='';
-  });
+      // Gráficas: actividad + inventario de grupos sanguíneos
+      let cA, cI;
+      function renderCharts() {
+        const weeks = ["Mar", "Abr", "May"];
+        if (cA) cA.destroy();
+        cA = new Chart(chartActivity, {
+          type: "bar",
+          data: {
+            labels: weeks,
+            datasets: [{ label: "Actividad", data: dataByCity[city].activity }],
+          },
+          options: { plugins: { legend: { display: false } } },
+        });
+        if (cI) cI.destroy();
+        const blood = dataByCity[city].blood;
+        cI = new Chart(chartInventory, {
+          type: "bar",
+          data: {
+            labels: Object.keys(blood),
+            datasets: [{ label: "Unidades", data: Object.values(blood) }],
+          },
+          options: { plugins: { legend: { display: false } } },
+        });
+      }
 
-  // Usuarios (filtro)
-  function paintUsers(list){
-    tblUsers.querySelector('tbody').innerHTML=list.map(u=>`<tr><td>${u.name||'—'}</td><td>${u.role||'—'}</td><td>${u.email||'—'}</td><td>${u.hospital||'—'}</td></tr>`).join('');
-  }
-  function renderUsers(){ paintUsers(dataByCity[city].users); }
-  btnBuscar.addEventListener('click',renderUsers);
-  userSearch.addEventListener('input',e=>{
-    const q=e.target.value.toLowerCase();
-    const res=dataByCity[city].users.filter(u=>[u.name,u.role,u.email,u.hospital].some(v=> (v||'').toLowerCase().includes(q)));
-    paintUsers(res);
-  });
-  globalSearch.addEventListener('keydown',e=>{ if(e.key==='Enter'){ userSearch.value=e.target.value; userSearch.dispatchEvent(new Event('input')); }});
+      // Niveles de sangre (O+ -> bajo)
+      function level(type, units) {
+        if (type === "O+") return ["bajo", "Donaciones moderadas necesarias"];
+        if (units <= 10) return ["Crítico", "Donaciones urgentes"];
+        if (units <= 20) return ["Bajo", "Necesidad moderada"];
+        if (units <= 40) return ["Medio", "Reforzar donaciones"];
+        return ["Alto", "Stock adecuado"];
+      }
+      function renderBlood() {
+        const b = dataByCity[city].blood;
+        const rows = [];
+        Object.keys(b).forEach((t) => {
+          const [lvl, estado] = level(t, b[t]);
+          rows.push(
+            `<tr><td>${t}</td><td>${b[t]} Unidades</td><td>${lvl}</td><td>${estado}</td></tr>`
+          );
+        });
+        tblBlood.querySelector("tbody").innerHTML = rows.join("");
+      }
 
-  // Gráficas: actividad + inventario de grupos sanguíneos
-  let cA,cI; function renderCharts(){
-    const weeks=['Mar','Abr','May'];
-    if(cA) cA.destroy(); cA=new Chart(chartActivity,{type:'bar',data:{labels:weeks,datasets:[{label:'Actividad',data:dataByCity[city].activity}]},options:{plugins:{legend:{display:false}}}});
-    if(cI) cI.destroy(); const blood=dataByCity[city].blood; cI=new Chart(chartInventory,{type:'bar',data:{labels:Object.keys(blood),datasets:[{label:'Unidades',data:Object.values(blood)}]},options:{plugins:{legend:{display:false}}}});
-  }
+      // Selectores de ciudad
+      selCity.addEventListener("change", (e) => {
+        city = e.target.value;
+        renderCharts();
+        renderUsers();
+        renderBlood();
+      });
+      selCity2.addEventListener("change", (e) => {
+        city = e.target.value;
+        renderCharts();
+        renderUsers();
+        renderBlood();
+      });
 
-  // Niveles de sangre (O+ -> bajo)
-  function level(type, units){
-    if(type==='O+') return ['bajo','Donaciones moderadas necesarias'];
-    if(units<=10) return ['Crítico','Donaciones urgentes'];
-    if(units<=20) return ['Bajo','Necesidad moderada'];
-    if(units<=40) return ['Medio','Reforzar donaciones'];
-    return ['Alto','Stock adecuado'];
-  }
-  function renderBlood(){
-    const b=dataByCity[city].blood; const rows=[];
-    Object.keys(b).forEach(t=>{ const [lvl,estado]=level(t,b[t]); rows.push(`<tr><td>${t}</td><td>${b[t]} Unidades</td><td>${lvl}</td><td>${estado}</td></tr>`); });
-    tblBlood.querySelector('tbody').innerHTML=rows.join('');
-  }
-
-  // Selectores de ciudad
-  selCity.addEventListener('change',e=>{city=e.target.value; renderCharts(); renderUsers(); renderBlood();});
-  selCity2.addEventListener('change',e=>{city=e.target.value; renderCharts(); renderUsers(); renderBlood();});
-
-  // Init
-  renderCharts();
-  renderUsers();
-  renderBlood();
-</script>
-</body>
+      // Init
+      renderCharts();
+      renderUsers();
+      renderBlood();
+    </script>
+  </body>
 </html>

@@ -7,7 +7,7 @@
 
 body {
   background-color: #fafafa;
-  color: #333;
+  color: #457b9d;
 }
 
 .title-header {
@@ -125,11 +125,11 @@ body {
 .name {
   font-size: 22px;
   font-weight: bold;
-  color: #333;
+  color: #457b9d;
 }
 
 .email {
-  color: #666;
+  color: #457b9d;
   margin-bottom: 15px;
 }
 
@@ -152,7 +152,7 @@ body {
   text-align: center;
   margin-top: 20px;
 }
-/* === CARD DEL NAVEGADOR === */
+
 .profile-nav {
   flex: 1;
   min-width: 300px;
@@ -167,11 +167,10 @@ body {
 
 .nav-card h3 {
   text-align: center;
-  color: #333;
+  color: #457b9d;
   margin-bottom: 15px;
 }
 
-/* === MINI-CARDS DE ÁREAS === */
 .nav-card-grid {
   display: flex;
   flex-direction: column;
@@ -264,7 +263,7 @@ body {
 
 .donations-card h2 {
   font-size: 25px;
-  color: #1c154a;
+  color: #457b9d;
   margin: auto;
   text-align: center;
 }
@@ -299,7 +298,7 @@ font-style: italic;
 }
 .donation-item .date {
   font-weight: bold;
-  color: #333;
+  color: #457b9d;
 }
 
 /* NOTIFICACIONES */
@@ -354,7 +353,7 @@ padding: 12px 15px;
 }
 
 .centers-card h2 {
-  color: #333;
+  color: #457b9d;
 }
 
 /* Botones de centros */
@@ -424,13 +423,13 @@ margin: 30px auto  ;
 
 .user-card h2 {
   text-align: center;
-  color: #1c154a;
+  color: #457b9d;
   margin-bottom: 15px;
 }
 
 .user-info p {
   font-size: 15px;
-  color: #333;
+  color: #457b9d;
   margin: 6px 0;
 }
 
@@ -445,7 +444,7 @@ margin: 30px auto  ;
 .user-form label {
   font-weight: 600;
   font-size: 14px;
-  color: #222;
+  color: #457b9d;
 }
 
 .user-form input {

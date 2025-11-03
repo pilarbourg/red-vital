@@ -7,65 +7,7 @@
 
 body {
   background-color: #f5f7fa;
-  color: #333;
-}
-
-.title-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-  background-color: #d53a3a;
-  color: #fff;
-  padding: 10px 15px;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-}
-
-.title-header h4 {
-  font-weight: 500;
-}
-
-.title-header span {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
-.title-header h4 {
-  position: relative;
-  display: inline-block;
-  text-decoration: none;
-  color: #f8f9fa;
-  padding: 2px 10px;
-  background-color: #e35d5d;
-  border-radius: 3rem;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 40px;
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.icon-title-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
   color: #457b9d;
-}
-
-.icon-title-header img {
-  height: 35px;
-  background-color: #457b9d49;
-  border-radius: 50%;
-  padding: 2px;
 }
 
 .logo img:hover {
@@ -95,7 +37,7 @@ body {
   justify-content: center;
   align-items: center;
   text-decoration: none;
-  background-color: #1d3557;
+  background-color: #457b9d;
   border: none;
   border-radius: 1rem;
   font-weight: 600;
@@ -121,7 +63,7 @@ body {
   background-color: #e8eef4;
   border-radius: 1rem;
   font-weight: 600;
-  color: #1d3557;
+  color: #457b9d;
   font-size: 1.1rem;
   height: 180px;
   padding: 3rem 1rem;
@@ -152,7 +94,7 @@ body {
   padding: 3rem 1rem;
   border-radius: 1rem;
   font-weight: 600;
-  color: #1d3557;
+  color: #457b9d;
   transition: all 0.25s ease;
   cursor: pointer;
   font-size: 1.1rem;
@@ -192,7 +134,7 @@ body {
 }
 
 .blood-request h2 {
-  color: #1d3557;
+  color: #457b9d;
   font-size: 1.8rem;
   font-weight: 700;
 }
@@ -217,7 +159,7 @@ body {
   display: flex;
   flex-direction: column;
   font-weight: 500;
-  color: #333;
+  color: #457b9d;
   gap: 0.4rem;
 }
 
@@ -261,7 +203,7 @@ body {
 
 .send-left h2 {
   font-size: 1.5rem;
-  color: #1d3557;
+  color: #457b9d;
   margin: 0;
 }
 
@@ -292,7 +234,7 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   font-weight: 500;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 .donor-search-form input,
@@ -309,7 +251,7 @@ body {
   border: none;
   border-radius: 1rem;
   font-weight: 600;
-  color: #1d3557;
+  color: #457b9d;
   font-size: 1rem;
   padding: 0.9rem 2rem;
   cursor: pointer;
@@ -335,12 +277,12 @@ body {
 
 .donor-results th {
   background-color: #f1f5f9;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 .message-box label {
   font-weight: 600;
-  color: #1d3557;
+  color: #457b9d;
   margin-bottom: 1.2rem;
 }
 
@@ -360,7 +302,7 @@ body {
 }
 
 .donor-search h2 {
-  color: #1d3557;
+  color: #457b9d;
   margin-bottom: 1.2rem;
 }
 
@@ -369,7 +311,7 @@ body {
   flex-direction: column;
   gap: 0.5rem; 
   font-weight: 500;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 .donor-search .filters {
@@ -417,7 +359,7 @@ table {
 
 thead {
   background-color: #e8eef4;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 th,
@@ -445,7 +387,7 @@ tbody tr:hover {
 .update-application-status h2,
 .register-donations-results h2,
 .hospital-statistics h2 {
-  color: #1d3557;
+  color: #457b9d;
   margin-bottom: 1.5rem;
 }
 
@@ -514,7 +456,7 @@ tbody tr:hover {
   flex-direction: column;
   gap: 1rem;
   padding-right: 0.5rem;
-  color: #1d3557;
+  color: #457b9d;
   font-weight: 400;
 }
 
@@ -559,7 +501,7 @@ tbody tr:hover {
 
 .hospital-statistics thead {
   background-color: #e8eef4;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 .hospital-statistics tbody tr:hover {
@@ -651,7 +593,7 @@ tbody tr:hover {
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.7rem;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 .stat-circle, .progress-circle {
@@ -693,7 +635,7 @@ tbody tr:hover {
 .stat-number span {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1d3557;
+  color: #457b9d;
 }
 
 .estado-select {

@@ -1,126 +1,197 @@
-:root{
-  --ink:#1d3557;         /* texto principal */
-  --muted:#5b7083;       /* texto secundario */
-  --line:#e6e8ec;        /* borde suave */
-  --card:#ffffff;        /* fondo de tarjetas */
-  --pill:#ecf2f9;        /* badge */
+:root {
+  --ink: #457b9d;
+  --muted: #457b9d;
+  --line: #e6e8ec;
+  --card: #ffffff;
+  --pill: #ecf2f9;
 }
 
-/* contenedor principal (igual ancho que el resto del sitio) */
-.appt-wrap{max-width:1100px;margin:28px auto;padding:0 16px}
-
-/* hero con imagen (rectángulo superior del wireframe) */
-.appt-hero img{
-  width:100%; height:38vh; object-fit:cover; display:block;
-  filter:grayscale(10%);
-  border:0;
+.appt-wrap {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px;
 }
 
-/* grid: formulario izquierda + horario derecha */
-.appt-grid{
-  display:grid; grid-template-columns:1.1fr .9fr; gap:24px;
-}
-@media (max-width:960px){
-  .appt-grid{ grid-template-columns:1fr; }
+.appt-hero img {
+  width: 100%;
+  height: 38vh;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(10%);
+  border: 0;
 }
 
-/* tarjeta blanca reutilizable */
-.appt-card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:18px;
-  box-shadow:0 6px 16px rgba(0,0,0,.05);
+.appt-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
 }
-.appt-card h2{ margin:0 0 10px; color:var(--ink); }
-.appt-lead{ color:var(--muted); margin:0 0 14px; }
 
-/* formulario en 2 columnas */
-.appt-form{
-  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+@media (max-width: 960px) {
+  .appt-grid {
+    grid-template-columns: 1fr;
+  }
 }
-.appt-form label{ display:grid; gap:6px; font-size:13px; color:var(--muted); }
+
+.appt-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.appt-card h2 {
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+
+.appt-lead {
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+.appt-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.appt-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .appt-form input,
 .appt-form select,
-.appt-form textarea{
-  padding:10px 12px;
-  border:1px solid var(--line);
-  border-radius:10px;
-  background:#fff;
-  outline:none;
-}
-.appt-form .full{ grid-column:1/-1; }
-
-/* botón principal rojo como en tu index */
-.appt-primary{
-  background:#d53a3a; color:#fff; border:0;
-  padding:12px 14px; border-radius:10px; font-weight:700; cursor:pointer;
-  transition:filter .15s ease;
-}
-.appt-primary:hover{ filter:brightness(1.06); }
-
-/* mensaje de feedback verde */
-.appt-feedback{
-  margin-top:8px;
-  color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0;
-  padding:8px 10px; border-radius:10px; display:inline-block;
+.appt-form textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
 }
 
-/* columna derecha: lista de citas */
-.appt-schedule{ min-height:220px; }
-.appt-slotlist{ list-style:none; margin:0; padding:0; }
-.appt-slot{
-  background:#fafbfc; border:1px solid var(--line);
-  border-radius:12px; padding:12px; margin-bottom:10px;
-}
-.appt-slot-main{
-  display:flex; align-items:center; gap:10px; margin-bottom:4px;
-}
-.appt-badge{
-  background:var(--pill); color:#457b9d;
-  border:1px solid #d4e2f2;
-  border-radius:999px; padding:2px 8px; font-size:12px;
-}
-.appt-slot-sub{ color:var(--muted); font-size:.95rem; margin-bottom:8px; }
-
-/* acciones de cada cita */
-.appt-actions button{
-  margin-right:6px;
-  padding:8px 10px;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:#fff;
-  cursor:pointer;
-}
-.appt-actions button:hover{ background:#f2f5f8; }
-
-.appt-empty{ color:var(--muted); margin:8px 0; }
-
-/* banner grande inferior (otro bloque de imagen) */
-.appt-banner{ max-width:1100px; margin:28px auto; padding:0 16px; }
-.appt-banner img{
-  width:100%; height:220px; object-fit:cover; display:block;
-  border-radius:14px; filter:grayscale(20%);
+.appt-form .full {
+  grid-column: 1/-1;
 }
 
-/* responsive: formulario en 1 columna en móviles */
-@media (max-width:720px){
-  .appt-form{ grid-template-columns:1fr; }
+.appt-primary {
+  background: #d53a3a;
+  color: #fff;
+  border: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.appt-primary:hover {
+  filter: brightness(1.06);
 }
 
-/* Evitar que el header sticky tape el ancla #cita al llegar */
-#cita{
-  /* ajusta si tu header mide más/menos */
+.appt-feedback {
+  margin-top: 8px;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.appt-schedule {
+  min-height: 220px;
+}
+
+.appt-slotlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.appt-slot {
+  background: #fafbfc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.appt-slot-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.appt-badge {
+  background: var(--pill);
+  color: #457b9d;
+  border: 1px solid #d4e2f2;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.appt-slot-sub {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.appt-actions button {
+  margin-right: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.appt-actions button:hover {
+  background: #f2f5f8;
+}
+
+.appt-empty {
+  color: var(--muted);
+  margin: 8px 0;
+}
+
+.appt-banner {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px;
+}
+.appt-banner img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+  filter: grayscale(20%);
+}
+
+@media (max-width: 720px) {
+  .appt-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+#cita {
   scroll-margin-top: 90px;
 }
 
-/* Clase utilitaria para mostrar/ocultar feedback con JS */
-.hidden{ 
-  display: none !important; 
+.hidden {
+  display: none !important;
 }
 
-/* Estado de disponibilidad */
-.appt-slot.is-booked { opacity: .65; }
+.appt-slot.is-booked {
+  opacity: 0.65;
+}
+
 .tag.tag-booked {
   display: inline-block;
   padding: 6px 10px;
@@ -131,19 +202,23 @@
   font-size: 0.85rem;
 }
 
-/* Cuando el usuario elige una franja */
 .appt-slot.picked {
-  outline: 3px solid rgba(213,58,58,.25);
+  outline: 3px solid rgba(213, 58, 58, 0.25);
   background: #fff;
 }
 
-/* Efecto visual al aterrizar desde #cita (flash suave) */
-.flash{ 
-  animation: flashFocus 1.4s ease 1; 
-}
-@keyframes flashFocus{
-  0%   { box-shadow: 0 0 0 0 rgba(213,58,58,0); }
-  30%  { box-shadow: 0 0 0 8px rgba(213,58,58,.25); }
-  100% { box-shadow: 0 0 0 0 rgba(213,58,58,0); }
+.flash {
+  animation: flashFocus 1.4s ease 1;
 }
 
+@keyframes flashFocus {
+  0% {
+    box-shadow: 0 0 0 0 rgba(213, 58, 58, 0);
+  }
+  30% {
+    box-shadow: 0 0 0 8px rgba(213, 58, 58, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(213, 58, 58, 0);
+  }
+}
