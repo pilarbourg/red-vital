@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RedVital | Pedir cita</title>
-    <!-- Estilo global del header y el footer -->
     <link rel="stylesheet" href="../css/index.css" />
-    <!-- Estilo específico de la página de citas -->
     <link rel="stylesheet" href="../css/appointments.css" />
   </head>
   <body>
@@ -41,10 +39,8 @@
       />
     </section>
 
-    <!-- Contenido principal: formulario + disponibilidad -->
     <main class="appt-wrap">
       <section class="appt-grid">
-        <!-- Columna izquierda: Pedir Cita -->
         <section class="appt-card">
           <h2>Pedir Cita</h2>
           <p class="appt-lead">
@@ -111,17 +107,14 @@
           </p>
         </section>
 
-        <!-- Columna derecha: Disponibilidad (no lista de pacientes) -->
         <aside class="appt-card appt-schedule">
           <h2 id="scheduleTitle">Horario</h2>
           <ul id="slots" class="appt-slotlist">
-            <!-- render JS -->
           </ul>
         </aside>
       </section>
     </main>
 
-    <!-- Banda de imagen -->
     <section class="appt-banner">
       <img src="../assets/images/logo_RedVital.png" alt="RedVital" />
     </section>
@@ -142,179 +135,154 @@
         </div>
       </div>
     </footer>
-
+    
     <script>
-      // ====== Datos base (sin backend) ======
-      const KEY = "appointments";
-      const load = () => JSON.parse(localStorage.getItem(KEY) || "[]");
-      const save = (v) => localStorage.setItem(KEY, JSON.stringify(v));
+      document.addEventListener('DOMContentLoaded', () => {
+        const form     = document.getElementById('apptForm');
+        const feedback = document.getElementById('feedback');
+        const slotsEl  = document.getElementById('slots');
 
-      // Doctores por departamento (rotamos en las franjas)
-      const DOCTORS = {
-        "Banco de Sangre": ["Dra. Ruiz", "Dr. López"],
-        Hematología: ["Dr. Pérez", "Dra. Martín"],
-        General: ["Dr. García", "Dra. Alba"],
-      };
+        let citas = [];   // aquí guardamos lo que venga de la API
 
-      // Franjas base del día
-      const BASE_TIMES = [
-        "09:00",
-        "09:30",
-        "10:00",
-        "10:30",
-        "11:00",
-        "11:30",
-        "12:00",
-        "12:30",
-        "16:00",
-        "16:30",
-      ];
-
-      // Semilla de ejemplo SOLO si no hay datos
-      if (load().length === 0) {
-        save([
-          {
-            name: "Ana",
-            email: "ana@example.com",
-            date: "2025-11-05",
-            time: "10:00",
-            doctor: "Dra. Ruiz",
-            dept: "Banco de Sangre",
-          },
-          {
-            name: "Luis",
-            email: "luis@example.com",
-            date: "2025-11-08",
-            time: "12:30",
-            doctor: "Dr. Pérez",
-            dept: "Hematología",
-          },
-        ]);
-      }
-
-      // ====== Referencias DOM ======
-      const form = document.getElementById("apptForm");
-      const fb = document.getElementById("feedback");
-      const slotsEl = document.getElementById("slots");
-      const titleEl = document.getElementById("scheduleTitle");
-      const dateEl = document.getElementById("date");
-      const deptEl = document.getElementById("dept");
-      const timeEl = document.getElementById("time");
-      const docEl = document.getElementById("doctor");
-
-      // Último listado de franjas mostradas (para saber qué eligió)
-      let currentSlots = [];
-
-      // Genera disponibilidad para una fecha+depto verificando reservas existentes
-      function buildSchedule(date, dept) {
-        const appts = load().filter((a) => a.date === date && a.dept === dept);
-        return BASE_TIMES.map((t, i) => {
-          const doctor = DOCTORS[dept][i % DOCTORS[dept].length];
-          const booked = appts.some((a) => a.time === t && a.doctor === doctor);
-          return { time: t, doctor, booked };
-        });
-      }
-
-      // Pinta la disponibilidad
-      function renderAvailability() {
-        const date = dateEl.value;
-        const dept = deptEl.value;
-
-        if (!date || !dept) {
-          titleEl.textContent = "Horario";
-          slotsEl.innerHTML =
-            "<p class='appt-empty'>Elige fecha y departamento para ver disponibilidad…</p>";
-          currentSlots = [];
-          return;
+        // ---- 1. Cargar citas desde el backend ----
+        async function loadCitas() {
+          try {
+            const res = await fetch('/api/citas');
+            if (!res.ok) throw new Error('Error al cargar citas');
+            citas = await res.json();
+            render();
+          } catch (err) {
+            console.error(err);
+            slotsEl.innerHTML = "<p class='appt-empty'>Error al cargar citas.</p>";
+          }
         }
 
-        titleEl.textContent = `Horario ${date} · ${dept}`;
-        const slots = buildSchedule(date, dept);
-        currentSlots = slots;
+        // ---- 2. Pintar la lista de citas ----
+        function render() {
+          if (!citas.length) {
+            slotsEl.innerHTML = "<p class='appt-empty'>No hay citas.</p>";
+            return;
+          }
 
-        const html = slots
-          .map(
-            (s, idx) => `
-          <li class="appt-slot ${s.booked ? "is-booked" : "is-free"}">
-            <div class="appt-slot-main">
-              <strong>${s.time}</strong>
-              <span class="appt-badge">${s.doctor}</span>
-            </div>
-            <div class="appt-actions">
-              ${
-                s.booked
-                  ? '<span class="tag tag-booked">Reservado</span>'
-                  : `<button data-act="pick" data-i="${idx}">Elegir</button>`
+          const sorted = [...citas].sort((a, b) =>
+            (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || ''))
+          );
+
+          const html = sorted
+            .map(c => `
+              <li class="appt-slot">
+                <div class="appt-slot-main">
+                  <strong>${c.fecha}</strong> · ${c.hora || '—'}
+                  <span class="appt-badge">${c.departamento || 'General'}</span>
+                </div>
+                <div class="appt-slot-sub">
+                  Doctor: ${c.doctor || 'Por asignar'}
+                  · <em>${c.status || 'PENDIENTE'}</em>
+                </div>
+                <div class="appt-actions">
+                  <button data-act="done"    data-id="${c.id}">Completada</button>
+                  <button data-act="resched" data-id="${c.id}">Reprogramar</button>
+                  <button data-act="cancel"  data-id="${c.id}">Cancelar</button>
+                </div>
+              </li>
+            `)
+            .join('');
+
+          slotsEl.innerHTML = html;
+        }
+
+        // ---- 3. Enviar formulario → crear cita en la BD ----
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const v = (id) => document.getElementById(id).value.trim();
+
+          if (!v('name') || !v('email') || !v('date') || !v('time')) {
+            alert('Completa nombre, email, fecha y hora.');
+            return;
+          }
+
+          // Mientras no hay login, usamos IDs fijos:
+          const donante_id  = 1;
+          const hospital_id = 1;
+
+          const body = {
+            donante_id,
+            hospital_id,
+            fecha:        v('date'),
+            hora:         v('time'),
+            doctor:       v('doctor'),
+            departamento: v('dept'),
+            mensaje:      v('msg'),
+          };
+
+          try {
+            const res = await fetch('/api/citas', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+            });
+
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error || 'Error al crear cita');
+            }
+
+            form.reset();
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 2500);
+
+            await loadCitas();
+          } catch (err) {
+            console.error(err);
+            alert('No se ha podido crear la cita.');
+          }
+        });
+
+        // ---- 4. Botones de cada cita: completar / reprogramar / cancelar ----
+        slotsEl.addEventListener('click', async (e) => {
+          const btn = e.target.closest('button[data-act]');
+          if (!btn) return;
+
+          const id  = btn.dataset.id;
+          const act = btn.dataset.act;
+
+          try {
+            if (act === 'cancel') {
+              await fetch(`/api/citas/${id}`, { method: 'DELETE' });
+            }
+
+            if (act === 'done') {
+              await fetch(`/api/citas/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'CONFIRMADA' }),
+              });
+            }
+
+            if (act === 'resched') {
+              const current = citas.find(c => String(c.id) === String(id));
+              const nf = prompt('Nueva fecha (YYYY-MM-DD):', current?.fecha || '');
+              const nh = prompt('Nueva hora (HH:MM):', current?.hora || '');
+              if (nf && nh) {
+                await fetch(`/api/citas/${id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ fecha: nf, hora: nh, status: 'PENDIENTE' }),
+                });
               }
-            </div>
-          </li>
-        `
-          )
-          .join("");
+            }
 
-        slotsEl.innerHTML =
-          html || "<p class='appt-empty'>Sin franjas para ese día.</p>";
-      }
-
-      // Elegir franja: auto-rellena hora y doctor
-      slotsEl.addEventListener("click", (e) => {
-        const btn = e.target.closest("button[data-act='pick']");
-        if (!btn) return;
-        const idx = +btn.dataset.i;
-        const s = currentSlots[idx];
-        if (!s || s.booked) return;
-
-        timeEl.value = s.time;
-        docEl.value = s.doctor;
-
-        // Feedback visual en la lista
-        [...slotsEl.querySelectorAll(".appt-slot")].forEach((li) =>
-          li.classList.remove("picked")
-        );
-        btn.closest(".appt-slot").classList.add("picked");
-      });
-
-      // Cambios de fecha/departamento → refrescar disponibilidad
-      dateEl.addEventListener("change", renderAvailability);
-      deptEl.addEventListener("change", renderAvailability);
-
-      // Enviar cita → guardar + refrescar disponibilidad
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const v = (id) => document.getElementById(id).value.trim();
-
-        if (!v("name") || !v("email") || !v("date") || !v("time")) {
-          alert("Completa nombre, email, fecha y hora.");
-          return;
-        }
-
-        const list = load();
-        list.push({
-          name: v("name"),
-          gender: v("gender"),
-          email: v("email"),
-          phone: v("phone"),
-          date: v("date"),
-          time: v("time"),
-          doctor: v("doctor"),
-          dept: v("dept"),
-          msg: v("msg"),
+            await loadCitas();
+          } catch (err) {
+            console.error(err);
+            alert('No se ha podido actualizar la cita.');
+          }
         });
-        save(list);
 
-        fb.classList.remove("hidden");
-        setTimeout(() => fb.classList.add("hidden"), 1800);
-
-        form.reset();
-        // Mantener fecha/depto para que el usuario vea cómo se bloquea la franja
-        dateEl.value = "";
-        deptEl.value = "Banco de Sangre";
-
-        renderAvailability();
+        // ---- 5. Primera carga ----
+        loadCitas();
       });
-
-      // Primer render
-      renderAvailability();
     </script>
   </body>
 </html>
