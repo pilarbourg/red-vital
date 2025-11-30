@@ -21,6 +21,7 @@ const Hospital         = require('./models/hospital')(sequelize);
 const InventarioSangre = require('./models/inventarioSangre')(sequelize);
 const Solicitud        = require('./models/solicitud')(sequelize);
 const Admin            = require('./models/admin')(sequelize);
+const Doctor            = require('./models/doctor')(sequelize);
 
 // Usuario 1–1 Donante
 Usuario.hasOne(Donante, { foreignKey: 'usuario_id' });
@@ -70,6 +71,10 @@ Solicitud.belongsTo(Hospital, { foreignKey: 'hospital_id' });
 Hospital.hasMany(InventarioSangre, { foreignKey: 'hospital_id' });
 InventarioSangre.belongsTo(Hospital, { foreignKey: 'hospital_id' });
 
+// Hospital n–1 Doctor
+Hospital.hasMany(Doctor, { foreignKey: 'hospital_id' });
+Doctor.belongsTo(Hospital, { foreignKey: 'hospital_id' });
+
 module.exports = {
   sequelize,
   Usuario,
@@ -82,4 +87,5 @@ module.exports = {
   InventarioSangre,
   Solicitud,
   Admin,
+  Doctor,
 };

@@ -1,7 +1,20 @@
 const express = require('express');
-const { Cita } = require('../db');
+const { Cita, Donante, Hospital } = require('../db');
 
 const router = express.Router();
+
+function calcularEdad(fechaISO) {
+  const hoy = new Date();
+  const fn = new Date(fechaISO);
+  let edad = hoy.getFullYear() - fn.getFullYear();
+  const mes = hoy.getMonth() - fn.getMonth();
+
+  if (mes < 0 || (mes === 0 && hoy.getDate() < fn.getDate())) {
+    edad--;
+  }
+  return edad;
+}
+
 
 // Obtener todas las citas (con filtros opcionales)
 router.get('/citas', async (req, res) => {
@@ -63,38 +76,107 @@ router.get('/hospitales/:id/citas', async (req, res) => {
 router.post('/citas', async (req, res) => {
   try {
     const {
-        donante_id,
-        hospital_id,
-        fecha,
-        hora,
-        departamento,
-        mensaje,
-        doctor,
+      donante_id,          // opcional: si viene, es donante registrado
+      es_invitado,         // booleano
+      nombre_donante,
+      email_donante,
+      telefono_donante,
+      genero_donante,      // debe ser uno de: 'MASCULINO','FEMENINO','OTRO','PREFIERO_NO_DECIRLO'
+      dob_donante,         // fecha nacimiento en formato YYYY-MM-DD
+
+      hospital_id,
+      fecha,               // fecha de la cita
+      hora,
+      departamento,
+      mensaje,
+      doctor,
     } = req.body;
 
-
-    if (!donante_id || !hospital_id || !fecha || !departamento) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    // Validaciones comunes
+    if (!hospital_id || !fecha || !departamento) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios de la cita' });
     }
 
-    const cita = await Cita.create({ 
-        donante_id,
-        hospital_id,
-        fecha,
-        hora,
-        departamento,
-        mensaje,
-        doctor,
-        status: 'PENDIENTE',
-    });
+    if (donante_id && es_invitado) {
+      return res.status(400).json({
+        error: 'Una cita no puede ser a la vez de donante registrado e invitado',
+      });
+    }
 
+    // Objeto base que iremos rellenando
+    const dataCita = {
+      hospital_id,
+      fecha,
+      hora,
+      departamento,
+      mensaje,
+      doctor,
+      status: 'PENDIENTE',
+    };
 
+    //CASO 1: donante registrado (con login)
+    if (donante_id) {
+      const donante = await Donante.findByPk(donante_id);
+      if (!donante) {
+        return res.status(400).json({ error: 'Donante no encontrado' });
+      }
+      
+      const dob = donante.dob;
+      if (!dob) {
+        return res.status(400).json({ error: 'El donante no tiene fecha de nacimiento registrada' });
+      }
+
+      const edad = calcularEdad(dob);
+      if (edad < 18) {
+        return res.status(400).json({ error: 'El donante debe ser mayor de 18 años' });
+      }
+
+      dataCita.donante_id    = donante_id;
+      dataCita.es_invitado   = false;
+      dataCita.nombre_donante   = `${donante.nombre} ${donante.apellidos || ''}`.trim();
+      dataCita.email_donante    = donante.email;
+      dataCita.telefono_donante = donante.telefono || null;
+      dataCita.genero_donante   = donante.genero || null; // asegúrate que coincide con el ENUM
+      dataCita.dob_donante      = dob;
+
+    // 👤 CASO 2: invitado (sin login)
+    } else {
+      if (!es_invitado) {
+        return res.status(400).json({
+          error: 'Si no hay donante_id, es_invitado debe ser true',
+        });
+      }
+
+      if (!nombre_donante || !email_donante || !dob_donante) {
+        return res.status(400).json({
+          error: 'Faltan datos del invitado: nombre, email o fecha de nacimiento',
+        });
+      }
+
+      const edad = calcularEdad(dob_donante);
+      if (edad < 18) {
+        return res.status(400).json({ error: 'El invitado debe ser mayor de 18 años' });
+      }
+
+      dataCita.donante_id       = null;
+      dataCita.es_invitado      = true;
+      dataCita.nombre_donante   = nombre_donante;
+      dataCita.email_donante    = email_donante;
+      dataCita.telefono_donante = telefono_donante || null;
+      dataCita.genero_donante   = genero_donante || null;
+      dataCita.dob_donante      = dob_donante;
+    }
+
+    const cita = await Cita.create(dataCita);
     res.status(201).json(cita);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error creando cita' });
   }
 });
+
+
 
 // Actualizar una cita (estado, fecha/hora, mensaje)
 router.patch('/citas/:id', async (req, res) => {

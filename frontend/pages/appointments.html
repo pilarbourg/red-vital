@@ -44,24 +44,39 @@
         <section class="appt-card">
           <h2>Pedir Cita</h2>
           <p class="appt-lead">
-            Selecciona fecha y departamento para ver la disponibilidad del día.
-            Elige una franja para auto-rellenar hora y doctor.
+            Elige cómo quieres pedir tu cita y después selecciona fecha, hora, 
+            hospital y médico disponible.
           </p>
+          
+          <div class="appt-modes">
+            <button type="button" class="appt-mode-btn" data-mode="registered">
+              Soy donante registrado
+            </button>
+            <button type="button" class="appt-mode-btn appt-mode-btn--primary" data-mode="guest">
+              Pedir cita sin registrarme
+            </button>
+            <button type="button" class="appt-mode-btn" data-mode="register">
+              Registrarme como donante
+            </button>
+          </div>
+          <p id="modeHint" class="appt-mode-hint hidden"></p>
 
-          <form id="apptForm" class="appt-form">
-            <label>
+          <form id="apptForm" class="appt-form hidden">
+            <label class="field-identity">
               Nombre y Apellidos
               <input id="name" placeholder="Tu nombre completo" required />
             </label>
             <label>
               Género
               <select id="gender">
-                <option>F</option>
-                <option>M</option>
-                <option>Otro</option>
+                <option value="">(Selecciona)</option>
+                <option value="FEMENINO">Femenino</option>
+                <option value="MASCULINO">Masculino</option>
+                <option value="OTRO">Otro</option>
+                <option value="PREFIERO_NO_DECIRLO">Prefiero no decirlo</option>
               </select>
             </label>
-            <label>
+            <label class="field-identity">
               Email
               <input
                 id="email"
@@ -70,10 +85,15 @@
                 required
               />
             </label>
-            <label>
+            <label class="field-identity">
               Teléfono
               <input id="phone" placeholder="+34 600 000 000" />
             </label>
+            <label class="field-identity">
+              Fecha de nacimiento
+              <input id="dob" type="date" />
+            </label>
+
             <label>
               Fecha
               <input id="date" type="date" required />
@@ -82,24 +102,36 @@
               Hora
               <input id="time" type="time" required />
             </label>
+
             <label>
-              Doctor
-              <input id="doctor" placeholder="Dr./Dra." />
+              Hospital
+              <select id="hospital">
+                <option value="">(Cualquiera disponible)</option>
+              </select>
             </label>
+            <label>
+              Médico
+              <select id="doctorSelect" required>
+                <option value="">Selecciona un médico</option>
+              </select>
+            </label>
+
+            
             <label>
               Departamento
               <select id="dept">
-                <option>Banco de Sangre</option>
-                <option>Hematología</option>
-                <option>General</option>
+                <option value="BANCO_SANGRE">Banco de Sangre</option>
+                <option value="HEMATOLOGIA">Hematología</option>
+                <option value="GENERAL">General</option>
               </select>
             </label>
+
             <label class="full">
               Comentarios
               <textarea id="msg" rows="3" placeholder="Comentarios…"></textarea>
             </label>
 
-            <button class="appt-primary full">SUBMIT</button>
+            <button class="appt-primary full">Enviar cita</button>
           </form>
 
           <p id="feedback" class="appt-feedback hidden">
@@ -136,153 +168,7 @@
       </div>
     </footer>
     
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const form     = document.getElementById('apptForm');
-        const feedback = document.getElementById('feedback');
-        const slotsEl  = document.getElementById('slots');
+    <script src="../js/appointments.js"></script>
 
-        let citas = [];   // aquí guardamos lo que venga de la API
-
-        // ---- 1. Cargar citas desde el backend ----
-        async function loadCitas() {
-          try {
-            const res = await fetch('/api/citas');
-            if (!res.ok) throw new Error('Error al cargar citas');
-            citas = await res.json();
-            render();
-          } catch (err) {
-            console.error(err);
-            slotsEl.innerHTML = "<p class='appt-empty'>Error al cargar citas.</p>";
-          }
-        }
-
-        // ---- 2. Pintar la lista de citas ----
-        function render() {
-          if (!citas.length) {
-            slotsEl.innerHTML = "<p class='appt-empty'>No hay citas.</p>";
-            return;
-          }
-
-          const sorted = [...citas].sort((a, b) =>
-            (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || ''))
-          );
-
-          const html = sorted
-            .map(c => `
-              <li class="appt-slot">
-                <div class="appt-slot-main">
-                  <strong>${c.fecha}</strong> · ${c.hora || '—'}
-                  <span class="appt-badge">${c.departamento || 'General'}</span>
-                </div>
-                <div class="appt-slot-sub">
-                  Doctor: ${c.doctor || 'Por asignar'}
-                  · <em>${c.status || 'PENDIENTE'}</em>
-                </div>
-                <div class="appt-actions">
-                  <button data-act="done"    data-id="${c.id}">Completada</button>
-                  <button data-act="resched" data-id="${c.id}">Reprogramar</button>
-                  <button data-act="cancel"  data-id="${c.id}">Cancelar</button>
-                </div>
-              </li>
-            `)
-            .join('');
-
-          slotsEl.innerHTML = html;
-        }
-
-        // ---- 3. Enviar formulario → crear cita en la BD ----
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-
-          const v = (id) => document.getElementById(id).value.trim();
-
-          if (!v('name') || !v('email') || !v('date') || !v('time')) {
-            alert('Completa nombre, email, fecha y hora.');
-            return;
-          }
-
-          // Mientras no hay login, usamos IDs fijos:
-          const donante_id  = 1;
-          const hospital_id = 1;
-
-          const body = {
-            donante_id,
-            hospital_id,
-            fecha:        v('date'),
-            hora:         v('time'),
-            doctor:       v('doctor'),
-            departamento: v('dept'),
-            mensaje:      v('msg'),
-          };
-
-          try {
-            const res = await fetch('/api/citas', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body),
-            });
-
-            if (!res.ok) {
-              const err = await res.json().catch(() => ({}));
-              throw new Error(err.error || 'Error al crear cita');
-            }
-
-            form.reset();
-            feedback.classList.remove('hidden');
-            setTimeout(() => feedback.classList.add('hidden'), 2500);
-
-            await loadCitas();
-          } catch (err) {
-            console.error(err);
-            alert('No se ha podido crear la cita.');
-          }
-        });
-
-        // ---- 4. Botones de cada cita: completar / reprogramar / cancelar ----
-        slotsEl.addEventListener('click', async (e) => {
-          const btn = e.target.closest('button[data-act]');
-          if (!btn) return;
-
-          const id  = btn.dataset.id;
-          const act = btn.dataset.act;
-
-          try {
-            if (act === 'cancel') {
-              await fetch(`/api/citas/${id}`, { method: 'DELETE' });
-            }
-
-            if (act === 'done') {
-              await fetch(`/api/citas/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'CONFIRMADA' }),
-              });
-            }
-
-            if (act === 'resched') {
-              const current = citas.find(c => String(c.id) === String(id));
-              const nf = prompt('Nueva fecha (YYYY-MM-DD):', current?.fecha || '');
-              const nh = prompt('Nueva hora (HH:MM):', current?.hora || '');
-              if (nf && nh) {
-                await fetch(`/api/citas/${id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ fecha: nf, hora: nh, status: 'PENDIENTE' }),
-                });
-              }
-            }
-
-            await loadCitas();
-          } catch (err) {
-            console.error(err);
-            alert('No se ha podido actualizar la cita.');
-          }
-        });
-
-        // ---- 5. Primera carga ----
-        loadCitas();
-      });
-    </script>
   </body>
 </html>

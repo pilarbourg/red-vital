@@ -222,3 +222,45 @@
     box-shadow: 0 0 0 0 rgba(213, 58, 58, 0);
   }
 }
+
+.appt-modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.appt-mode-btn {
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  background: #f9fafb;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.appt-mode-btn--primary {
+  background: #d53a3a;
+  border-color: #d53a3a;
+  color: #fff;
+}
+
+.appt-mode-btn.is-active {
+  box-shadow: 0 0 0 2px rgba(213, 58, 58, 0.25);
+}
+
+.appt-mode-hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.field-identity input:disabled,
+.field-identity select:disabled {
+  background-color: #f9fafb;
+  color: #94a3b8;
+}
+
