@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { sequelize } = require('./db'); 
+const { sequelize, Admin, Cita, Disponibilidad, Doctor, Donacion, Donante, Hospital, InventarioSangre, Notificacion, Solicitud, Usuario } = require('./db'); 
 
 const app = express();
 const PORT = 3000;
@@ -30,23 +30,51 @@ const donantesRouter = require('./routes/donantes');
 //app.use('/api', donantesRouter);
 //const authRouter = require('./routes/auth');
 //app.use('/api', authRouter);
-//const hospitalesRouter = require('./routes/hospitales');
-//app.use('/api', hospitalesRouter);
+const hospitalesRouter = require('./routes/hospitales');
+app.use('/api', hospitalesRouter);
 const doctoresRouter = require('./routes/doctores');
 app.use('/api', doctoresRouter);
 
+//creamos datos en la tabla hospital
+async function seedInitialData() {
+  const hospitalCount = await Hospital.count();
+  if (hospitalCount === 0) {
+    await Hospital.bulkCreate([
+      {
+        nombre: 'Hospital Central',
+        direccion: 'C/ Principal 1',
+        ciudad: 'Madrid',
+        usuario_id: null, 
+      },
+      {
+        nombre: 'Clínica Norte',
+        direccion: 'Av. Norte 12',
+        ciudad: 'Madrid',
+        usuario_id: null,
+      },
+    ]);
+    console.log('Semilla: hospitales de prueba creados');
+  } else {
+    console.log('Semilla: ya hay ${hospitalCount} hospitales, no se crean nuevos');
+  }
+}
 
 
 // Sincronizar la BD y luego arrancar el servidor
 sequelize.sync({ alter: true })
-  .then(() => {
+  .then(async () => {
     console.log('Base de datos sincronizada');
+
+    // Crear datos iniciales (hospitales de prueba)
+    await seedInitialData();
+
     app.listen(PORT, () => {
       console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
     console.error('Error al sincronizar la base de datos:', error);
-});
+  });
+
 
 module.exports = app;
