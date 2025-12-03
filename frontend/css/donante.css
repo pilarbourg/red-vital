@@ -108,10 +108,22 @@ body {
 }
 
 .profile-header {
-    margin: 50px;
-  text-align: left;
-  margin-bottom: 20px;
+   display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 30px;
+  background: #e3eafc;
+  border-radius: 20px;
+  margin-bottom: 25px;
+  align-items: flex-start;
 }
+.profile-header h2 {
+  text-align: center;
+  color: #457b9d;
+  margin-bottom: 15px;
+  font-size: 26px;
+}
+
 
 .profile-pic {
   width: 150px;
@@ -121,16 +133,37 @@ body {
   object-fit: cover;
   margin-bottom: 10px;
 }
-
-.name {
-  font-size: 22px;
-  font-weight: bold;
-  color: #457b9d;
+.profile-section,
+.profile-nav {
+    flex: 1 1 350px; /* toma todo el espacio posible, mínimo 350px */
+}
+.profile-two-columns {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: 20px;
+  align-items: flex-start;
+}
+.profile-left p {
+  font-size: 18px;
+  margin: 8px 0;
+  color: #2b4a63;
 }
 
-.email {
-  color: #457b9d;
-  margin-bottom: 15px;
+.profile-left strong {
+  color: #1d597c;
+}
+.profile-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2b567a;
+  margin-bottom: 5px;
+}
+
+.profile-email {
+  font-size: 17px;
+  color: #4a6e89;
+  margin-bottom: 20px;
 }
 
 .profile-info {
@@ -139,15 +172,39 @@ body {
   gap: 10px;
 }
 
-.afflictions {
-    text-align: left;
-  background: #f8fafa;
-  width: 400px;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+.afflictions-card {
+ background: white;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0px 3px 10px rgba(0,0,0,0.08);
+  }
+
+.afflictions-card ul {
+  margin-top: 8px;
+  padding-left: 18px;
+  color: #3d4d56;
+}
+.profile-right p {
+  font-size: 17px;
+  margin: 8px 0;
+  color: #26465d;
 }
 
+.profile-right strong {
+  color: #1d597c;
+}
+
+/* HACERLO RESPONSIVE */
+@media (max-width: 900px) {
+  .profile-two-columns {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .afflictions-card {
+    width: 100%;
+  }
+}
 .profile-actions {
   text-align: center;
   margin-top: 20px;
@@ -243,6 +300,7 @@ body {
     margin: auto;
     max-width: 1200px;
     padding: 20px;
+    flex-wrap: wrap;
 }
 .left-colum{
     flex: 1;
@@ -252,16 +310,34 @@ body {
     flex: 2;
     min-width: 300px;
 }
+
+.left-column,
+.right-column {
+    flex: 1 1 350px;
+}
 /* LISTA DE DONACIONES */
 .donations-card {
-    border-radius: 20px;
-    background: #b6c6ef86;
-    width: 600px;
-    height: 400px;
-    text-align: left;
+  border-radius: 20px;
+  background: #b6c6ef86;
+  width: 100%;
+  padding: 20px;
+  /* Antes tenías display:flex en fila: lo quitamos o lo ponemos en columna */
+  display: flex;
+  flex-direction: column;   /* 🔥 título arriba, contenido debajo */
+  gap: 16px;
+  text-align: left;
+  height: auto;             /* o quita la altura fija, mejor que crezca sola */
+}
+.donations-card .scroll-card {
+  max-height: 260px;       /* o lo que quieras */
+  overflow-y: auto;
 }
 
+
 .donations-card h2 {
+  width: 100% ; 
+  max-width: 900px;
+  margin: 10px;
   font-size: 25px;
   color: #457b9d;
   margin: auto;
@@ -273,12 +349,7 @@ body {
   flex-direction: column;
   gap: 10px;
 }
-.donation-list::-webkit-scrollbar {
-  width: 8px;
-}
 .donation-item {
-    margin-left: 20px;
-    margin-right: 20px;
   background: #f9f9f9;
   border-radius: 10px;
   padding: 12px 15px;
@@ -303,23 +374,55 @@ font-style: italic;
 
 /* NOTIFICACIONES */
 .notifications-card {
-    border-radius: 20px;
+ border-radius: 20px;
     background: #b6c6ef86;
-    width: 600px;
-    height: 400px;
-    text-align: center;
-    margin: auto;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;   /* 🔥 Título arriba, contenido debajo */
+    gap: 16px;
+}
+.notifications-card h2 {
+    color: #457b9d;
+    font-size: 24px;
+    margin: 0 0 10px 0;
+}
+.scroll-card {
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.notifications-list {
+    display: flex;
+    flex-direction: column;  /* 🔥 Cada notificación en columna */
+    gap: 12px;
+}
+/* Cada notificación */
+.notification-item {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 12px 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+.notification-item:hover {
+    transform: scale(1.02);
+    background-color: #fff1f1;
 }
 
-.notification {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 12px 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.notification-item h4 {
+    margin: 0;
+    color: #457b9d;
 }
 
+.notification-item p {
+    margin: 4px 0;
+    color: #444;
+    font-style: italic;
+}
 .notification.urgent {
+  width: 90% ;
   border: 2px solid #e63946;
   background-color: #fff4f4;
 padding: 12px 15px;
@@ -336,21 +439,24 @@ padding: 12px 15px;
 }
 /* CARD DE CENTROS CERCANOS */
 .container-cards {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: auto ;
-    flex-wrap: wrap;
-    padding: 0 20px;
+   width: 100%;
+    margin: 40px auto;   /* deja espacio arriba y abajo */
+    padding: 0 20px;     /* margen lateral */
+    box-sizing: border-box;
 }
 .centers-card {
   border-radius: 20px;
   background: #b6c6ef86;
-  margin-top: 30px;
-  width: 1240px;
-  height: auto;
+  margin: 30px auto;
+
+  width: 100%;
+  max-width: 1160px;
+
+  padding: 20px;
+  box-sizing: border-box;
   text-align: center;
 }
+
 
 .centers-card h2 {
   color: #457b9d;
@@ -407,20 +513,32 @@ color :#ffffff;
 }
 /* ---------------- ÁREA DE USUARIO ---------------- */
 .container-user{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: auto ;
+  
+    width: 100%;
     max-width: 1240px;
+    margin: 40px auto;   /* deja espacio arriba y abajo */
+    padding: 0 20px;     /* margen lateral */
+    box-sizing: border-box;
 }
 .user-card {
-margin: 30px auto  ;
+  
+    background: #b6c6ef86;
     border-radius: 20px;
-    padding: 20px 15px;
-  background: #b6c6ef86;
-  width: 1240px;
-}
 
+    width: 100%;          /* ANCHO COMPLETO */
+    max-width: 1160px;     /* límite razonable */
+    
+    margin: 20px auto;    /* centrado */
+    padding: 25px;
+
+    box-sizing: border-box;
+}
+#perfil h2 {
+  width: 100%;
+  text-align: center;
+  color: #457b9d;
+  margin-bottom: 20px;
+}
 .user-card h2 {
   text-align: center;
   color: #457b9d;
@@ -506,4 +624,26 @@ margin: 30px auto  ;
 .scroll-card::-webkit-scrollbar-thumb {
   background-color: #94c0d9;
   border-radius: 10px;
+}
+@media (max-width: 768px) {
+
+  .container-user,
+  .centers-card {
+    padding: 10px;
+  }
+
+  .user-card, 
+  .centers-card {
+    border-radius: 12px;
+  }
+
+  .user-form input {
+    font-size: 14px;
+    padding: 6px;
+  }
+
+  .center-btn {
+    font-size: 14px;
+  }
+
 }
