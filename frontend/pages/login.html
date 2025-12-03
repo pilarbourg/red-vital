@@ -31,14 +31,16 @@
         </nav>
       </section>
     </header>
+
     <main class="form-container">
       <h1>REDVITAL</h1>
-      <form action="#" method="POST" class="form">
+
+      <form id="loginForm" class="form">
         <label>Email:</label>
-        <input type="email" placeholder="Correo electrónico" required />
+        <input id="email" type="email" placeholder="Correo electrónico" required />
 
         <label>Password:</label>
-        <input type="password" placeholder="Contraseña" required />
+        <input id="password" type="password" placeholder="Contraseña" required />
 
         <button type="submit">Iniciar sesión</button>
 
@@ -65,5 +67,38 @@
         </div>
       </div>
     </footer>
+
+    <!-- 🔥 SCRIPT DE LOGIN -->
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const data = {
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+        };
+
+        try {
+          const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const json = await res.json();
+          alert(json.message);
+
+          if (res.ok) {
+            // 🔥 Redirigir según el rol (si querés)
+            // window.location.href = "areadonante.html";
+          }
+
+        } catch (err) {
+          alert("Error conectando con el servidor.");
+          console.error(err);
+        }
+      });
+    </script>
   </body>
 </html>
+
