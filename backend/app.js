@@ -29,7 +29,7 @@ app.get('/api/health', (req, res) => {
 const citasRouter = require('./routes/citas');
 app.use('/api', citasRouter);
 const donantesRouter = require('./routes/donantes');
-//app.use('/api', donantesRouter);
+app.use('/api', donantesRouter);
 const authRouter = require('./routes/auth');
 app.use('/api', authRouter);
 const hospitalesRouter = require('./routes/hospitales');

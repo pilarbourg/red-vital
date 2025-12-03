@@ -7,7 +7,7 @@ usuario, donante, hospital, admin
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const { usuario } = require("../models");
+const { usuario } = require("../db");
 
 // Registro
 router.post("/register", async (req, res) => {
