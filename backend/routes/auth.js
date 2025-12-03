@@ -8,9 +8,11 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const { usuario } = require("../db");
+//TODO once login is done: const { Usuario, Donante, Hospital, Admin, Doctor } = require('../db');
+
 
 // Registro
-router.post("/register", async (req, res) => {
+router.post("/auth/register", async (req, res) => {
     const { email, password, rol, direccion, telefono } = req.body;
 
     try {
@@ -36,7 +38,7 @@ router.post("/register", async (req, res) => {
 });
 
 // Login
-router.post("/login", async (req, res) => {
+router.post("/auth/login", async (req, res) => {
     const { email, password } = req.body;
 
     try {

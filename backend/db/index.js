@@ -24,7 +24,7 @@ const Admin            = require('./models/admin')(sequelize);
 const Doctor            = require('./models/doctor')(sequelize);
 
 // Usuario 1–1 Donante
-Usuario.hasOne(Donante, { foreignKey: 'usuario_id' });
+Usuario.hasOne(Donante, { foreignKey: 'usuario_id', });
 Donante.belongsTo(Usuario, { foreignKey: 'usuario_id' });
 
 // Usuario 1–1 Hospital

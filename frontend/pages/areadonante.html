@@ -38,72 +38,75 @@
     <section class="profile-page">
       <!-- COLUMNA IZQUIERDA -->
       <div class="profile-section">
-        <div class="profile-header">
-          <img
-            src="../assets/images/userblank.png"
-            alt="Foto del usuario"
-            class="profile-pic"
-          />
-          <div class="name">María López García</div>
-          <div class="email">maria.lopez@example.com</div>
-        </div>
+    <div class="profile-header">
+  <img
+    src="../assets/images/userblank.png"
+    alt="Foto del usuario"
+    class="profile-pic"
+  />
+  <div class="profile-left">
+    <h2 class="profile-name" id="donante-nombre">Usuario Test</h2>
+    <p class="profile-email" id="donante-email">testuser@example.com</p>
+</div>
+</div>
 
-        <div class="profile-info">
-          <div class="info-left">
-            <div class="afflictions">
-              <strong>Afecciones clínicas:</strong>
-              <ul>
-                <li>Asma leve</li>
-                <li>Alergia al polen</li>
-                <li>Hipotensión ocasional</li>
-              </ul>
-            </div>
-          </div>
 
-          <div class="info-right">
-            <p><strong>Teléfono:</strong> 654 987 321</p>
-            <p><strong>Sexo:</strong> Femenino</p>
-            <p><strong>Edad:</strong> 29 años</p>
-            <p><strong>Dirección:</strong> Calle Mayor 45, Madrid</p>
-            <p>
-              <strong>Tipo de sangre:</strong>
-              <span class="blood-type">O+</span>
-            </p>
-          </div>
-        </div>
-      </div>
+<div class="profile-two-columns">
 
+  <!-- COLUMNA IZQUIERDA: DATOS -->
+  <div class="profile-left">
+    <p><strong>📞 Teléfono:</strong> <span id="donante-telefono">600123123</span></p>
+    <p><strong>⚧ Sexo:</strong> <span id="donante-sexo">OTRO</span></p>
+    <p><strong>🎂 Edad:</strong> <span id="donante-edad">35</span></p>
+    <p><strong>📍 Dirección:</strong> <span id="donante-direccion">Calle Mayor 10, Madrid</span></p>
+    <p><strong>🩸 Tipo de sangre:</strong> <span id="donante-grupo">O+</span></p>
+  </div>
+
+  <!-- COLUMNA DERECHA: AFECCIONES -->
+  <div class="profile-right">
+    <div class="afflictions-card">
+      <strong>Afecciones clínicas:</strong>
+      <ul id="donante-afecciones">
+        <li>ninguna</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</div>
       <!-- COLUMNA DERECHA -->
       <aside class="profile-nav">
         <div class="nav-card">
           <h3>Área Donante</h3>
 
           <div class="nav-card-grid">
-            <div class="nav-item-card active">
+            <div class="nav-item-card active" data-target="perfil">
               <span class="icon">👤</span>
               <h4>Mi Perfil</h4>
               <p>Ver y editar información personal</p>
             </div>
 
-            <div class="nav-item-card">
+            <div class="nav-item-card" data-target="donaciones">
               <span class="icon">💉</span>
               <h4>Donaciones</h4>
               <p>Historial y próximos turnos</p>
             </div>
 
-            <div class="nav-item-card">
-              <span class="icon">🏥</span>
-              <h4>Centros Cercanos</h4>
-              <p>Consulta tu centro más próximo</p>
+
+            <div class="nav-item-card" data-target="centros">
+               <span class="icon">🏥</span>
+                <h4>Centros Cercanos</h4>
+                <p>Consulta tu centro más próximo</p>
             </div>
 
-            <div class="nav-item-card">
+            <div class="nav-item-card" data-target="notificaciones">
               <span class="icon">📢</span>
               <h4>Notificaciones</h4>
               <p>Alertas y avisos de urgencia</p>
             </div>
 
-            <div class="nav-item-card">
+            <div class="nav-item-card" data-target="config">
               <span class="icon">⚙️</span>
               <h4>Configuración</h4>
               <p>Ajustes de cuenta y privacidad</p>
@@ -116,156 +119,89 @@
     <!-- RESTO DEL CONTENIDO -->
     <div class="container">
       <div class="left-column">
-        <!-- CARD NOTIFICACIONES -->
-        <div class="card notifications-card">
-          <div class="scroll-card">
-            <h2>Notificaciones</h2>
+        <section id="notificaciones" class="content-section">
+  <div class="card notifications-card">
 
-            <div class="notification">
-              <h4>🩸 Próximo recordatorio</h4>
-              <p>
-                Tu próxima donación está disponible a partir del
-                <strong>10/05/2025</strong>.
-              </p>
-            </div>
+    <h2>Notificaciones</h2>
 
-            <div class="notification urgent">
-              <h4>🚨 Centros con urgencia</h4>
-              <ul>
-                <li>
-                  <strong>Hospital 12 de Octubre</strong> — necesita
-                  <span class="blood-type">O−</span>
-                </li>
-                <li>
-                  <strong>Cruz Roja Madrid Norte</strong> — necesita
-                  <span class="blood-type">A+</span>
-                </li>
-                <li>
-                  <strong>Hospital Clínico San Carlos</strong> — necesita
-                  <span class="blood-type">AB−</span>
-                </li>
-              </ul>
-            </div>
-            <div class="notification">
-              <h4>📅 Nueva campaña</h4>
-              <p>
-                Únete a la campaña de donación en el
-                <strong>Parque del Retiro</strong> el
-                <strong>15/06/2025</strong>.
-              </p>
-            </div>
-          </div>
-        </div>
+    <div class="scroll-card">
+      <div id="notificaciones-list" class="notifications-list">
+        <p>Cargando notificaciones...</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
       </div>
       <!-- ===================== COLUMNA DERECHA ===================== -->
       <div class="right-column">
         <!-- CARD HISTORIAL -->
-        <div class="card donations-card">
-          <h2>Historial de Donaciones</h2>
-          <div class="scroll-card">
-            <div class="donation-list">
-              <div class="donation-item">
-                <p><strong>Fecha:</strong> 12/03/2023</p>
-                <p><strong>Cantidad:</strong> 450 ml</p>
-                <p>
-                  <strong>Centro:</strong> Hospital Universitario La Paz
-                  (Madrid)
-                </p>
-              </div>
-
-              <div class="donation-item">
-                <p><strong>Fecha:</strong> 20/09/2023</p>
-                <p><strong>Cantidad:</strong> 500 ml</p>
-                <p><strong>Centro:</strong> Cruz Roja, Sede Central</p>
-              </div>
-
-              <div class="donation-item">
-                <p><strong>Fecha:</strong> 01/02/2024</p>
-                <p><strong>Cantidad:</strong> 460 ml</p>
-                <p><strong>Centro:</strong> Centro de Donación de Chamartín</p>
+       
+        <section id="donaciones" class="content-section">
+          <div class="card donations-card">
+            <h2>Historial de Donaciones</h2>
+            
+            <div class="scroll-card">
+              <div id="donation-list" class ="donation-list">
+                <p>Cargando historial...</p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+
       </div>
     </div>
     <div class="container-cards">
       <!-- CARD CENTROS CERCANOS -->
-      <div class="card centers-card">
-        <h2>Centros Cercanos</h2>
-
-        <!-- Banner de estado -->
-        <div id="blood-status-banner" class="status-banner hidden">
-          <p id="banner-text"></p>
+   <section id="centros" class="content-section">
+          <div class="card centers-card">
+          <h2>Centros Cercanos</h2>
+          <div id="blood-status-banner" class="status-banner hidden">
+            <p id="banner-text"></p>
+          </div>
+          <div class="scroll-card" id="centros-list">
+            <p>Cargando centros...</p>
+          </div>
         </div>
-
-        <!-- Botones de centros -->
-        <div class="scroll-card">
-          <button
-            class="center-btn"
-            data-center="Hospital La Paz"
-            data-km="2.50km"
-            data-status="🟥 Nivel crítico — urgente donación de O+ y A−"
-          >
-            Hospital La Paz— <span class="distance">2.5 km</span>
-          </button>
-          <button
-            class="center-btn"
-            data-center="Cruz Roja Madrid Norte"
-            data-km="5km"
-            data-status="🟧 Nivel bajo — se necesitan donantes A+"
-          >
-            Cruz Roja Madrid Norte— <span class="distance">5 km</span>
-          </button>
-          <button
-            class="center-btn"
-            data-center="Hospital Clínico San Carlos"
-            data-km="5km"
-            data-status="🟩 Nivel óptimo — reservas suficientes"
-          >
-            Hospital Clínico San Carlos— <span class="distance">7.5 km</span>
-          </button>
-        </div>
-      </div>
+  </section>
     </div>
     <!-- CARD ÁREA DE USUARIO -->
     <div class="container-user">
-      <div class="card user-card">
-        <h2>Área de Usuario</h2>
+     <section id="perfil" class="content-section active-section">
+ 
+    <div class="card user-card" id ="user-card">
+      <h2>Mi Perfil</h2>
+      <h3>Datos del Usuario</h3>
 
-        <div class="user-info">
-          <p><strong>Nombre de usuario:</strong> maria_lopez</p>
-          <p><strong>Email:</strong> maria.lopez@example.com</p>
-          <p><strong>Rol:</strong> Donante</p>
-        </div>
+      <div class="user-info">
+        <p><strong>Nombre de usuario:</strong> <span id="user-username">---</span></p>
+        <p><strong>Email:</strong> <span id="user-email">---</span></p>
+        <p><strong>Rol:</strong> <span id="user-rol">---</span></p>
+      </div>
 
-        <hr />
+      <hr>
 
-        <form class="user-form">
-          <h3>Actualizar credenciales</h3>
+      <form class="user-form">
+        <h3>Actualizar credenciales</h3>
 
-          <label for="username">Nuevo nombre de usuario:</label>
-          <input
-            type="text"
-            id="username"
-            placeholder="Introduce nuevo nombre"
-          />
+        <label for="username">Nuevo nombre de usuario:</label>
+        <input type="text" id="username" placeholder="Introduce nuevo nombre" />
 
-          <label for="password">Nueva contraseña:</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Introduce nueva contraseña"
-          />
+        <label for="password">Nueva contraseña:</label>
+        <input type="password" id="password" placeholder="Introduce nueva contraseña" />
 
-          <button type="submit" class="save-btn">💾 Guardar cambios</button>
-        </form>
+        <button type="submit" class="save-btn">💾 Guardar cambios</button>
+      </form>
 
-        <div class="success-msg hidden" id="update-msg">
-          ✅ Datos actualizados correctamente.
-        </div>
+      <div class="success-msg hidden" id="update-msg">
+        ✅ Datos actualizados correctamente.
       </div>
     </div>
+
+  </section>
+    </div>
+   
 
     <footer class="site-footer">
       <div class="footer-content">
@@ -287,3 +223,4 @@
     <script src="../js/donante.js"></script>
   </body>
 </html>
+
