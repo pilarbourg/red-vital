@@ -10,6 +10,8 @@ const rootDir = path.join(__dirname, '..');
 
 // Para leer JSON más adelante
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.use(express.static(rootDir));
 
@@ -28,8 +30,8 @@ const citasRouter = require('./routes/citas');
 app.use('/api', citasRouter);
 const donantesRouter = require('./routes/donantes');
 //app.use('/api', donantesRouter);
-//const authRouter = require('./routes/auth');
-//app.use('/api', authRouter);
+const authRouter = require('./routes/auth');
+app.use('/api', authRouter);
 const hospitalesRouter = require('./routes/hospitales');
 app.use('/api', hospitalesRouter);
 const doctoresRouter = require('./routes/doctores');
