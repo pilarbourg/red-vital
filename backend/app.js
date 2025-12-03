@@ -36,6 +36,8 @@ const hospitalesRouter = require('./routes/hospitales');
 app.use('/api', hospitalesRouter);
 const doctoresRouter = require('./routes/doctores');
 app.use('/api', doctoresRouter);
+const adminRouter = require('./routes/admin');
+app.use('/api', adminRouter);
 
 //creamos datos en la tabla hospital
 async function seedInitialData() {
