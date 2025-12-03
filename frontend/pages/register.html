@@ -67,5 +67,30 @@
         </div>
       </div>
     </footer>
-  </body>
+
+    <form id="registerForm">
+  <!-- tus inputs ya hechos -->
+</form>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const data = {
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    rol: document.getElementById('rol').value
+  };
+
+  const res = await fetch('/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  const json = await res.json();
+  alert(json.message);
+});
+</script>
+</body>
 </html>

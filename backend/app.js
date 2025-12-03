@@ -10,6 +10,8 @@ const rootDir = path.join(__dirname, '..');
 
 // Para leer JSON más adelante
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.use(express.static(rootDir));
 
@@ -35,6 +37,8 @@ const hospitalesRouter = require('./routes/hospitales');
 const doctoresRouter = require('./routes/doctores');
 const solicitud = require('./db/models/solicitud');
 app.use('/api', doctoresRouter);
+const adminRouter = require('./routes/admin');
+app.use('/api', adminRouter);
 
 //creamos datos en la tabla hospital
 async function seedInitialData() {
