@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { Usuario, Hospital, Solicitud, InventarioSangre, Cita } = require('../db');
+const { Usuario, Hospital, Donante, Solicitud, InventarioSangre, Cita, Notificacion, Donacion } = require('../db');
 
 router.post('/hospitales/register', async (req, res) => { //tested
   try {
@@ -50,7 +50,7 @@ router.get('/hospitales/:id', async (req, res) => { //tested
 });
 
 // add blood type to hospital
-router.post('/hospitales/:id/inventario', async (req, res) => {  //TODO: test
+router.post('/hospitales/:id/inventario', async (req, res) => {  //tested
   try {
     const { grupo_sanguineo, cantidad_unidades } = req.body;
 
@@ -117,23 +117,27 @@ router.get('/hospitales/:id/solicitudes', async (req, res) => { //tested
 });
 
 //view compatible donors
-router.get('/donantes/compatibles', async (req, res) => { //TODO TEST: fail
+router.get('/hospitales/donantes/compatibles', async (req, res) => { //tested
   try {
     const { grupo } = req.query;
 
-    const donantes = await Usuario.findAll({
-      where:{ rol:"DONANTE", grupo_sanguineo:grupo, disponible:true }
+    if (!grupo) return res.status(400).json({ error:"Missing grupo parameter → use ?grupo=O+" });
+
+    const donantes = await Donante.findAll({
+      where: { grupo_sanguineo: grupo }
     });
 
     res.json(donantes);
 
   } catch (err) {
-    res.status(500).json({ error:"No donors found", details:err.message });
+    res.status(500).json({ error:"Error searching donors", details:err.message });
   }
 });
 
+
+
 //send a notification to a donor 
-router.post('/donantes/notificar', async (req, res) => { //TODO: test
+router.post('/donantes/notificar', async (req, res) => { //tested
   try {
     const { usuario_id, grupo_sanguineo } = req.body;
 
@@ -153,7 +157,7 @@ router.post('/donantes/notificar', async (req, res) => { //TODO: test
 });
 
 //update state of request 
-router.put('/solicitud/:id', async (req, res) => {
+router.put('/solicitud/:id', async (req, res) => { //tested
   try {
     await Solicitud.update(req.body,{ where:{ id:req.params.id }});
     res.json({ message:"Solicitud actualizada" });
@@ -164,7 +168,7 @@ router.put('/solicitud/:id', async (req, res) => {
 });
 
 //register donation's results
-router.post('/donaciones', async (req, res) => {
+router.post('/donaciones', async (req, res) => {//tested
   try {
     const result = await Donacion.create(req.body);
     res.json({ message:"Resultado registrado", result });

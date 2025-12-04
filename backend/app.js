@@ -35,8 +35,6 @@ const hospitalesRouter = require('./routes/hospitales');
 app.use('/api', hospitalesRouter);
 const doctoresRouter = require('./routes/doctores');
 app.use('/api', doctoresRouter);
-const solicitud = require('./db/models/solicitud');
-app.use('/api', solicitud);
 const adminRouter = require('./routes/admin');
 app.use('/api', adminRouter);
 
