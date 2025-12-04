@@ -12,7 +12,6 @@ const rootDir = path.join(__dirname, '..');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.use(express.static(rootDir));
 
 // Ruta principal: devolver index.html de la raíz

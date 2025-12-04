@@ -1,5 +1,6 @@
 const express = require('express');
-const { Doctor } = require('../db');
+
+const { Doctor, Hospital } = require('../db');
 
 const router = express.Router();
 
@@ -20,6 +21,16 @@ router.get('/doctores', async (req, res) => {
   }
 });
 
+router.post('/doctores', async (req, res) => {
+  try {
+    const { nombre, apellidos, especialidad, telefono, hospital_id } = req.body;
+    const doctor = await Doctor.create({ nombre, apellidos, especialidad, telefono, hospital_id });
+    res.status(201).json({ message: 'Doctor creado', doctor });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/doctores', async (req, res) => {
   try {
     const docs = await Doctor.findAll({ include: Hospital });
@@ -33,6 +44,7 @@ router.get('/doctores/:id', async (req, res) => {
   try {
     const doc = await Doctor.findByPk(req.params.id, { include: Hospital });
     if (!doc) return res.status(404).json({ error: 'Doctor not found' });
+    await doc.update(req.body);
     res.json(doc);
   } catch (err) {
     res.status(500).json({ error: err.message });

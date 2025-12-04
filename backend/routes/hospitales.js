@@ -3,22 +3,28 @@ const router = express.Router();
 
 const { Usuario, Hospital, Solicitud, InventarioSangre, Cita } = require('../db');
 
-router.post('/hospitales/register', async (req, res) => {
+router.post('/hospitales/register', async (req, res) => { //tested
   try {
-    const { nombre, email, password, direccion, telefono } = req.body;
+    const { email, password, direccion, telefono } = req.body;
 
-    const usuario = await Usuario.create({ nombre, email, password, tipo: "hospital" });
-    const hospital = await Hospital.create({ usuario_id: usuario.id, direccion, telefono });
+    const usuario = await Usuario.create({ 
+        email, 
+        password, 
+        rol: "HOSPITAL",
+        direccion,
+        telefono
+    });
 
-    res.status(201).json({ message: "Hospital registered", usuario, hospital });
+    res.status(201).json({ message: "Hospital registrado", usuario });
 
   } catch (err) {
     res.status(500).json({ error: "Error registering hospital", details: err.message });
   }
 });
 
+
 //get all hospitals
-router.get('/hospitales', async (req, res) => {
+router.get('/hospitales', async (req, res) => { //tested
   try {
     const hospitales = await Hospital.findAll({ include: Usuario });
     res.json(hospitales);
@@ -29,7 +35,7 @@ router.get('/hospitales', async (req, res) => {
 });
 
 // get hospital by ID
-router.get('/hospitales/:id', async (req, res) => {
+router.get('/hospitales/:id', async (req, res) => { //tested
   try {
     const hospital = await Hospital.findByPk(req.params.id, {
       include: [Usuario, Solicitud, InventarioSangre, Cita]
@@ -44,14 +50,14 @@ router.get('/hospitales/:id', async (req, res) => {
 });
 
 // add blood type to hospital
-router.post('/hospitales/:id/inventario', async (req, res) => {
+router.post('/hospitales/:id/inventario', async (req, res) => {  //TODO: test
   try {
-    const { tipo_sangre, cantidad } = req.body;
+    const { grupo_sanguineo, cantidad_unidades } = req.body;
 
     const inventario = await InventarioSangre.create({
       hospital_id: req.params.id,
-      tipo_sangre,
-      cantidad
+      grupo_sanguineo,
+      cantidad_unidades
     });
 
     res.json({ message: "Blood stock added", inventario });
@@ -62,7 +68,7 @@ router.post('/hospitales/:id/inventario', async (req, res) => {
 });
 
 // get inventory by hospital
-router.get('/hospitales/:id/inventario', async (req, res) => {
+router.get('/hospitales/:id/inventario', async (req, res) => { //tested
   try {
     const stock = await InventarioSangre.findAll({
       where: { hospital_id: req.params.id }
@@ -76,27 +82,29 @@ router.get('/hospitales/:id/inventario', async (req, res) => {
 });
 
 // create a blood request (solicitud)
-router.post('/hospitales/:id/solicitud', async (req, res) => {
+router.post('/hospitales/:id/solicitud', async (req, res) => { //tested
   try {
-    const { tipo_sangre, cantidad, motivo } = req.body;
+    const { grupo_sanguineo, cantidad_unidades, comentarios, urgencia } = req.body;
 
     const solicitud = await Solicitud.create({
       hospital_id: req.params.id,
-      tipo_sangre,
-      cantidad,
-      motivo,
-      estado: "pendiente"
+      grupo_sanguineo,
+      cantidad_unidades,
+      comentarios,
+      urgencia,
+      estado: "PENDIENTE"
     });
 
-    res.json({ message: "Solicitud creada", solicitud });
+    res.json({ message: "Solicitud creada correctamente", solicitud });
 
   } catch (err) {
     res.status(500).json({ error: "Error creating solicitud", details: err.message });
   }
 });
 
+
 // view solicitudes by hospital
-router.get('/hospitales/:id/solicitudes', async (req, res) => {
+router.get('/hospitales/:id/solicitudes', async (req, res) => { //tested
   try {
     const solicitudes = await Solicitud.findAll({
       where: { hospital_id: req.params.id }
@@ -107,5 +115,64 @@ router.get('/hospitales/:id/solicitudes', async (req, res) => {
     res.status(500).json({ error: "Error fetching solicitudes", details: err.message });
   }
 });
+
+//view compatible donors
+router.get('/donantes/compatibles', async (req, res) => { //TODO TEST: fail
+  try {
+    const { grupo } = req.query;
+
+    const donantes = await Usuario.findAll({
+      where:{ rol:"DONANTE", grupo_sanguineo:grupo, disponible:true }
+    });
+
+    res.json(donantes);
+
+  } catch (err) {
+    res.status(500).json({ error:"No donors found", details:err.message });
+  }
+});
+
+//send a notification to a donor 
+router.post('/donantes/notificar', async (req, res) => { //TODO: test
+  try {
+    const { usuario_id, grupo_sanguineo } = req.body;
+
+    const notificacion = await Notificacion.create({
+      usuario_id,
+      grupo_sanguineo,
+      mensaje:`Se requiere donación urgente del tipo ${grupo_sanguineo}`,
+      tipo:"HOSPITAL",
+      status:"ENVIADA"
+    });
+
+    res.json({ message:"Notificación enviada", notificacion });
+
+  } catch (err) {
+    res.status(500).json({ error:"Error sending notification", details:err.message });
+  }
+});
+
+//update state of request 
+router.put('/solicitud/:id', async (req, res) => {
+  try {
+    await Solicitud.update(req.body,{ where:{ id:req.params.id }});
+    res.json({ message:"Solicitud actualizada" });
+
+  } catch (err) {
+    res.status(500).json({ error:"Error updating", details:err.message });
+  }
+});
+
+//register donation's results
+router.post('/donaciones', async (req, res) => {
+  try {
+    const result = await Donacion.create(req.body);
+    res.json({ message:"Resultado registrado", result });
+
+  } catch (err) {
+    res.status(500).json({ error:"Error saving donation", details:err.message });
+  }
+});
+
 
 module.exports = router;
