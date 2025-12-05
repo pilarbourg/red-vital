@@ -126,18 +126,24 @@ router.get('/hospitales/:hospitalId/donantes', async (req, res) => {
     let filtro = {};
 
     if (grupo && grupo !== 'Todos') filtro.grupo_sanguineo = grupo;
-    if (nombre) filtro.nombre = { [Op.like]: `%${nombre}%` };
+    
+    if (nombre) {
+      filtro[Op.or] = [
+        { nombre: { [Op.like]: `%${nombre}%` } },
+        { apellidos: { [Op.like]: `%${nombre}%` } }
+      ];
+    }
 
     const donantes = await Donante.findAll({
       where: filtro
-      // You can extend the query to filter donors by proximity or hospital if needed
     });
 
     res.json(donantes);
   } catch (err) {
-    res.status(500).json({ error:"Error searching donors", details:err.message });
+    res.status(500).json({ error: "Error searching donors", details: err.message });
   }
 });
+
 
 
 
