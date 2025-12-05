@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let appointmentMode = null;
   let citas     = [];
   let hospitals = [];
-  let doctorAssignments = {};
   let currentDonor = null;
 
 
@@ -55,17 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-
-  const DOCTOR_NAMES = [
-    'Dra. Ana Torres',
-    'Dr. Luis García',
-    'Dra. Elena López',
-    'Dr. Javier Martín',
-    'Dra. Paula Ruiz',
-    'Dr. Miguel Sánchez',
-    'Dra. Carmen Díaz',
-    'Dr. Sergio Romero',
-  ];
   
   function setMode(mode) {
     appointmentMode = mode;
@@ -162,27 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setMode('registered');
     }
 
-    function assignDoctorsToHospitals(list) {
-      const stored = localStorage.getItem('rv_doctorAssignments');
-      if (stored) {
-        try {
-          doctorAssignments = JSON.parse(stored);
-          return;
-        } catch (_) {}
-      }
-
-      const available = [...DOCTOR_NAMES];
-      doctorAssignments = {};
-
-      list.forEach(h => {
-        if (!available.length) return;
-        const idx = Math.floor(Math.random() * available.length);
-        const doc = available.splice(idx, 1)[0];
-        doctorAssignments[h.id] = [doc]; 
-      });
-
-      localStorage.setItem('rv_doctorAssignments', JSON.stringify(doctorAssignments));
-    }
 
     function renderHospitals() {
       if (!hospitalSelect) return;
@@ -196,25 +163,56 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    function renderDoctorsForHospital(hospitalId) {
+    const deptSelect = document.getElementById('dept');
+    async function loadDoctorsForSelection() {
       if (!doctorSelect) return;
+
+      // Limpiamos siempre el select
       doctorSelect.innerHTML = '<option value="">Selecciona un médico</option>';
 
-      if (!hospitalId) return;
-      const docs = doctorAssignments[hospitalId] || [];
-      docs.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        doctorSelect.appendChild(opt);
-      });
+      const hospitalId = hospitalSelect.value;
+      const deptValue  = deptSelect ? deptSelect.value : '';
+
+      // Si no hay hospital o departamento, no pedimos nada
+      if (!hospitalId || !deptValue) {
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams({
+          hospitalId: hospitalId,
+          departamento: deptValue,
+        });
+
+        const res = await fetch(`/api/doctores?${params.toString()}`);
+        if (!res.ok) throw new Error('Error al cargar doctores');
+
+        const doctores = await res.json();
+
+        if (!Array.isArray(doctores) || !doctores.length) {
+          return;
+        }
+
+        doctores.forEach(doc => {
+          const opt = document.createElement('option');
+          opt.value = doc.nombre;
+          opt.textContent = doc.nombre;
+          doctorSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Error cargando doctores:', err);
+      }
+    }
+    
+    if (hospitalSelect) {
+      hospitalSelect.addEventListener('change', loadDoctorsForSelection);
     }
 
-    if (hospitalSelect) {
-      hospitalSelect.addEventListener('change', e => {
-        renderDoctorsForHospital(e.target.value);
-      });
+    if (deptSelect) {
+      deptSelect.addEventListener('change', loadDoctorsForSelection);
     }
+
+    
 
     async function loadHospitals() {
       try {
@@ -223,16 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         hospitals = await res.json();
         if (!Array.isArray(hospitals)) hospitals = [];
-
-        assignDoctorsToHospitals(hospitals);
         renderHospitals();
+
       } catch (err) {
         console.error(err);
         hospitals = [
           { id: 1, nombre: 'Hospital Central', ciudad: 'Madrid' },
           { id: 2, nombre: 'Clínica Norte', ciudad: 'Madrid' },
         ];
-        assignDoctorsToHospitals(hospitals);
         renderHospitals();
       }
     }
@@ -297,22 +293,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       let hospitalId = hospitalSelect.value;
-      if (!hospitalId && hospitals.length) {
-        const rnd = hospitals[Math.floor(Math.random() * hospitals.length)];
-        hospitalId = rnd.id;
-        hospitalSelect.value = hospitalId;
-        renderDoctorsForHospital(hospitalId);
+      if (!hospitalId) {
+        alert('Selecciona un hospital.');
+        return;
+      }
+
+      const deptValue = document.getElementById('dept').value;
+      if (!deptValue) {
+        alert('Selecciona un departamento.');
+        return;
       }
 
       let doctorName = doctorSelect.value;
-      if (!doctorName && hospitalId && doctorAssignments[hospitalId]) {
-        const docs = doctorAssignments[hospitalId];
-        if (docs.length) {
-          doctorName = docs[0];
-          doctorSelect.value = doctorName;
-        }
-      }
-
       if (!doctorName) {
         alert('Selecciona un médico para la cita.');
         return;

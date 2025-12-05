@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const doctoresSeed = require('./seed/doctoresBase.json').doctores;
 const { sequelize, Admin, Cita, Disponibilidad, Doctor, Donacion, Donante, Hospital, InventarioSangre, Notificacion, Solicitud, Usuario } = require('./db'); 
 
 const app = express();
@@ -171,6 +172,47 @@ async function seedSolicitud() {
   return firstSolicitud.id;
 }
 
+async function seedDoctores() {
+  const count = await Doctor.count();
+  if (count > 0) {
+    console.log(`Ya existen ${count} doctores, no se crean nuevos.`);
+    return;
+  }
+
+  const hospitales = await Hospital.findAll();
+  if (!hospitales.length) {
+    console.log('No hay hospitales, no se crean doctores.');
+    return;
+  }
+
+  const docsToCreate = [];
+
+  // Por cada hospital, elegimos un subconjunto aleatorio de doctores del JSON
+  hospitales.forEach(h => {
+    // copiamos y barajamos la lista base
+    const shuffled = [...doctoresSeed].sort(() => Math.random() - 0.5);
+
+    // cuántos doctores quieres por hospital (por ejemplo entre 4 y todos)
+    const min = 20;
+    const max = doctoresSeed.length;
+    const n = Math.max(min, Math.floor(Math.random() * (max - min + 1)) + min);
+
+    const subset = shuffled.slice(0, n);
+
+    subset.forEach(d => {
+      docsToCreate.push({
+        nombre: d.nombre,
+        departamento: d.departamento,
+        hospital_id: h.id,
+      });
+    });
+  });
+
+  await Doctor.bulkCreate(docsToCreate);
+  console.log(`Semilla: creados ${docsToCreate.length} doctores`);
+}
+
+
 
 // Sincronizar la BD y luego arrancar el servidor
 sequelize.sync({ force: true })
@@ -184,6 +226,7 @@ sequelize.sync({ force: true })
     await seedSolicitud();
     await seedNotificaciones(usuarioId);
     await seedDonacion();
+    await seedDoctores(); 
 
     app.listen(PORT, () => {
       console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
