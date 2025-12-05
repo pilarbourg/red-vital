@@ -35,7 +35,7 @@
     <main class="form-container">
       <h1>REDVITAL</h1>
 
-      <!-- ÚNICO FORMULARIO -->
+      
       <form id="registerForm" class="form">
         <label>Nombre:</label>
         <input type="text" placeholder="Tu nombre" required />
@@ -49,7 +49,7 @@
         <label>Password:</label>
         <input id="password" type="password" placeholder="Contraseña" required />
 
-        <!-- ROL del usuario -->
+        
         <input id="rol" type="hidden" value="donante" />
 
         <button type="submit">Registrarse</button>
@@ -100,7 +100,7 @@
               params.get("next") ||
               "/frontend/pages/appointments.html?mode=registered";
 
-            // Redirigir al login con next
+            
             window.location.href = "login.html?next=" + encodeURIComponent(next);
           }
         } catch (err) {
