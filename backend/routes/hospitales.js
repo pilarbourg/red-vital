@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { Op } = require("sequelize");
 
 const { Usuario, Hospital, Donante, Solicitud, InventarioSangre, Cita, Notificacion, Donacion } = require('../db');
 
@@ -117,15 +118,15 @@ router.get('/hospitales/:id/solicitudes', async (req, res) => { //tested
 });
 
 //view compatible donors
-router.get('/hospitales/donantes/compatibles', async (req, res) => { //tested
+router.get('/hospitales/donantes/compatibles', async (req, res) => {
   try {
-    const { grupo } = req.query;
+    const { grupo, nombre } = req.query;
+    let filtro = {};
 
-    if (!grupo) return res.status(400).json({ error:"Missing grupo parameter → use ?grupo=O+" });
+    if (grupo) filtro.grupo_sanguineo = grupo;
+    if (nombre) filtro.nombre = { [Op.like]: `%${nombre}%` }; 
 
-    const donantes = await Donante.findAll({
-      where: { grupo_sanguineo: grupo }
-    });
+    const donantes = await Donante.findAll({ where: filtro });
 
     res.json(donantes);
 
@@ -133,6 +134,7 @@ router.get('/hospitales/donantes/compatibles', async (req, res) => { //tested
     res.status(500).json({ error:"Error searching donors", details:err.message });
   }
 });
+
 
 
 
