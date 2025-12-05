@@ -118,23 +118,26 @@ router.get('/hospitales/:id/solicitudes', async (req, res) => { //tested
 });
 
 //view compatible donors
-router.get('/hospitales/donantes/compatibles', async (req, res) => {
+router.get('/hospitales/:hospitalId/donantes', async (req, res) => {
   try {
+    const { hospitalId } = req.params;
     const { grupo, nombre } = req.query;
+
     let filtro = {};
 
-    if (grupo) filtro.grupo_sanguineo = grupo;
-    if (nombre) filtro.nombre = { [Op.like]: `%${nombre}%` }; 
+    if (grupo && grupo !== 'Todos') filtro.grupo_sanguineo = grupo;
+    if (nombre) filtro.nombre = { [Op.like]: `%${nombre}%` };
 
-    const donantes = await Donante.findAll({ where: filtro });
+    const donantes = await Donante.findAll({
+      where: filtro
+      // You can extend the query to filter donors by proximity or hospital if needed
+    });
 
     res.json(donantes);
-
   } catch (err) {
     res.status(500).json({ error:"Error searching donors", details:err.message });
   }
 });
-
 
 
 
