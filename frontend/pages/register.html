@@ -34,7 +34,9 @@
 
     <main class="form-container">
       <h1>REDVITAL</h1>
-      <form action="#" method="POST" class="form">
+
+      <!-- ÚNICO FORMULARIO -->
+      <form id="registerForm" class="form">
         <label>Nombre:</label>
         <input type="text" placeholder="Tu nombre" required />
 
@@ -42,10 +44,13 @@
         <input type="text" placeholder="Tu apellido" required />
 
         <label>Email:</label>
-        <input type="email" placeholder="Correo electrónico" required />
+        <input id="email" type="email" placeholder="Correo electrónico" required />
 
         <label>Password:</label>
-        <input type="password" placeholder="Contraseña" required />
+        <input id="password" type="password" placeholder="Contraseña" required />
+
+        <!-- ROL del usuario -->
+        <input id="rol" type="hidden" value="donante" />
 
         <button type="submit">Registrarse</button>
       </form>
@@ -68,29 +73,41 @@
       </div>
     </footer>
 
-    <form id="registerForm">
-  <!-- tus inputs ya hechos -->
-</form>
+    <script>
+      document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-<script>
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+        const data = {
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+          rol: document.getElementById("rol").value,
+        };
 
-  const data = {
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
-    rol: document.getElementById('rol').value
-  };
+        try {
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
 
-  const res = await fetch('/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
+          const json = await res.json();
+          alert(json.mensaje);
 
-  const json = await res.json();
-  alert(json.message);
-});
-</script>
-</body>
+          if (res.ok) {
+            // Mantener ?next=
+            const params = new URLSearchParams(window.location.search);
+            const next =
+              params.get("next") ||
+              "/frontend/pages/appointments.html?mode=registered";
+
+            // Redirigir al login con next
+            window.location.href = "login.html?next=" + encodeURIComponent(next);
+          }
+        } catch (err) {
+          alert("Error conectando con el servidor.");
+          console.error(err);
+        }
+      });
+    </script>
+  </body>
 </html>
