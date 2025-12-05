@@ -647,18 +647,27 @@ tbody tr:hover {
   text-align: center;
 }
 
-.estado-select option[value="Pendiente"],
-.estado-select option:nth-child(1) {
-  color: #d90429;
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-size: 15px;
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s, transform .4s;
+  transform: translateX(20px);
+  z-index: 9999; 
 }
 
-.estado-select option[value="En Proceso"],
-.estado-select option:nth-child(2) {
-  color: #ffb703;
-}
+.toast.success { background: #2a9d8f; }
+.toast.warning { background: #ffb703; }
+.toast.error   { background: #d90429; }
 
-.estado-select option[value="Completado"],
-.estado-select option:nth-child(3) {
-  color: #2a9d8f;
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
 }
-

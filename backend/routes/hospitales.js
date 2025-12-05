@@ -189,5 +189,37 @@ router.post('/donaciones', async (req, res) => {//tested
   }
 });
 
+router.post("/donaciones", async (req,res)=>{
+  try {
+    const { donante_id, solicitud_id, fecha, cantidad } = req.body;
+
+    const donacion = await Donacion.create({ donante_id, solicitud_id, fecha, cantidad });
+
+    return res.json(donacion);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error registrando donación" });
+  }
+});
+
+router.get("/donantes/estado", async (req,res)=> {
+  try {
+    const donantes = await Donante.findAll({
+      include: [{
+        model: Donacion,
+        include: [Solicitud],
+        limit: 1,
+        order: [['id','DESC']] 
+      }]
+    });
+
+    res.json(donantes);
+  } catch (e){
+    res.status(500).json({error:e.message});
+  }
+});
+
+
+
 
 module.exports = router;
