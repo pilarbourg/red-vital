@@ -56,7 +56,7 @@ router.post("/auth/login", async (req, res) => {
       return res.status(400).json({ mensaje: "Contraseña incorrecta" });
     }
 
-    // Importante: devolver id y rol para guardar en localStorage
+    //devolver id y rol para guardar en localStorage
     res.json({
       mensaje: "Login correcto",
       id: user.id,
