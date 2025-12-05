@@ -13,29 +13,48 @@ document.addEventListener('DOMContentLoaded', () => {
   let hospitals = [];
   let doctorAssignments = {};
   let currentDonor = null;
-    
-  const ME_ENDPOINT = '/api/donantes/me';
+
 
   async function loadCurrentDonor() {
     try {
-      const res = await fetch(ME_ENDPOINT, {
-        credentials: 'include',
-      });
+      const saved = JSON.parse(localStorage.getItem('user'));
 
-      if (!res.ok) {
-        currentDonor = null;
+      if (!saved || !saved.id) {
+        // No hay usuario logueado -> lo mandamos a login con vuelta a citas
+        const params = new URLSearchParams({
+          next: '/frontend/pages/appointments.html?mode=registered'
+        });
+        window.location.href = `login.html?${params.toString()}`;
         return null;
       }
 
+      const res  = await fetch(`/api/donantes/byUsuario/${saved.id}`);
       const data = await res.json();
-      currentDonor = data;
-      return data;
+
+      if (!data.ok) {
+        console.error('Error obteniendo donante por usuario', data);
+        return null;
+      }
+
+      // Estructura que usará setupRegisteredMode
+      currentDonor = {
+        id: data.id,
+        nombre: data.nombre,
+        apellidos: data.apellidos,
+        genero: data.genero,
+        fecha_nacimiento: data.dob,
+        email: data.usuario?.email || null,
+        telefono: data.usuario?.telefono || null,
+      };
+
+      return currentDonor;
     } catch (err) {
       console.error('Error cargando donante logueado', err);
       currentDonor = null;
       return null;
     }
   }
+
 
   const DOCTOR_NAMES = [
     'Dra. Ana Torres',
@@ -61,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupGuestMode();
       form.classList.remove('hidden');
     } else if (mode === 'registered') {
-      modeHint.textContent = 'Usaremos los datos de tu perfil de donante (simulado aquí).';
+      modeHint.textContent = 'Usaremos los datos de tu perfil de donante.';
       modeHint.classList.remove('hidden');
       setupRegisteredMode();
       form.classList.remove('hidden');
@@ -85,19 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDonorId = null;
     
     async function setupRegisteredMode() {
-      if (!currentDonor) {
-        const me = await loadCurrentDonor();
-        if (!me) {
-          const params = new URLSearchParams({
-            next: '/frontend/pages/appointments.html',
-            mode: 'registered',
-          });
-          window.location.href = `login.html?${params.toString()}`;
-          return;
-        }
-      }
-
-      const d = currentDonor;
+      const d = currentDonor || await loadCurrentDonor();
+      if (!d) return; // loadCurrentDonor ya redirige a login si hace falta
 
       document.getElementById('name').value =
         `${d.nombre} ${d.apellidos || ''}`.trim();
@@ -118,21 +126,35 @@ document.addEventListener('DOMContentLoaded', () => {
         doctorSelect.innerHTML = '<option value="">Selecciona un médico</option>';
     }
 
-
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.dataset.mode;
+
+        // 1) Soy donante registrado → SIEMPRE ir a login
+        if (mode === 'registered') {
+          const params = new URLSearchParams({
+            next: '/frontend/pages/appointments.html?mode=registered',
+          });
+          // página de login
+          window.location.href = `login.html?${params.toString()}`;
+          return;
+        }
+
+        // 2) Registrarme como donante: ir a register
         if (mode === 'register') {
           const params = new URLSearchParams({
-            next: '/frontend/pages/appointments.html',
-            mode: 'registered',
+            next: '/frontend/pages/appointments.html?mode=registered'
           });
           window.location.href = `register.html?${params.toString()}`;
           return;
         }
-        setMode(mode);
+
+        // 3) Invitado: solo en este caso usamos setMode('guest')
+        setMode(mode); // aquí solo entra cuando mode === 'guest'
       });
     });
+
+   
     
     const urlParams   = new URLSearchParams(window.location.search);
     const initialMode = urlParams.get('mode');
@@ -217,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadCitas() {
       try {
-        const res = await fetch('/api/citas');
+        const res = await fetch('/api/cita');
         if (!res.ok) throw new Error('Error al cargar citas');
         citas = await res.json();
         renderCitas();
@@ -331,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const res = await fetch('/api/citas', {
+        const res = await fetch('/api/cita', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -366,11 +388,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         if (act === 'cancel') {
-          await fetch(`/api/citas/${id}`, { method: 'DELETE' });
+          await fetch(`/api/cita/${id}`, { method: 'DELETE' });
         }
 
         if (act === 'done') {
-          await fetch(`/api/citas/${id}`, {
+          await fetch(`/api/cita/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'CONFIRMADA' }),
@@ -382,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const nf = prompt('Nueva fecha (YYYY-MM-DD):', current?.fecha || '');
           const nh = prompt('Nueva hora (HH:MM):', current?.hora || '');
           if (nf && nh) {
-            await fetch(`/api/citas/${id}`, {
+            await fetch(`/api/cita/${id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ fecha: nf, hora: nh, status: 'PENDIENTE' }),

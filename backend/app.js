@@ -25,7 +25,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Rutas de las APIs
-const citasRouter = require('./routes/citas');
+const citasRouter = require('./routes/cita');
 app.use('/api', citasRouter);
 const donantesRouter = require('./routes/donantes');
 app.use('/api', donantesRouter);
