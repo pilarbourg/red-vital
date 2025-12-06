@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const doctorSelect   = document.getElementById('doctorSelect');
   const identityInputs = document.querySelectorAll('.field-identity input, .field-identity select');
 
+  const API_BASE = "http://localhost:3000";
+
   let appointmentMode = null;
   let citas     = [];
   let hospitals = [];
@@ -27,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
       }
 
-      const res  = await fetch(`/api/donantes/byUsuario/${saved.id}`);
+      const res  = await fetch(`${API_BASE}/api/donantes/byUsuario/${saved.id}`);
       const data = await res.json();
 
       if (!data.ok) {
@@ -184,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
           departamento: deptValue,
         });
 
-        const res = await fetch(`/api/doctores?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/doctores?${params.toString()}`);
         if (!res.ok) throw new Error('Error al cargar doctores');
 
         const doctores = await res.json();
@@ -216,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadHospitals() {
       try {
-        const res = await fetch('/api/hospitales');
+        const res = await fetch(`${API_BASE}/api/hospitales`);
         if (!res.ok) throw new Error('Error al cargar hospitales');
 
         hospitals = await res.json();
@@ -235,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadCitas() {
       try {
-        const res = await fetch('/api/cita');
+        const res = await fetch(`${API_BASE}/api/cita`);
         if (!res.ok) throw new Error('Error al cargar citas');
         citas = await res.json();
         renderCitas();
@@ -345,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const res = await fetch('/api/cita', {
+        const res = await fetch(`${API_BASE}/api/cita`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -380,11 +382,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         if (act === 'cancel') {
-          await fetch(`/api/cita/${id}`, { method: 'DELETE' });
+          await fetch(`${API_BASE}/api/cita/${id}`, { method: 'DELETE' });
         }
 
         if (act === 'done') {
-          await fetch(`/api/cita/${id}`, {
+          await fetch(`${API_BASE}/api/cita/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'CONFIRMADA' }),
@@ -396,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const nf = prompt('Nueva fecha (YYYY-MM-DD):', current?.fecha || '');
           const nh = prompt('Nueva hora (HH:MM):', current?.hora || '');
           if (nf && nh) {
-            await fetch(`/api/cita/${id}`, {
+            await fetch(`${API_BASE}/api/cita/${id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ fecha: nf, hora: nh, status: 'PENDIENTE' }),

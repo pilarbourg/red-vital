@@ -100,10 +100,8 @@ router.get("/hospitales/:id/inventario", async (req, res) => {
 
 // create a blood request (solicitud)
 router.post("/hospitales/:id/solicitud", async (req, res) => {
-  //tested
   try {
-    const { grupo_sanguineo, cantidad_unidades, comentarios, urgencia } =
-      req.body;
+    const { grupo_sanguineo, cantidad_unidades, comentarios, urgencia } = req.body;
 
     const solicitud = await Solicitud.create({
       hospital_id: req.params.id,
@@ -113,6 +111,9 @@ router.post("/hospitales/:id/solicitud", async (req, res) => {
       urgencia,
       estado: "PENDIENTE",
     });
+
+    const io = req.app.get("io");
+    io.emit("solicitud:nueva", solicitud);
 
     res.json({ message: "Solicitud creada correctamente", solicitud });
   } catch (err) {
@@ -190,9 +191,13 @@ router.post("/donantes/notificar", async (req, res) => {
 
 //update state of request
 router.put("/solicitud/:id", async (req, res) => {
-  //tested
   try {
     await Solicitud.update(req.body, { where: { id: req.params.id } });
+
+    const updated = await Solicitud.findByPk(req.params.id);
+
+    req.app.get("io").emit("solicitud:update", updated);
+
     res.json({ message: "Solicitud actualizada" });
   } catch (err) {
     res.status(500).json({ error: "Error updating", details: err.message });
@@ -303,40 +308,6 @@ router.get("/hospitales/:hospitalId/donaciones/stats", async (req, res) => {
     res.json(counts);
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      error: "Error fetching donation stats",
-      details: err.message,
-    });
-  }
-});
-
-router.get("/hospitales/:hospitalId/donaciones/countBloodType", async (req, res) => {
-  try {
-    const { hospitalId } = req.params;
-
-    const donations = await Donacion.findAll({
-      include: [
-        {
-          model: Solicitud,
-          where: {
-            hospital_id: hospitalId,
-            estado: "CUBIERTA",
-          },
-          attributes: ["grupo_sanguineo"],
-        },
-      ],
-      attributes: ["id"],
-    });
-
-    const counts = {};
-    donations.forEach((donation) => {
-      const bloodType = donation.Solicitud.grupo_sanguineo;
-      counts[bloodType] = (counts[bloodType] || 0) + 1;
-    });
-
-    res.json(counts);
-  } catch (err) {
-    console.error("Error fetching donation stats:", err);
     res.status(500).json({
       error: "Error fetching donation stats",
       details: err.message,

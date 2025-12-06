@@ -369,72 +369,38 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const pendingElement = document.querySelector(
-    '[data-grid="pending-requests"] .stat-number span'
+    '[data-grid="pending-requests"] .stat-number .number'
   );
-  const coveredElement = document.querySelector(
-    '[data-grid="donations-completed"] .pie-chart'
-  );
-
+  const pie = document.getElementById("completedPie");
+  
   async function loadHospitalStats() {
-    const hospitalId = 1; // TODO: Replace with dynamic hospital ID after login
-
+    const hospitalId = 2; // TODO: replace with dynamic ID
+  
     try {
       const response = await fetch(
         `http://localhost:3000/api/hospitales/${hospitalId}/solicitudes/stats`
       );
       if (!response.ok) throw new Error("Error fetching stats");
       const stats = await response.json();
-
-      pendingElement.textContent = stats.pendientes;
-
-      const porcentaje = stats.porcentaje_cubiertas;
-      coveredElement.innerHTML = `
-      <div class="slice slice1" style="transform: rotate(${
-        porcentaje * 3.6
-      }deg); background-color: #4CAF50;"></div>
-      <div class="slice slice2" style="transform: rotate(${
-        360 - porcentaje * 3.6
-      }deg); background-color: #ddd;"></div>
-      <span class="pie-label">${Math.round(porcentaje)}%</span>
-    `;
+  
+      // Update completed donations pie chart
+      const completedPercentage = stats.total
+        ? (stats.cubiertas / stats.total) * 100
+        : 0;
+  
+      pie.style.background = `conic-gradient(
+        #457b9d 0% ${completedPercentage}%,
+        #457b9d53 ${completedPercentage}% 100%
+      )`;
+  
+      // Update pending solicitudes count
+      if (pendingElement) {
+        pendingElement.textContent = stats.pendientes;
+      }
     } catch (err) {
       console.error(err);
     }
   }
-
+  
   loadHospitalStats();
-
-  async function loadBloodTypeStats() {
-    const hospitalId = 1; // TODO: replace with actual hospital ID dynamically
-    const headerRow = document.getElementById("bloodTypeHeader");
-    const countsRow = document.getElementById("bloodTypeCounts");
-
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/hospitales/${hospitalId}/donaciones/countBloodType`
-      );
-      if (!res.ok) throw new Error("Error fetching blood type stats");
-
-      const stats = await res.json();
-
-      const bloodTypes = ["A+", "A−", "B+", "B−", "O+", "O−", "AB+", "AB−"];
-
-      headerRow.innerHTML = "";
-      countsRow.innerHTML = "";
-
-      bloodTypes.forEach((type) => {
-        const th = document.createElement("th");
-        th.textContent = type;
-        headerRow.appendChild(th);
-
-        const td = document.createElement("td");
-        td.textContent = stats[type] || 0;
-        countsRow.appendChild(td);
-      });
-    } catch (err) {
-      console.error("Error loading blood type stats:", err);
-    }
-  }
-
-  loadBloodTypeStats();
 });
