@@ -21,11 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
       pendingEl.textContent = stats.pendientes || 0;
       completedEl.textContent = stats.cubiertas || 0;
       percentageEl.textContent = `${Math.round(completedPercentage)}%`;
-
-      pie.style.background = `conic-gradient(
-        #457b9d 0% ${completedPercentage}%,
-        #457b9d53 ${completedPercentage}% 100%
-      )`;
     } catch (err) {
       console.error(err);
     }
