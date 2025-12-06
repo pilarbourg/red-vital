@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const modeHint  = document.getElementById('modeHint');
   const hospitalSelect = document.getElementById('hospital');
   const doctorSelect   = document.getElementById('doctorSelect');
+  const dateInput      = document.getElementById('date');
+
   const identityInputs = document.querySelectorAll('.field-identity input, .field-identity select');
 
   const API_BASE = "http://localhost:3000";
@@ -15,13 +17,34 @@ document.addEventListener('DOMContentLoaded', () => {
   let hospitals = [];
   let currentDonor = null;
 
+  const DAILY_SLOTS = [
+  '08:00','08:30','09:00','09:30','10:00','10:30',
+  '11:00','11:30','12:00','12:30',
+  '16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30'];
+  
+  let selectedSlot = null;
+
+  //Parámetros al volver de la confirmación (cambiar cita)
+  const urlParams   = new URLSearchParams(window.location.search);
+  const initialMode = urlParams.get('mode'); 
+
+  const preFecha      = urlParams.get('fecha') || '';
+  const preHora       = urlParams.get('hora') || '';
+  const preHospitalId = urlParams.get('hospitalId') || '';
+  const preDept       = urlParams.get('departamento') || '';
+  const preDoctor     = urlParams.get('doctor') || '';
+
+  const preName    = urlParams.get('nombre') || '';
+  const preEmail   = urlParams.get('email') || '';
+  const prePhone   = urlParams.get('telefono') || '';
+  const preDob     = urlParams.get('dob') || '';
+  const preGender  = urlParams.get('genero') || '';
 
   async function loadCurrentDonor() {
     try {
       const saved = JSON.parse(localStorage.getItem('user'));
 
       if (!saved || !saved.id) {
-        // No hay usuario logueado -> lo mandamos a login con vuelta a citas
         const params = new URLSearchParams({
           next: '/frontend/pages/appointments.html?mode=registered'
         });
@@ -37,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
       }
 
-      // Estructura que usará setupRegisteredMode
       currentDonor = {
         id: data.id,
         nombre: data.nombre,
@@ -95,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function setupRegisteredMode() {
       const d = currentDonor || await loadCurrentDonor();
-      if (!d) return; // loadCurrentDonor ya redirige a login si hace falta
+      if (!d) return;
 
       document.getElementById('name').value =
         `${d.nombre} ${d.apellidos || ''}`.trim();
@@ -125,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const params = new URLSearchParams({
             next: '/frontend/pages/appointments.html?mode=registered',
           });
-          // página de login
           window.location.href = `login.html?${params.toString()}`;
           return;
         }
@@ -140,18 +161,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3) Invitado: solo en este caso usamos setMode('guest')
-        setMode(mode); // aquí solo entra cuando mode === 'guest'
+        setMode(mode);
       });
     });
-
-   
     
-    const urlParams   = new URLSearchParams(window.location.search);
-    const initialMode = urlParams.get('mode');
-    if (initialMode === 'registered') {
-      setMode('registered');
+    if (initialMode === 'registered' || initialMode === 'guest') {
+      setMode(initialMode);
     }
 
+    if (initialMode === 'guest') {
+      if (preName)   document.getElementById('name').value   = preName;
+      if (preEmail)  document.getElementById('email').value  = preEmail;
+      if (prePhone)  document.getElementById('phone').value  = prePhone;
+      if (preDob)    document.getElementById('dob').value    = preDob;
+      if (preGender) document.getElementById('gender').value = preGender;
+    }
+
+    if (preFecha && dateInput) {
+      dateInput.value = preFecha;
+    }
+    if (preHora) {
+      selectedSlot = preHora;
+      const timeInput = document.getElementById('time');
+      if (timeInput) timeInput.value = preHora;
+    }
 
     function renderHospitals() {
       if (!hospitalSelect) return;
@@ -163,19 +196,37 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.textContent = `${h.nombre} – ${h.ciudad}`;
         hospitalSelect.appendChild(opt);
       });
+
+      // Si venimos de cambiar cita, preseleccionamos el hospital y departamento
+      if (preHospitalId) {
+        hospitalSelect.value = preHospitalId;
+      }
+      if (preDept && deptSelect) {
+        deptSelect.value = preDept;
+      }
+
+      // Cargamos médicos y preseleccionamos el de la cita anterior
+      if ((preHospitalId || preDept) && doctorSelect) {
+        loadDoctorsForSelection().then(() => {
+          if (preDoctor) {
+            doctorSelect.value = preDoctor;
+          }
+          // Con todo elegido, pintamos los slots y marcamos la hora
+          renderSlots();
+        });
+      }
+
     }
 
     const deptSelect = document.getElementById('dept');
     async function loadDoctorsForSelection() {
       if (!doctorSelect) return;
 
-      // Limpiamos siempre el select
       doctorSelect.innerHTML = '<option value="">Selecciona un médico</option>';
 
       const hospitalId = hospitalSelect.value;
       const deptValue  = deptSelect ? deptSelect.value : '';
 
-      // Si no hay hospital o departamento, no pedimos nada
       if (!hospitalId || !deptValue) {
         return;
       }
@@ -204,17 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.error('Error cargando doctores:', err);
       }
-    }
-    
-    if (hospitalSelect) {
-      hospitalSelect.addEventListener('change', loadDoctorsForSelection);
-    }
-
-    if (deptSelect) {
-      deptSelect.addEventListener('change', loadDoctorsForSelection);
-    }
-
-    
+    }   
 
     async function loadHospitals() {
       try {
@@ -233,6 +274,22 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         renderHospitals();
       }
+
+      if (preHospitalId && hospitalSelect) {
+        hospitalSelect.value = preHospitalId;
+      }
+
+      if (preDept && deptSelect) {
+        deptSelect.value = preDept;
+      }
+
+      if (preHospitalId && preDept) {
+        await loadDoctorsForSelection();
+        if (preDoctor && doctorSelect) {
+          doctorSelect.value = preDoctor;
+        }
+      }
+
     }
 
     async function loadCitas() {
@@ -240,49 +297,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(`${API_BASE}/api/cita`);
         if (!res.ok) throw new Error('Error al cargar citas');
         citas = await res.json();
-        renderCitas();
+        renderSlots();
       } catch (err) {
         console.error(err);
         slotsEl.innerHTML = "<p class='appt-empty'>Error al cargar citas.</p>";
       }
     }
 
-    function renderCitas() {
-      if (!citas.length) {
-        slotsEl.innerHTML = "<p class='appt-empty'>No hay citas.</p>";
+    function renderSlots() {
+      if (!slotsEl) return;
+
+      const date       = dateInput.value;
+      const hospitalId = hospitalSelect.value;
+      const deptValue  = deptSelect ? deptSelect.value : '';
+      const doctorName = doctorSelect ? doctorSelect.value : '';
+
+      if (!date || !hospitalId || !deptValue || !doctorName) {
+        slotsEl.innerHTML =
+          "<p class='appt-empty'>Selecciona fecha, hospital, departamento y médico para ver los horarios disponibles.</p>";
         return;
       }
 
-      const sorted = [...citas].sort((a, b) =>
-        (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || ''))
-      );
+      const takenHours = citas
+        .filter(c =>
+          String(c.hospital_id) === String(hospitalId) &&
+          c.departamento === deptValue &&
+          c.doctor === doctorName &&
+          c.fecha === date &&
+          c.status !== 'CANCELADA'
+        )
+        .map(c => c.hora);
 
-      const html = sorted
-        .map(c => {
-          const hosp = hospitals.find(h => String(h.id) === String(c.hospital_id));
-          const hospLabel = hosp ? hosp.nombre : `Hospital #${c.hospital_id}`;
-          return `
-            <li class="appt-slot">
-              <div class="appt-slot-main">
-                <strong>${c.fecha}</strong> · ${c.hora || '—'}
-                <span class="appt-badge">${c.departamento || 'General'}</span>
-              </div>
-              <div class="appt-slot-sub">
-                ${hospLabel} · Médico: ${c.doctor || 'Por asignar'}
-                · <em>${c.status || 'PENDIENTE'}</em>
-              </div>
-              <div class="appt-actions">
-                <button data-act="done"    data-id="${c.id}">Completada</button>
-                <button data-act="resched" data-id="${c.id}">Reprogramar</button>
-                <button data-act="cancel"  data-id="${c.id}">Cancelar</button>
-              </div>
-            </li>
-          `;
-        })
-        .join('');
+      const html = DAILY_SLOTS.map(hora => {
+        const isTaken    = takenHours.includes(hora);
+        const isSelected = selectedSlot === hora;
+
+        return `
+          <li class="appt-slot ${isTaken ? 'is-taken' : 'is-free'} ${isSelected ? 'is-selected' : ''}"
+              data-hora="${hora}">
+            <div class="appt-slot-main">
+              <strong>${hora}</strong>
+              <span class="appt-badge">
+                ${isTaken ? 'No disponible' : 'Disponible'}
+              </span>
+            </div>
+          </li>
+        `;
+      }).join('');
 
       slotsEl.innerHTML = html;
     }
+
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -329,9 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         body.donante_id  = currentDonor.id;
         body.es_invitado = false;
-
-      } else {
-
+      } else{
         if (!v('name') || !v('email') || !v('dob')) {
           alert('Nombre, email y fecha de nacimiento son obligatorios para invitados.');
           return;
@@ -345,74 +408,104 @@ document.addEventListener('DOMContentLoaded', () => {
         body.genero_donante   = document.getElementById('gender').value || null;
         body.dob_donante      = v('dob');
       }
-
-      try {
-        const res = await fetch(`${API_BASE}/api/cita`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || 'Error al crear cita');
-        }
-
-        form.reset();
-        if (appointmentMode === 'registered') {
-          setupRegisteredMode();
-        }
-        feedback.classList.remove('hidden');
-        setTimeout(() => feedback.classList.add('hidden'), 2500);
-
-        await loadCitas();
-      } catch (err) {
-        console.error(err);
-        alert('No se ha podido crear la cita.');
-      }
-    });
-
-
-    slotsEl.addEventListener('click', async e => {
-      const btn = e.target.closest('button[data-act]');
-      if (!btn) return;
-
-      const id  = btn.dataset.id;
-      const act = btn.dataset.act;
-
-      try {
-        if (act === 'cancel') {
-          await fetch(`${API_BASE}/api/cita/${id}`, { method: 'DELETE' });
-        }
-
-        if (act === 'done') {
-          await fetch(`${API_BASE}/api/cita/${id}`, {
-            method: 'PATCH',
+        try {
+          const res = await fetch('/api/cita', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'CONFIRMADA' }),
+            body: JSON.stringify(body),
           });
-        }
 
-        if (act === 'resched') {
-          const current = citas.find(c => String(c.id) === String(id));
-          const nf = prompt('Nueva fecha (YYYY-MM-DD):', current?.fecha || '');
-          const nh = prompt('Nueva hora (HH:MM):', current?.hora || '');
-          if (nf && nh) {
-            await fetch(`${API_BASE}/api/cita/${id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ fecha: nf, hora: nh, status: 'PENDIENTE' }),
-            });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Error al crear cita');
           }
-        }
 
-        await loadCitas();
-      } catch (err) {
-        console.error(err);
-        alert('No se ha podido actualizar la cita.');
-      }
+          const citaCreada = await res.json();
+
+          const hosp = hospitals.find(h => String(h.id) === String(citaCreada.hospital_id));
+
+          const nombreDonante =
+            appointmentMode === 'registered'
+              ? `${currentDonor.nombre} ${currentDonor.apellidos || ''}`.trim()
+              : body.nombre_donante;
+
+          const baseParams = {
+            mode: appointmentMode || 'guest',
+            nombre: nombreDonante,
+            fecha: citaCreada.fecha,
+            hora: citaCreada.hora,
+            hospital: hosp ? hosp.nombre : '',
+            ciudad: hosp ? hosp.ciudad : '',
+            doctor: citaCreada.doctor || '',
+            departamento: citaCreada.departamento || '',
+            citaId: citaCreada.id,
+            hospitalId: citaCreada.hospital_id,
+          };
+
+          if (appointmentMode === 'guest') {
+            baseParams.nombre_donante   = body.nombre_donante;
+            baseParams.email_donante    = body.email_donante;
+            baseParams.telefono_donante = body.telefono_donante || '';
+            baseParams.dob_donante      = body.dob_donante;
+            baseParams.genero_donante   = body.genero_donante || '';
+          }
+
+          const params = new URLSearchParams(baseParams);
+          
+          window.location.href = `/frontend/pages/appointment-confirmation.html?${params.toString()}`;
+
+        } catch (err) {
+          console.error(err);
+          alert('No se ha podido crear la cita.');
+        }
     });
 
+    if (hospitalSelect) {
+      hospitalSelect.addEventListener('change', () => {
+        loadDoctorsForSelection();
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    if (deptSelect) {
+      deptSelect.addEventListener('change', () => {
+        loadDoctorsForSelection();
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    if (doctorSelect) {
+      doctorSelect.addEventListener('change', () => {
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    if (dateInput) {
+      dateInput.addEventListener('change', () => {
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    slotsEl.addEventListener('click', e => {
+      const li = e.target.closest('.appt-slot');
+      if (!li) return;
+
+      if (li.classList.contains('is-taken')) return;
+
+      selectedSlot = li.dataset.hora;
+      document.getElementById('time').value = selectedSlot;
+      renderSlots();
+    });
     
   loadHospitals().then(loadCitas);
 });
+
+

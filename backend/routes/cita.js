@@ -1,5 +1,7 @@
 const express = require('express');
 const { Cita, Donante, Usuario } = require('../db');
+const { enviarCorreoConfirmacion } = require('../utils/mail');
+const hospital = require('../db/models/hospital');
 
 const router = express.Router();
 
@@ -190,6 +192,8 @@ router.patch('/cita/:id', async (req, res) => {
       return res.status(404).json({ error: 'Cita no encontrada' });
     }
 
+    const prevStatus = cita.status;
+
     if (fecha) cita.fecha = fecha;
     if (hora) cita.hora = hora;
     if (departamento) cita.departamento = departamento;
@@ -197,7 +201,15 @@ router.patch('/cita/:id', async (req, res) => {
     if (status) cita.status = status;
 
     await cita.save();
+
+    if (status === 'CONFIRMADA' && prevStatus !== 'CONFIRMADA') {
+      cita.hospital_nombre = hospital.nombre || null;
+      cita.hospital_ciudad = hospital.ciudad || null;
+      await enviarCorreoConfirmacion(cita);
+    }
+
     res.json(cita);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error actualizando cita' });
