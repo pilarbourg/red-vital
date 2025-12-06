@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       notificationDonorResults.classList.remove("hidden");
-      notificationMessageBox.classList.add("hidden"); // hide message box until selection
+      notificationMessageBox.classList.add("hidden");
     } catch (error) {
       showToast("Error al buscar donantes", "error");
       console.error(error);
@@ -419,18 +419,6 @@ document.addEventListener("DOMContentLoaded", () => {
     select.value = solicitud.estado || select.value;
     applyColor(select, select.value);
   }
-
-  const socket = io("http://localhost:3000");
-
-  socket.on("solicitud:nueva", (data) => {
-    console.log("Nueva solicitud:", data);
-    addSolicitudToDashboard(data);
-  });
-
-  socket.on("solicitud:update", (data) => {
-    console.log("Solicitud actualizada:", data);
-    updateSolicitudInDashboard(data);
-  });
 
   const createBtn = document.querySelector(".blood-request-left .btn-create");
   if (createBtn) {

@@ -23,9 +23,15 @@
         <nav class="button-container">
           <a href="index.html" class="button">Home</a>
           <a href="/frontend/pages/appointments.html" class="button">Citas</a>
-          <a href="/frontend/pages/areaadmin.html" class="button">Área Administración</a>
-          <a href="/frontend/pages/areadonante.html" class="button">Área Donante</a>
-          <a href="/frontend/pages/areahospitalaria.html" class="button">Área Hospitalaria</a>
+          <a href="/frontend/pages/areaadmin.html" class="button"
+            >Área Administración</a
+          >
+          <a href="/frontend/pages/areadonante.html" class="button"
+            >Área Donante</a
+          >
+          <a href="/frontend/pages/areahospitalaria.html" class="button"
+            >Área Hospitalaria</a
+          >
           <a href="/frontend/pages/register.html" class="button">Register</a>
           <a href="/frontend/pages/login.html" class="button">Login</a>
         </nav>
@@ -46,8 +52,12 @@
           </p>
         </div>
         <div class="hero-overlay-buttons">
-          <a href="frontend/pages/appointments.html" class="donar-btn">Quiero Donar</a>
-          <a href="frontend/pages/areahospitalaria.html" class="donar-btn">Soy Hospital</a>
+          <a href="frontend/pages/appointments.html" class="donar-btn"
+            >Quiero Donar</a
+          >
+          <a href="frontend/pages/areahospitalaria.html" class="donar-btn"
+            >Soy Hospital</a
+          >
         </div>
       </article>
     </section>
@@ -87,6 +97,35 @@
             <li>Notificaciones globales y reportes agregados</li>
             <li>Cumplimiento RGPD y privacidad</li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="nuestros-servicios">
+      <h2>Live Dashboard</h2>
+
+      <div class="servicios">
+        <div class="servicio-card">
+          <div class="stat">
+            <h3>Solicitudes Pendientes</h3>
+            <span id="pendingRequests">0</span>
+          </div>
+        </div>
+
+        <div class="servicio-card">
+          <div class="stat">
+            <h3>Solicitudes Cubiertas</h3>
+            <span id="completedRequests">0</span>
+          </div>
+        </div>
+
+        <div class="servicio-card">
+          <div class="stat">
+            <h3>Porcentaje Cubierto</h3>
+            <span id="coveredPercentage">0%</span>
+          </div>
+
+          <div id="completedPie" class="pie-chart"></div>
         </div>
       </div>
     </section>
@@ -235,5 +274,8 @@
         </div>
       </div>
     </footer>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/frontend/js/dashboard-socket.js"></script>
   </body>
 </html>

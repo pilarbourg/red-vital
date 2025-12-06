@@ -43,8 +43,6 @@
       </section>
     </section>
     <section class="hospital-dashboard">
-      <div id="solicitudes-container">HELLO WORLD</div>
-
       <section class="blood-request" id="crear-solicitud">
         <div class="blood-request-left">
           <h2>Solicitud de Sangre</h2>
@@ -282,47 +280,5 @@
       <div id="toast" class="toast hidden"></div>
 
     <script src="../js/areahospitalaria.js"></script>
-    
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script>
-    const socket = io("http://localhost:3000");
-
-    socket.on("solicitud:nueva", (sol) => {
-        console.log("Nueva solicitud recibida en tiempo real:", sol);
-        addSolicitudToDashboard(sol);
-    });
-
-    socket.on("solicitud:update", (sol) => {
-        console.log("Solicitud actualizada en tiempo real:", sol);
-        updateSolicitudInDashboard(sol);
-    });
-    </script>
-
-<script>
-  function addSolicitudToDashboard(s) {
-      const container = document.getElementById("solicitudes-container");
-  
-      const card = document.createElement("div");
-      card.id = `solicitud-${s.id}`;
-      card.classList.add("solicitud-card");
-  
-      card.innerHTML = `
-          <h3>Solicitud #${s.id}</h3>
-          <p>Grupo: ${s.grupo_sanguineo}</p>
-          <p>Unidades: ${s.cantidad_unidades}</p>
-          <p>Urgencia: ${s.urgencia}</p>
-          <p>Estado: <span class="estado">${s.estado}</span></p>
-      `;
-  
-      container.appendChild(card);
-  }
-  
-  function updateSolicitudInDashboard(s) {
-      const card = document.getElementById(`solicitud-${s.id}`);
-      if (!card) return addSolicitudToDashboard(s);
-  
-      card.querySelector(".estado").textContent = s.estado;
-  }
-  </script>
   </body>
 </html>
