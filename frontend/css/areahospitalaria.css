@@ -874,3 +874,10 @@ select {
   background-position: right 12px center;
   background-size: 12px;
 }
+
+#solicitudes-container {
+  min-height: 400px;
+  height: 400px;
+  overflow-y: auto;
+  background-color: pink;
+}

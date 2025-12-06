@@ -201,34 +201,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document
-    .querySelector(".blood-request-left button")
-    .addEventListener("click", async () => {
-      const grupo = document.querySelector("select[name='tipo']").value;
-      const cantidad = document.querySelector("input[type='number']").value;
-      const comentarios = document.querySelector("textarea").value;
-      const urgencia = document.querySelectorAll("select")[1].value;
-
-      const res = await fetch(
-        "http://localhost:3000/api/hospitales/2/solicitud",
-        {
-          // ID hospital fijo o traer luego de login
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            grupo_sanguineo: grupo,
-            cantidad_unidades: cantidad,
-            comentarios,
-            urgencia,
-          }),
-        }
-      );
-
-      const data = await res.json();
-      showToast("Solicitud creada ✔");
-      console.log(data);
-    });
-
   async function loadSolicitudes() {
     try {
       const res = await fetch(
@@ -238,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const solicitudes = await res.json();
 
       const tbody = document.getElementById("solicitudesTableBody");
-      tbody.innerHTML = ""; // clear existing rows
+      tbody.innerHTML = "";
 
       solicitudes.forEach((solicitud) => {
         const tr = document.createElement("tr");
@@ -372,28 +344,26 @@ document.addEventListener("DOMContentLoaded", () => {
     '[data-grid="pending-requests"] .stat-number .number'
   );
   const pie = document.getElementById("completedPie");
-  
+
   async function loadHospitalStats() {
     const hospitalId = 2; // TODO: replace with dynamic ID
-  
+
     try {
       const response = await fetch(
         `http://localhost:3000/api/hospitales/${hospitalId}/solicitudes/stats`
       );
       if (!response.ok) throw new Error("Error fetching stats");
       const stats = await response.json();
-  
-      // Update completed donations pie chart
+
       const completedPercentage = stats.total
         ? (stats.cubiertas / stats.total) * 100
         : 0;
-  
+
       pie.style.background = `conic-gradient(
         #457b9d 0% ${completedPercentage}%,
         #457b9d53 ${completedPercentage}% 100%
       )`;
-  
-      // Update pending solicitudes count
+
       if (pendingElement) {
         pendingElement.textContent = stats.pendientes;
       }
@@ -401,6 +371,101 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(err);
     }
   }
-  
+
   loadHospitalStats();
+
+  function addSolicitudToDashboard(solicitud) {
+    const tbody = document.getElementById("solicitudesTableBody");
+    const tr = document.createElement("tr");
+
+    const fechaLimite = solicitud.fecha_limite
+      ? new Date(solicitud.fecha_limite).toLocaleDateString()
+      : "-";
+
+    tr.innerHTML = `
+      <td>${solicitud.grupo_sanguineo}</td>
+      <td>${solicitud.cantidad_unidades}</td>
+      <td>${fechaLimite}</td>
+      <td>
+        <select class="estado-select" data-solicitud-id="${solicitud.id}">
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="PARCIAL">Parcial</option>
+          <option value="CUBIERTA">Cubierta</option>
+          <option value="CANCELADA">Cancelada</option>
+        </select>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+
+    const select = tr.querySelector(".estado-select");
+    applyColor(select, select.value);
+  }
+
+  function updateSolicitudInDashboard(solicitud) {
+    const tbody = document.getElementById("solicitudesTableBody");
+    const row = tbody
+      .querySelector(`.estado-select[data-solicitud-id="${solicitud.id}"]`)
+      ?.closest("tr");
+    if (!row) return;
+
+    row.cells[0].textContent = solicitud.grupo_sanguineo;
+    row.cells[1].textContent = solicitud.cantidad_unidades;
+    row.cells[2].textContent = solicitud.fecha_limite
+      ? new Date(solicitud.fecha_limite).toLocaleDateString()
+      : "-";
+
+    const select = row.querySelector(".estado-select");
+    select.value = solicitud.estado || select.value;
+    applyColor(select, select.value);
+  }
+
+  const socket = io("http://localhost:3000");
+
+  socket.on("solicitud:nueva", (data) => {
+    console.log("Nueva solicitud:", data);
+    addSolicitudToDashboard(data);
+  });
+
+  socket.on("solicitud:update", (data) => {
+    console.log("Solicitud actualizada:", data);
+    updateSolicitudInDashboard(data);
+  });
+
+  const createBtn = document.querySelector(".blood-request-left .btn-create");
+  if (createBtn) {
+    createBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const tipoSelect = document.querySelector("select[name='tipo']");
+      const cantidadInput = document.querySelector("input[type='number']");
+      const comentariosTextarea = document.querySelector("textarea");
+
+      if (!tipoSelect || !cantidadInput || !comentariosTextarea) return;
+
+      const tipo = tipoSelect.value;
+      const cantidad = cantidadInput.value;
+      const comentarios = comentariosTextarea.value;
+
+      try {
+        const res = await fetch(
+          "http://localhost:3000/api/hospitales/2/solicitud",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              grupo_sanguineo: tipo,
+              cantidad_unidades: cantidad,
+              comentarios,
+            }),
+          }
+        );
+
+        const data = await res.json();
+        console.log("Solicitud creada:", data);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
 });
