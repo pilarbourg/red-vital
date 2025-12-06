@@ -7,6 +7,9 @@ const { sequelize, Admin, Cita, Disponibilidad, Doctor, Donacion, Donante, Hospi
 const app = express();
 const PORT = 3000;
 
+const cors = require("cors");
+app.use(cors());
+
 // Carpeta raíz del proyecto (donde está index.html y la carpeta frontend)
 const rootDir = path.join(__dirname, '..');
 

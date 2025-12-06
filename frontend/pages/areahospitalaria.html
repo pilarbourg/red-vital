@@ -86,11 +86,11 @@
         <div class="filter-section">
           <div class="filter-btn-section">
             <h2>Buscar donantes compatibles</h2>
-            <button class="btn-create">Filtrar</button>
+            <button class="btn-create btn-search">Filtrar</button>
           </div>
           <div class="filters">
-            <label>Grupo Sanguíneo:
-              <select>
+            <label for="grupo-sanguineo-filter">Grupo Sanguíneo:
+              <select id="grupo-sanguineo-filter">
                 <option>Todos</option>
                 <option>A+</option>
                 <option>A−</option>
@@ -102,14 +102,11 @@
                 <option>AB−</option>
               </select>
             </label>
-            <label>Disponibilidad:
-              <select>
-                <option>Todos</option>
-                <option>Disponible</option>
-                <option>No disponible</option>
-              </select>
+            <label for="nombre-donante-filter">Nombre:
+              <input type="text" id="nombre-donante-filter" placeholder="Nombre completo del donante" />
             </label>
           </div>
+        </div>
         </div>
         <table>
           <thead>
@@ -121,22 +118,7 @@
               <th>Teléfono</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Leonor Diez</td>
-              <td>23</td>
-              <td>O+</td>
-              <td>leonor@gmail.com</td>
-              <td>+33 123 456 898</td>
-            </tr>
-            <tr>
-              <td>Carmen Montero</td>
-              <td>28</td>
-              <td>A−</td>
-              <td>carmen@gmail.com</td>
-              <td>+34 123456322</td>
-            </tr>
-          </tbody>
+          <tbody id="donorResultsTableBody"></tbody>
         </table>
       </section>
 
@@ -152,7 +134,7 @@
               <label>Buscar donante:</label>
 
               <label>Nombre:
-                <input type="text" placeholder="Nombre completo" />
+                <input type="text" id="donor-name-filter" placeholder="Nombre completo del donante" />
               </label>
 
               <label>Grupo Sanguíneo:
@@ -167,8 +149,7 @@
                   <option>AB+</option>
                   <option>AB−</option>
                 </select>
-              </label>
-
+              </label>  
               <button type="button" class="btn-create btn-search">Buscar</button>
             </form>
 
@@ -182,20 +163,7 @@
                     <th>Correo</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td><input type="checkbox" class="select-donor"></td>
-                    <td>Leonor Díez</td>
-                    <td>O+</td>
-                    <td>leonor@gmail.com</td>
-                  </tr>
-                  <tr>
-                    <td><input type="checkbox" class="select-donor"></td>
-                    <td>Carmen Montero</td>
-                    <td>A−</td>
-                    <td>carmen@gmail.com</td>
-                  </tr>
-                </tbody>
+                <tbody id="notificationDonorResultsBody"></tbody>
               </table>
             </div>
 
@@ -219,111 +187,50 @@
             <table class="status-table" id="statusTable">
               <thead>
                 <tr>
-                  <th>Nombre</th>
                   <th>Tipo de Sangre</th>
                   <th>Cantidad</th>
+                  <th>Prioridad</th>
+                  <th>Fecha Límite</th>
                   <th>Estado Solicitud</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>Leonor Díez</td>
-                  <td>O+</td>
-                  <td>3 unidades</td>
-                  <td>
-                    <select class="estado-select">
-                      <option>Pendiente</option>
-                      <option>En Proceso</option>
-                      <option>Completado</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Carmen Montero</td>
-                  <td>A−</td>
-                  <td>2 unidades</td>
-                  <td>
-                    <select class="estado-select">
-                      <option>En Proceso</option>
-                      <option>Pendiente</option>
-                      <option>Completado</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Javier Soto</td>
-                  <td>B+</td>
-                  <td>1 unidad</td>
-                  <td>
-                    <select class="estado-select">
-                      <option>Completado</option>
-                      <option>Pendiente</option>
-                      <option>En Proceso</option>
-                    </select>
-                  </td>
-                </tr>
-              </tbody>
+              <tbody id="solicitudesTableBody"></tbody>
             </table>
+
           </div>
         </div>
       </section>
 
       <section class="register-donations-results" id="register-donations">
         <h2>Registrar los resultados de donaciones</h2>
-
         <div class="donations-container">
           <div class="donations-left">
             <button class="btn-create" id="addDonationBtn">Añadir Resultado</button>
 
             <form id="donationForm" class="donation-form hidden">
-              <label>Fecha:
-                <br><input type="date" name="fecha" required /></br>
+
+              <label>Fecha:<br>
+                <input type="date" name="fecha" required>
               </label>
+
               <label>Cantidad recibida:
-                <input type="number" name="cantidad" min="1" placeholder="Unidades" required />
+                <input type="number" name="cantidad" min="1" placeholder="Unidades" required>
               </label>
-              <label>Donante asignado:
-                <input type="text" name="donante" placeholder="Nombre del donante" required />
-              </label>
+
+              <label>Donante asignado:</label>
+              <select name="donante_id" id="donanteSelect" required></select>
+
+              <label>Solicitud:</label>
+              <select name="solicitud_id" id="solicitudSelect" required></select>
               <button type="submit" class="btn-create">Guardar</button>
             </form>
+
+            <div id="respuestaSolicitud"></div>
           </div>
 
           <div class="donations-right" id="donationsList">
-            <div class="donation-card">
-              <table>
-                <tr>
-                  <td><strong>Fecha:</strong></td>
-                  <td>2025-10-30</td>
-                </tr>
-                <tr>
-                  <td><strong>Cantidad recibida:</strong></td>
-                  <td>3 unidades</td>
-                </tr>
-                <tr>
-                  <td><strong>Donante asignado:</strong></td>
-                  <td>Leonor Díez</td>
-                </tr>
-              </table>
-            </div>
-
-            <div class="donation-card">
-              <table>
-                <tr>
-                  <td><strong>Fecha:</strong></td>
-                  <td>2025-10-29</td>
-                </tr>
-                <tr>
-                  <td><strong>Cantidad recibida:</strong></td>
-                  <td>2 unidades</td>
-                </tr>
-                <tr>
-                  <td><strong>Donante asignado:</strong></td>
-                  <td>Carmen Montero</td>
-                </tr>
-              </table>
-            </div>
           </div>
+
         </div>
       </section>
 
@@ -333,73 +240,47 @@
 
           <div class="grid-item" data-grid="blood-types">
             <h3>Tipos de Sangre</h3>
-            <div class="stacked-bar">
-              <div class="bar-type" style="width: 30%; background-color: #932323cf;">A+</div>
-              <div class="bar-type" style="width: 25%; background-color: #0c4061cb;">O+</div>
-              <div class="bar-type" style="width: 20%; background-color: #136e57df;">B+</div>
-              <div class="bar-type" style="width: 15%; background-color: #2a9d9067;">AB+</div>
-              <div class="bar-type" style="width: 10%; background-color: #79185ec4;">O−</div>
-            </div>
+            <table id="bloodTypeTable" class="blood-type-table">
+              <thead>
+                <tr id="bloodTypeHeader"></tr>
+              </thead>
+              <tbody>
+                <tr id="bloodTypeCounts"></tr>
+              </tbody>
+            </table>
           </div>
 
           <div class="grid-item" data-grid="weekly-donations">
             <h3>Donaciones Semanales</h3>
-            <div class="mini-bar-chart">
-              <div class="bar" style="height: 60%;" data-value="6"></div>
-              <div class="bar" style="height: 40%;" data-value="4"></div>
-              <div class="bar" style="height: 80%;" data-value="8"></div>
-              <div class="bar" style="height: 50%;" data-value="5"></div>
-              <div class="bar" style="height: 70%;" data-value="7"></div>
+            <div class="grid-div">
+              <div class="mini-bar-chart">
+                <div class="bar" style="height: 60%;" data-value="6"></div>
+                <div class="bar" style="height: 40%;" data-value="4"></div>
+                <div class="bar" style="height: 80%;" data-value="8"></div>
+                <div class="bar" style="height: 50%;" data-value="5"></div>
+                <div class="bar" style="height: 70%;" data-value="7"></div>
+              </div>
             </div>
-          </div>
-
-          <div class="grid-item" data-grid="patients">
-            <h3>Pacientes Atendidos</h3>
-            <div class="stat-circle">
-              <span>85</span>
-            </div>
-          </div>
-
-          <div class="grid-item" data-grid="avg-units">
-            <h3>Promedio Unidades/Día</h3>
-            <div class="stat-bar">
-              <div class="stat-fill" style="width: 55%;"></div>
-            </div>
-            <span>55 unidades</span>
           </div>
 
           <div class="grid-item" data-grid="donations-completed">
             <h3>Donaciones Completadas</h3>
-            <div class="pie-chart">
-              <div class="slice slice1"></div>
-              <div class="slice slice2"></div>
+            <div class="grid-div">
+              <div class="pie-chart">
+                <div class="slice slice1"></div>
+                <div class="slice slice2"></div>
+              </div>
             </div>
           </div>
 
-          <div class="grid-item" data-grid="pending-requests">
-            <h3>Solicitudes Pendientes</h3>
-            <div class="stat-number">
-              <span>12</span>
+          <div class="grid-item card-pendientes" data-grid="pending-requests">
+            <h3 class="label">Solicitudes Pendientes</h3>
+            <div class="grid-div">
+              <div class="stat-number circle">
+                <span class="number">0</span>
+              </div>
             </div>
           </div>
-
-          <div class="grid-item" data-grid="staff-availability">
-            <h3>Personal Disponible</h3>
-            <div class="mini-bar-chart">
-              <div class="bar" style="height: 80%;" data-value="8"></div>
-              <div class="bar" style="height: 60%;" data-value="6"></div>
-              <div class="bar" style="height: 70%;" data-value="7"></div>
-              <div class="bar" style="height: 50%;" data-value="5"></div>
-            </div>
-          </div>
-
-          <div class="grid-item" data-grid="avg-wait-time">
-            <h3>Tiempo Promedio Espera</h3>
-            <div class="progress-circle">
-              <span>45 min</span>
-            </div>
-          </div>
-
         </section>
       </section>
 
@@ -419,6 +300,7 @@
           </div>
         </div>
       </footer>
+      <div id="toast" class="toast hidden"></div>
     <script src="../js/areahospitalaria.js"></script>
   </body>
 </html>
