@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Confirmación de cita - RedVital</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f3f4f6; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#111827;">
+    <div style="max-width:600px; margin:0 auto; padding:24px;">
+
+      <!-- LOGO -->
+      <header style="text-align:center; margin-bottom:24px;">
+        <img 
+          src="https://raw.githubusercontent.com/oliviagallego/red-vital/main/frontend/assets/images/logo_RedVital.png"
+          alt="Logo RedVital"
+          style="width:100%; max-width:480px; height:auto; display:block; margin:0 auto 8px;"
+        />
+      </header>
+
+      <!-- TARJETA PRINCIPAL -->
+      <main style="background-color:#ffffff; border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(15,23,42,0.08);">
+        <h2 style="margin-top:0; margin-bottom:12px; color:#b91c1c; font-size:22px;">
+          Confirmación de tu cita de donación
+        </h2>
+
+        <p style="margin:0 0 8px;">
+          Hola <strong>{{NOMBRE}}</strong>,
+        </p>
+        <p style="margin:0 0 16px;">
+          Tu cita de donación de sangre ha sido <strong>CONFIRMADA</strong>:
+        </p>
+
+        <ul style="padding-left:18px; margin:0 0 20px; line-height:1.6;">
+          <li><strong>Fecha:</strong> {{FECHA}}</li>
+          <li><strong>Hora:</strong> {{HORA}}</li>
+          <li><strong>Hospital:</strong> {{HOSPITAL_TEXTO}}</li>
+          <li><strong>Departamento:</strong> {{DEPARTAMENTO}}</li>
+          <li><strong>Médico:</strong> {{DOCTOR}}</li>
+        </ul>
+
+        <p style="margin:0 0 16px;">
+          Puedes gestionar tu cita desde aquí:
+        </p>
+
+        <div style="text-align:center; margin-bottom:24px;">
+          <a href="{{URL_CONFIRMAR}}"
+            style="display:inline-block; padding:10px 16px; margin:4px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:600; background-color:#16a34a; color:#ffffff;">
+            Confirmar cita
+          </a>
+          <a href="{{URL_CAMBIAR}}"
+            style="display:inline-block; padding:10px 16px; margin:4px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:600; background-color:#2563eb; color:#ffffff;">
+            Cambiar cita
+          </a>
+          <a href="{{URL_CANCELAR}}"
+            style="display:inline-block; padding:10px 16px; margin:4px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:600; background-color:#dc2626; color:#ffffff;">
+            Cancelar cita
+          </a>
+        </div>
+
+        <p style="margin:0 0 8px;">
+          Si no puedes asistir, por favor cambia o cancela tu cita
+          para poder ofrecer tu horario a otro donante.
+        </p>
+
+        <p style="margin:0;">
+          Muchas gracias por donar vida ❤️<br/>
+          <strong>Equipo RedVital</strong>
+        </p>
+      </main>
+
+      <!-- CONTACTO -->
+      <section style="margin-top:24px; background-color:#ffffff; border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(15,23,42,0.06);">
+        <h2 style="margin-top:0; margin-bottom:16px; font-size:18px; color:#111827;">Contacto</h2>
+        <div>
+          <div style="display:flex; align-items:center; margin-bottom:8px;">
+            <img 
+                src="https://static.vecteezy.com/system/resources/previews/014/392/004/non_2x/phone-call-auricular-icon-on-transparent-background-free-png.png"
+                alt="Teléfono"
+                style="width:20px; height:auto; margin-right:8px; display:block;" 
+            />
+
+            <p style="margin:0;">+34 600 123 456</p>
+          </div>
+          <div style="display:flex; align-items:center; margin-bottom:8px;">
+            <img 
+              src="https://static.vecteezy.com/system/resources/previews/020/009/614/non_2x/email-and-mail-icon-black-free-png.png"
+              alt="Email"
+              style="width:20px; height:auto; margin-right:8px; display:block;" 
+            />
+            <p style="margin:0;">redvital.donasangre@gmail.com</p>
+          </div>
+          <div style="display:flex; align-items:center;">
+            <img 
+              src="https://static.vecteezy.com/system/resources/thumbnails/022/187/625/small_2x/map-location-pin-icon-free-png.png"
+              alt="Dirección"
+              style="width:20px; height:auto; margin-right:8px; display:block;" 
+            />
+            <p style="margin:0;">C/ Serrano 120, Madrid, España</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer style="margin-top:40px; padding-top:25px; border-top:1px solid #e5e7eb; font-size:12px; color:#6b7280;">
+        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img 
+              src="https://raw.githubusercontent.com/oliviagallego/red-vital/main/frontend/assets/images/logo_RedVital.png"
+              alt="RedVital Logo"
+              style="width:24px; height:24px;" 
+            />
+            <span style="font-weight:600; color:#111827;">RedVital</span>
+          </div>
+
+          <div>
+            <a href="{{BASE_URL}}/frontend/pages/areaadmin.html" style="margin-right:12px; text-decoration:none; color:#2563eb;">Admin</a>
+            <a href="{{BASE_URL}}/frontend/pages/areadonante.html" style="margin-right:12px; text-decoration:none; color:#2563eb;">Donante</a>
+            <a href="{{BASE_URL}}/frontend/pages/areahospitalaria.html" style="text-decoration:none; color:#2563eb;">Hospital</a>
+          </div>
+        </div>
+
+        <div style="margin-top:8px; text-align:center;">
+          &copy; 2025 RedVital | All rights reserved
+        </div>
+      </footer>
+
+    </div>
+  </body>
+</html>

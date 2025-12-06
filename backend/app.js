@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+require('dotenv').config();
 const doctoresSeed = require('./seed/doctoresBase.json').doctores;
 const { sequelize, Admin, Cita, Disponibilidad, Doctor, Donacion, Donante, Hospital, InventarioSangre, Notificacion, Solicitud, Usuario } = require('./db'); 
 
@@ -215,7 +216,7 @@ async function seedDoctores() {
 
 
 // Sincronizar la BD y luego arrancar el servidor
-sequelize.sync({ force: true })
+sequelize.sync()
   .then(async () => {
     console.log('Base de datos sincronizada');
 
