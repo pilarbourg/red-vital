@@ -78,19 +78,56 @@
         };
 
         try {
-          const res = await fetch("/auth/login", {
+          /* const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });*/
+
+          const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           });
 
-          const json = await res.json();
-          alert(json.message);
 
-          if (res.ok) {
+          // const json = await res.json();
+          // alert(json.message);
+          const json = await res.json().catch(() => ({}));
+
+          // Mensaje que venga del backend
+          if (json.mensaje || json.error) {
+            alert(json.mensaje || json.error);
+          }
+
+
+          /* if (res.ok) {
            
             // window.location.href = "areadonante.html";
+          }*/
+         
+         if (!res.ok) {
+            // credenciales mal o usuario no existe
+            return;
           }
+
+          // 2) Guardar usuario en localStorage (lo usa appointments.js y donante.js)
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              id: json.id,
+              email: email,
+              rol: json.rol,
+            })
+          );
+
+          // 3) Leer ?next=...  (por ejemplo /frontend/pages/appointments.html?mode=registered)
+          const params = new URLSearchParams(window.location.search);
+          const next =
+            params.get("next") || "/frontend/pages/areadonante.html";
+
+          // 4) Redirigir
+          window.location.href = next;
 
         } catch (err) {
           alert("Error conectando con el servidor.");
