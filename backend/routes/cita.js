@@ -1,7 +1,7 @@
 const express = require('express');
-const { Cita, Donante, Usuario } = require('../db');
+const { Cita, Donante, Usuario, Hospital } = require('../db');
 const { enviarCorreoConfirmacion } = require('../utils/mail');
-const hospital = require('../db/models/hospital');
+// const hospital = require('../db/models/hospital');
 
 const router = express.Router();
 
@@ -118,8 +118,10 @@ router.post('/cita', async (req, res) => {
 
     //CASO 1: donante registrado (con login)
     if (donante_id) {
-      const donante = await Donante.findByPk(donante_id, {include: [{ model: Usuario }]});
-        
+      const donante = await Donante.findByPk(donante_id, {
+        include: [{ model: Usuario, as: 'usuario' }],
+      });
+
       if (!donante) {
         return res.status(400).json({ error: 'Donante no encontrado' });
       }
@@ -137,8 +139,8 @@ router.post('/cita', async (req, res) => {
       dataCita.donante_id    = donante_id;
       dataCita.es_invitado   = false;
       dataCita.nombre_donante   = `${donante.nombre} ${donante.apellidos || ''}`.trim();
-      dataCita.email_donante    = donante.Usuario?.email || null;
-      dataCita.telefono_donante = donante.Usuario?.telefono || null;
+      dataCita.email_donante    = donante.usuario?.email || null;
+      dataCita.telefono_donante = donante.usuario?.telefono || null;
       dataCita.genero_donante   = donante.genero || null; 
       dataCita.dob_donante      = dob;
 
@@ -203,8 +205,13 @@ router.patch('/cita/:id', async (req, res) => {
     await cita.save();
 
     if (status === 'CONFIRMADA' && prevStatus !== 'CONFIRMADA') {
-      cita.hospital_nombre = hospital.nombre || null;
-      cita.hospital_ciudad = hospital.ciudad || null;
+      //cita.hospital_nombre = hospital.nombre || null;
+      //cita.hospital_ciudad = hospital.ciudad || null;
+
+      const hosp = await Hospital.findByPk(cita.hospital_id);
+      cita.hospital_nombre = hosp ? hosp.nombre : null;
+      cita.hospital_ciudad = hosp ? hosp.ciudad : null;
+
       await enviarCorreoConfirmacion(cita);
     }
 

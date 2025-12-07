@@ -315,4 +315,28 @@ router.get("/hospitales/:hospitalId/donaciones/stats", async (req, res) => {
   }
 });
 
+// Obtener hospital por usuario_id (para el dashboard hospital)
+router.get("/hospitales/byUsuario/:usuarioId", async (req, res) => {
+  try {
+    const hospital = await Hospital.findOne({
+      where: { usuario_id: req.params.usuarioId },
+    });
+
+    if (!hospital) {
+      return res
+        .status(404)
+        .json({ ok: false, mensaje: "Hospital no encontrado para este usuario" });
+    }
+
+    res.json({ ok: true, id: hospital.id, nombre: hospital.nombre });
+  } catch (err) {
+    res.status(500).json({
+      ok: false,
+      error: "Error buscando hospital",
+      details: err.message,
+    });
+  }
+});
+
+
 module.exports = router;

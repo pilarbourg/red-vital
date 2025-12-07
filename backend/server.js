@@ -1,5 +1,5 @@
 // HTTP + SOCKET.IO SERVER --> SEPARACIÓN DE RESPONSABILIDADES
-
+require('dotenv').config();
 const app = require("./app");
 const { sequelize } = require("./db");
 const { seedAll } = require("./seed");
@@ -17,7 +17,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => console.log("Socket disconnected:", socket.id));
 });
 
-sequelize.sync({ force: true }).then(async () => {
+sequelize.sync().then(async () => {
   console.log("Database synced");
   await seedAll();
   server.listen(PORT, () =>

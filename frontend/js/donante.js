@@ -3,35 +3,51 @@
 ========================================================== */
 
 
-const DONANTE_ID = 1; // <-- cambia esto cuando tengas login real
-/*
 let DONANTE_ID = null;
 
-async function resolveDonanteId() {
-  const savedUser = JSON.parse(localStorage.getItem("user"));
+async function resolveDonanteId(savedUser) {
+  try {
+    const res = await fetch(`/api/donantes/byUsuario/${savedUser.id}`);
+    const data = await res.json();
 
-  if (!savedUser) {
-    alert("No hay usuario logueado");
-    window.location.href = "login.html";
-    return;
+    if (!res.ok || !data.ok) {
+      console.error("No hay donante asociado a este usuario", data);
+      return null;
+    }
+
+    DONANTE_ID = data.id;
+    return DONANTE_ID;
+  } catch (err) {
+    console.error("Error resolviendo DONANTE_ID:", err);
+    return null;
   }
-  
-  const data = await fetch(`/api/donantes/byUsuario/${savedUser.id}`).then(r => r.json());
-  DONANTE_ID = data.id;
 }
-*/
+
 
 /* ==========================================================
    INICIO GLOBAL
 ========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
 
- // await resolveDonanteId();
+   // 1) Comprobar que soy DONANTE, si no → login
+  const savedUser = requireRole("DONANTE", "/frontend/pages/areadonante.html");
+  if (!savedUser) return; // requireRole ya redirige
+
+  // 2) Sacar DONANTE_ID real desde el backend
+  await resolveDonanteId(savedUser);
 
   if (!DONANTE_ID) {
     console.error("No se pudo obtener DONANTE_ID");
     return;
   }
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    });
+  }
+
 
   /* ================= PERFIL ================= */
   fetch(`/api/donantes/${DONANTE_ID}/perfil`)
@@ -186,13 +202,14 @@ async function cargarNotificaciones() {
     }
 
     lista.forEach(n => {
-     box.innerHTML += `
-          <div class="notification-item">
-            <h4>${n.titulo}</h4>
-            <p>${new Date(n.fecha_programada).toLocaleDateString()}</p>
-          </div>
-        `;
-      });
+      box.innerHTML += `
+        <div class="notification-item">
+          <h4>${n.mensaje}</h4>
+          <p>${new Date(n.createdAt).toLocaleDateString()}</p>
+        </div>
+      `;
+    });
+
   
   } catch (err) {
     console.error("Error cargando notificaciones:", err);

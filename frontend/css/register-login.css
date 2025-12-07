@@ -1,9 +1,18 @@
 
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
 body {
     margin: 0;
     font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #f9fbfc;
     color: #1d3557;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .btn-login {
@@ -23,38 +32,52 @@ body {
 }
 
 .form-container {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: calc(100vh - 100px);
+    justify-content:  flex-start;
     background-color: #ecf2f9;
-    padding: 20px;
+    padding: 40px 20px 80px;
+    box-sizing: border-box;
 }
 
 .form-container h1 {
     font-size: 2.5rem;
     color: #d53a3a;
-    margin-bottom: 25px;
+    margin: 0 0 10px;
+    text-align: center;
+}
+
+.form-container h2 {
+    margin: 0 0 25px;
+    text-align: center;
+    color: #1d3557;
 }
 
 .form {
     display: flex;
     flex-direction: column;
     background-color: white;
-    padding: 30px 40px;
+    padding: 30px 40px 40px;
     border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    width: 320px;
+    width: 100%;
+    max-width: 420px;   
+    box-sizing: border-box;
 }
 
 .form label {
+    display: block;
     margin-top: 10px;
     font-weight: 600;
     color: #1d3557;
 }
 
-.form input {
+.form input,
+.form select,
+.form textarea  {
+    width: 100%;
     padding: 10px;
     border: 1px solid #cfd9e2;
     border-radius: 8px;
@@ -62,10 +85,18 @@ body {
     outline: none;
     font-size: 0.95rem;
     transition: border-color 0.2s;
+    box-sizing: border-box;
 }
 
-.form input:focus {
+.form input:focus,
+.form select:focus,
+.form textarea:focus  {
     border-color: #457b9d;
+}
+
+.form textarea {
+    min-height: 80px;
+    resize: vertical;
 }
 
 .form button {
@@ -101,4 +132,7 @@ body {
 
 .register-link a:hover {
     text-decoration: underline;
+}
+.hidden {
+    display: none;
 }

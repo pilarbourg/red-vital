@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!saved || !saved.id) {
         const params = new URLSearchParams({
-          next: '/frontend/pages/appointments.html?mode=registered'
+          next: '/frontend/pages/appointments.html?mode=registered',
+          role: 'DONANTE',
         });
         window.location.href = `login.html?${params.toString()}`;
         return null;
@@ -66,8 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         apellidos: data.apellidos,
         genero: data.genero,
         fecha_nacimiento: data.dob,
-        email: data.usuario?.email || null,
-        telefono: data.usuario?.telefono || null,
+        email: (data.usuario && data.usuario.email) || saved.email || '',
+        telefono: (data.usuario && data.usuario.telefono) || saved.telefono || '',
       };
 
       return currentDonor;
@@ -146,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mode === 'registered') {
           const params = new URLSearchParams({
             next: '/frontend/pages/appointments.html?mode=registered',
+            role: 'DONANTE',
           });
           window.location.href = `login.html?${params.toString()}`;
           return;
@@ -154,7 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2) Registrarme como donante: ir a register
         if (mode === 'register') {
           const params = new URLSearchParams({
-            next: '/frontend/pages/appointments.html?mode=registered'
+            next: '/frontend/pages/appointments.html?mode=registered',
+            role: 'DONANTE',
           });
           window.location.href = `register.html?${params.toString()}`;
           return;

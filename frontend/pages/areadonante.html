@@ -30,6 +30,8 @@
           <a href="areahospitalaria.html" class="button">Área Hospitalaria</a>
           <a href="register.html" class="button">Register</a>
           <a href="login.html" class="button">Login</a>
+
+           <button id="btnLogout" class="button" type="button">Logout</button>
         </nav>
       </section>
     </header>
@@ -194,7 +196,7 @@
 
           <hr />
 
-          <form class="user-form">
+          <form id="credencialesForm" class="user-form">
             <h3>Actualizar credenciales</h3>
 
             <label for="username">Nuevo nombre de usuario:</label>
@@ -210,6 +212,9 @@
               id="password"
               placeholder="Introduce nueva contraseña"
             />
+
+            <label for="email">Nuevo email:</label>
+            <input type="email" id="email" placeholder="Introduce nuevo email" />
 
             <button type="submit" class="save-btn">💾 Guardar cambios</button>
           </form>
@@ -238,6 +243,7 @@
       </div>
     </footer>
     <!-- SCRIPT EXTERNO -->
+     <script src="../js/auth-guard.js"></script>
     <script src="../js/donante.js"></script>
   </body>
 </html>

@@ -11,7 +11,7 @@ const { Donante, Usuario, Donacion, Notificacion, Hospital, Solicitud  } = requi
 router.get("/donantes/:id/perfil", async (req, res) => {
   try {
     const donante = await Donante.findByPk(req.params.id, {
-     include: [{model: Usuario,
+     include: [{model: Usuario, as: "usuario",
     attributes: ["id", "email", "direccion", "telefono"]}]
     });
 
@@ -191,7 +191,7 @@ router.put("/donantes/:id/credenciales", async (req, res) => {
       return res.status(404).json({ ok: false, message: "Donante no encontrado" });
     }
 
-    const usuarioId = donante.usuario_id;
+    const usuarioId =  await Usuario.findByPk(donante.usuario_id);
 
     const updateData = {};
     if (req.body.email) updateData.email = req.body.email;
@@ -210,6 +210,13 @@ router.put("/donantes/:id/credenciales", async (req, res) => {
 
 router.get("/donantes/:id/credenciales", async (req, res) => {
   try {
+
+    const donante = await Donante.findByPk(req.params.id);
+
+    if (!donante) {
+      return res.status(404).json({ ok: false, message: "Donante no encontrado" });
+    }
+
     const usuario = await Usuario.findByPk(req.params.id)
 
     if (!usuario) {
@@ -220,7 +227,7 @@ router.get("/donantes/:id/credenciales", async (req, res) => {
       ok: true,
       email: usuario.email,
       rol: usuario.rol,
-      password: usuario.password
+      //password: usuario.password
     });
 
   } catch (err) {
@@ -245,7 +252,11 @@ router.get("/donantes/byUsuario/:usuario_id", async (req, res) => {
 
     const donante = await Donante.findOne({
       where: { usuario_id },
-      include: [{ model: Usuario }]
+      include: [{ 
+        model: Usuario,
+        as: 'usuario',                    
+        attributes: ['id', 'email', 'direccion', 'telefono']
+      }]
     });
 
     if (!donante) {
@@ -265,7 +276,11 @@ router.get("/donantes/byUsuario/:usuario_id", async (req, res) => {
       dob: donante.dob,
       grupo_sanguineo: donante.grupo_sanguineo,
       condiciones: donante.condiciones,
-      usuario: donante.Usuario
+      usuario: {
+        email: donante.usuario?.email || null,
+        direccion: donante.usuario?.direccion || null,
+        telefono: donante.usuario?.telefono || null, 
+      }
     });
 
   } catch (error) {

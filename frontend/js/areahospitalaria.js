@@ -1,4 +1,36 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+  // 1) Comprobar rol HOSPITAL
+  const saved = requireRole("HOSPITAL", "/frontend/pages/areahospitalaria.html");
+  if (!saved) return; // ya ha redirigido a login
+
+  // 2) Obtener el hospital ligado a este usuario
+  let HOSPITAL_ID = null;
+  try {
+    const res = await fetch(`/api/hospitales/byUsuario/${saved.id}`);
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      alert("No se ha encontrado un hospital asociado a este usuario");
+      return;
+    }
+
+    HOSPITAL_ID = data.id;
+    console.log("Hospital logueado:", HOSPITAL_ID, data.nombre);
+  } catch (err) {
+    console.error("Error obteniendo hospital por usuario:", err);
+    alert("No se han podido cargar los datos del hospital.");
+    return;
+  }
+
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    });
+  }
+
   const addDonationBtn = document.getElementById("addDonationBtn");
   const donationForm = document.getElementById("donationForm");
   const donationsList = document.getElementById("donationsList");
@@ -87,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const grupo = notificationBloodGroupSelect.value;
     const nombre = notificationNameInput.value.trim();
 
-    let url = `http://localhost:3000/api/hospitales/2/donantes?`;
+    let url = `http://localhost:3000/api/hospitales/${HOSPITAL_ID}/donantes?`;
 
     if (grupo && grupo !== "Todos")
       url += `grupo=${encodeURIComponent(grupo)}&`;
@@ -204,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadSolicitudes() {
     try {
       const res = await fetch(
-        "http://localhost:3000/api/hospitales/2/solicitudes"
+        `http://localhost:3000/api/hospitales/${HOSPITAL_ID}/solicitudes`
       );
       if (!res.ok) throw new Error("Error fetching solicitudes");
       const solicitudes = await res.json();
@@ -266,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .getElementById("nombre-donante-filter")
         .value.trim();
 
-      let url = `http://localhost:3000/api/hospitales/2/donantes?`; //todo: fix hospital id
+      let url = `http://localhost:3000/api/hospitales/${HOSPITAL_ID}/donantes?`;
 
       if (grupo && grupo !== "Todos")
         url += `grupo=${encodeURIComponent(grupo)}&`;
@@ -346,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pie = document.getElementById("completedPie");
 
   async function loadHospitalStats() {
-    const hospitalId = 2; // TODO: replace with dynamic ID
+    const hospitalId = HOSPITAL_ID; // TODO: replace with dynamic ID
 
     try {
       const response = await fetch(
@@ -437,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         const res = await fetch(
-          "http://localhost:3000/api/hospitales/2/solicitud",
+          `http://localhost:3000/api/hospitales/${HOSPITAL_ID}/solicitud`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
