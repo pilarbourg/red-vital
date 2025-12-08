@@ -186,7 +186,7 @@ router.get("/solicitudes", async (req, res) => {
       solicitudes.map((s) => ({
         id: s.id,
         tipoSangre: s.grupo_sanguineo,
-        cantidad: s.cantidad_unidades,
+        cantidad: s.unidades_disponibles,
         prioridad: s.urgencia.toLowerCase(),
         estado: s.estado.toLowerCase(),
         Hospital: { nombre: s.Hospital.nombre },
@@ -255,7 +255,7 @@ router.post(
   }
 );
 
-// ======================== GET INVENTARIO POR HOSPITAL ======================== //
+
 router.get("/inventario", async (req, res) => {
   try {
     const inventario = await InventarioSangre.findAll({
@@ -280,9 +280,10 @@ router.get("/inventario", async (req, res) => {
   }
 });
 
+
 router.post("/hospitales/:id/inventario", async (req, res) => {
   try {
-    const { grupo_sanguineo, cantidad_unidades } = req.body;
+    const { grupo_sanguineo, unidades_disponibles } = req.body;
     const hospital_id = req.params.id;
 
     let inventario = await InventarioSangre.findOne({
@@ -290,13 +291,13 @@ router.post("/hospitales/:id/inventario", async (req, res) => {
     });
 
     if (inventario) {
-      inventario.cantidad_unidades += cantidad_unidades; // suma la nueva cantidad
+      inventario.unidades_disponibles += unidades_disponibles; // suma la nueva cantidad
       await inventario.save();
     } else {
       inventario = await InventarioSangre.create({
         hospital_id,
         grupo_sanguineo,
-        cantidad_unidades,
+        unidades_disponibles,
       });
     }
 
