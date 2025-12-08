@@ -71,7 +71,7 @@ Solicitud.belongsTo(Hospital, { foreignKey: "hospital_id" });
 Hospital.hasMany(InventarioSangre, { foreignKey: "hospital_id" });
 InventarioSangre.belongsTo(Hospital, { foreignKey: "hospital_id" });
 
-// Hospital n–1 Doctor
+// Hospital 1–n Doctor
 Hospital.hasMany(Doctor, { foreignKey: "hospital_id" });
 Doctor.belongsTo(Hospital, { foreignKey: "hospital_id" });
 
