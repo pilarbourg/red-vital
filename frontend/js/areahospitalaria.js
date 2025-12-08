@@ -177,9 +177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     if (selectedCheckboxes.length === 0) {
       showToast(
-        "Por favor selecciona al menos un donante antes de enviar",
-        "warning"
-      );
+        "Por favor selecciona al menos un donante antes de enviar", "warning");
       return;
     }
 

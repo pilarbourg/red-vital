@@ -358,25 +358,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const v = id => document.getElementById(id).value.trim();
 
       if (!v('date') || !v('time')) {
-        alert('Selecciona fecha y hora para la cita.');
+        showToast("Selecciona fecha y hora para la cita", "warning");
         return;
       }
 
       let hospitalId = hospitalSelect.value;
       if (!hospitalId) {
-        alert('Selecciona un hospital.');
+        showToast("Selecciona un hospital", "warning");
         return;
       }
 
       const deptValue = document.getElementById('dept').value;
       if (!deptValue) {
-        alert('Selecciona un departamento.');
+        showToast("Selecciona un departamento", "warning");
         return;
       }
 
       let doctorName = doctorSelect.value;
       if (!doctorName) {
-        alert('Selecciona un médico para la cita.');
+        showToast("Selecciona un médico para la cita", "warning");
         return;
       }
 
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (appointmentMode === 'registered') {
         if (!currentDonor || !currentDonor.id) {
-          alert('Debes iniciar sesión como donante para usar este modo.');
+          showToast("Debes iniciar sesión como donante para usar este modo", "warning");
           return;
         }
 
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body.es_invitado = false;
       } else{
         if (!v('name') || !v('email') || !v('dob')) {
-          alert('Nombre, email y fecha de nacimiento son obligatorios para invitados.');
+          showToast("Nombre, email y fecha de nacimiento son obligatorios para invitados", "warning");
           return;
         }
 
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
           console.error(err);
-          alert('No se ha podido crear la cita.');
+          showToast("Error al crear la cita", "error");
         }
     });
 
@@ -509,6 +509,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
   loadHospitals().then(loadCitas);
+
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
 });
 
 

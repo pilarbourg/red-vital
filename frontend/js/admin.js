@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elTotalDonaciones.textContent = info.totalDonaciones ?? 0;
     } catch (error) {
       console.error(error);
-      alert("Error al cargar el dashboard");
+      showToast("Error al cargar el dashboard", "error");
     }
   };
 
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     } catch (error) {
       console.error(error);
-      alert("Error al cargar usuarios");
+      showToast("Error al cargar usuarios", "error");
     }
   };
 
@@ -223,11 +223,11 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload),
       });
 
-      alert("Usuario actualizado");
+      showToast("Usuario actualizado", "success");
       cargarUsuarios();
     } catch (error) {
       console.error(error);
-      alert("Error al actualizar usuario");
+      showToast("Error al actualizar el usuario", "error");
     }
   };
 
@@ -242,11 +242,11 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "DELETE",
       });
 
-      alert("Usuario eliminado");
+      showToast("Usuario eliminado correctamente", "success");
       cargarUsuarios();
     } catch (error) {
       console.error(error);
-      alert("Error al eliminar usuario");
+      showToast("Error al eliminar el usuario", "error");
     }
   };
 
@@ -341,7 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     } catch (error) {
       console.error(error);
-      alert("Error al cargar solicitudes");
+      showToast("Error al cargar solicitudes", "error");
     }
   };
 
@@ -370,11 +370,11 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload),
       });
 
-      alert("Solicitud actualizada");
+      showToast("Solicitud actualizada correctamente", "success");
       cargarSolicitudes();
     } catch (error) {
       console.error(error);
-      alert("Error al actualizar solicitud");
+      showToast("Error al actualizar la solicitud", "error");
     }
   };
 
@@ -382,10 +382,22 @@ document.addEventListener("DOMContentLoaded", () => {
     btnRefrescarSolicitudes.addEventListener("click", cargarSolicitudes);
   }
 
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
 
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
 
 
   cargarDashboard();
   cargarUsuarios();
   cargarSolicitudes();
 });
+

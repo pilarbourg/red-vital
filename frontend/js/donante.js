@@ -147,7 +147,7 @@ if (credForm) {
 
     const data = await res.json();
     if (data.ok) {
-      alert("Credenciales actualizadas.");
+      showToast("Credenciales actualizadas correctamente", "success");
       cargarCredenciales();  // refresca pantalla
     }
   });
@@ -184,6 +184,20 @@ navItems.forEach(item => {
         }
     });
 });
+
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
+
 async function cargarNotificaciones() {
 //const savedUser = JSON.parse(localStorage.getItem("user"));
   //const id = savedUser?.id_donante;

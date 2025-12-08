@@ -21,6 +21,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const donorFields = document.getElementById("donorFields");
   const hospitalFields = document.getElementById("hospitalFields");
 
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
+
   function showRoleFields(role) {
     if (!donorFields || !hospitalFields) return;
 
@@ -78,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ).toUpperCase();
 
     if (!email || !password || !rol) {
-      alert("Email, contraseña y rol son obligatorios.");
+      showToast("Email, contraseña y rol son obligatorios", "warning");
       return;
     }
 
@@ -101,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const condiciones = document.getElementById("donante-condiciones").value;
 
       if (!nombre || !apellidos || !dob || !grupo) {
-        alert("Completa nombre, apellidos, fecha de nacimiento y grupo sanguíneo.");
+        showToast("Completa nombre, apellidos, fecha de nacimiento y grupo sanguíneo", "warning");
         return;
       }
 
@@ -120,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const ciudadHosp = document.getElementById("hospital-ciudad").value.trim();
 
       if (!nombreHosp || !dirHosp || !ciudadHosp) {
-        alert("Completa nombre, dirección y ciudad del hospital.");
+        showToast("Completa nombre, dirección y ciudad del hospital", "warning");
         return;
       }
 
@@ -130,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (rol === "ADMIN") {
       // No hay campos extra obligatorios
     } else {
-      alert("Rol no válido.");
+      showToast("Rol no válido", "error");
       return;
     }
 
@@ -144,11 +157,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.mensaje || "Error al registrar usuario");
+        showToast("Error al registrar usuario", "error");
         return;
       }
 
-      alert(data.mensaje || "Registro completado. Ahora puedes iniciar sesión.");
+      showToast("Registro completado. Ahora puedes iniciar sesión", "success");
 
       const loginParams = new URLSearchParams();
       loginParams.set("next", next);
@@ -157,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "login.html?" + loginParams.toString();
     } catch (err) {
       console.error(err);
-      alert("Error de conexión con el servidor");
+      showToast("Error de conexión con el servidor", "error");
     }
   });
 });

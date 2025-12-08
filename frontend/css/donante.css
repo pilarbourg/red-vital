@@ -691,3 +691,34 @@ hr {
   color: #ffffff;
   transform: translateY(-2px);
 }
+
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-size: 15px;
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, transform 0.4s;
+  transform: translateX(20px);
+  z-index: 9999;
+}
+
+.toast.success {
+  background: #2a9d909f;
+}
+.toast.warning {
+  background: #ffb8038f;
+}
+.toast.error {
+  background: #d9042782;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}

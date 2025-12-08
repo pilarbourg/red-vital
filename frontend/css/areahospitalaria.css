@@ -619,13 +619,13 @@ tbody tr:hover {
 }
 
 .toast.success {
-  background: #2a9d8f;
+  background: #2a9d909f;
 }
 .toast.warning {
-  background: #ffb703;
+  background: #ffb8038f;
 }
 .toast.error {
-  background: #d90429;
+  background: #d9042782;
 }
 
 .toast.show {
