@@ -352,6 +352,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const tblInvHospital = document.querySelector("#tblInvHospital tbody");
+
+  async function cargarInventarioHospital() {
+    try {
+      const data = await apiFetch("/inventario"); // ruta de arriba
+      tblInvHospital.innerHTML = "";
+
+      Object.keys(data).forEach(hospital => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td><strong>${hospital}</strong></td>
+          <td>
+            <details>
+              <summary>Ver inventario</summary>
+              <table class="subtable">
+                <tr><th>Grupo</th><th>Unidades</th><th>Última actualización</th></tr>
+                ${data[hospital].map(i => `
+                  <tr>
+                    <td>${i.grupo}</td>
+                    <td>${i.unidades}</td>
+                    <td>${new Date(i.actualizacion).toLocaleDateString()}</td>
+                  </tr>
+                `).join("")}
+              </table>
+            </details>
+          </td>
+        `;
+        tblInvHospital.appendChild(tr);
+      });
+
+    } catch(err) {
+      console.error(err);
+      alert("Error cargando inventario de sangre");
+    }
+  }
+
+  // CALL IT WITH THE REST 🔥
+  cargarInventarioHospital();
+
+
   cargarDonantes();
   cargarHospitales();
   cargarDashboard();

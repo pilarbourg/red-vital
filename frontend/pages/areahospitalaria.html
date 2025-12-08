@@ -35,11 +35,12 @@
 
     <section class="hospital-sections">
       <section class="dashboard-actions">
-        <a href="#crear-solicitud" class="btn-create">Crear solicitud de sangre</a>
+        <a href="#crear-solicitud" class="btn-create">Crear o Actualizar estado de solicitud de sangre</a>
         <a href="#buscar-donantes" class="btn-create">Buscar donantes compatibles</a>
         <a href="#enviar-notificaciones" class="btn-create">Enviar notificaciones</a>
-        <a href="#update-application" class="btn-create">Actualizar estado de solicitud</a>
         <a href="#register-donations" class="btn-create">Registrar resultados de donaciones</a>
+        <a href="#blood-inventory" class="btn-create">Actualizar Inventario</a>
+        <a href="#blood-inventory" class="btn-create">Actualizar Inventario</a>
         <a href="#hospital-statistics" class="btn-create">Panel estadístico hospitalario</a>
       </section>
     </section>
@@ -82,6 +83,33 @@
           </form>
         
       </section>
+
+      <section class="update-application-status" id="update-application">
+        <h2>Actualizar el estado de la solicitud</h2>
+        
+        <div class="update-container">
+          <div class="update-left">
+            <button class="btn-create" id="updateBtn">Actualizar</button>
+          </div>
+
+          <div class="update-right">
+            <table class="status-table" id="statusTable">
+              <thead>
+                <tr>
+                  <th>Tipo de Sangre</th>
+                  <th>Cantidad</th>
+                  <th>Prioridad</th>
+                  <th>Fecha Límite</th>
+                  <th>Estado Solicitud</th>
+                </tr>
+              </thead>
+              <tbody id="solicitudesTableBody"></tbody>
+            </table>
+
+          </div>
+        </div>
+      </section>
+
 
       <section class="donor-search" id="buscar-donantes">
         <div class="filter-section">
@@ -175,32 +203,6 @@
         </div>
       </section>
 
-      <section class="update-application-status" id="update-application">
-        <h2>Actualizar el estado de la solicitud</h2>
-        
-        <div class="update-container">
-          <div class="update-left">
-            <button class="btn-create" id="updateBtn">Actualizar</button>
-          </div>
-
-          <div class="update-right">
-            <table class="status-table" id="statusTable">
-              <thead>
-                <tr>
-                  <th>Tipo de Sangre</th>
-                  <th>Cantidad</th>
-                  <th>Prioridad</th>
-                  <th>Fecha Límite</th>
-                  <th>Estado Solicitud</th>
-                </tr>
-              </thead>
-              <tbody id="solicitudesTableBody"></tbody>
-            </table>
-
-          </div>
-        </div>
-      </section>
-
       <section class="register-donations-results" id="register-donations">
         <h2>Registrar los resultados de donaciones</h2>
         <div class="donations-container">
@@ -232,6 +234,20 @@
           </div>
 
         </div>
+      </section>
+
+      <section class="blood-inventory" id="blood-inventory">
+        <h2>Inventario de Sangre</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo de Sangre</th>
+              <th>Cantidad (Unidades)</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody"></tbody>
+        </table>
+        <button class="btn-create" id="updateInventoryBtn">Actualizar Inventario</button>
       </section>
 
       <section class="hospital-statistics" id="hospital-statistics">

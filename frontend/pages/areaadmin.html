@@ -132,83 +132,20 @@
             </div>
           </div>
         </div>
-
-        <div class="card">
-          <div
-            class="row"
-            style="justify-content: space-between; align-items: center"
-          >
-            <strong>Buscar usuarios</strong>
-            <button id="btnBuscar">Buscar</button>
-          </div>
-          <div class="detail grid cols-2">
-            <div>
-              <p>
-                <span class="label">Rol:</span>
-                <span class="value" id="uRol">—</span>
-              </p>
-              <p>
-                <span class="label">Historial donación:</span><br />
-                <span class="placeholder">(sin datos)</span>
-              </p>
-              <p>
-                <span class="label">Enfermedades crónicas:</span><br />
-                <span class="placeholder">(sin datos)</span>
-              </p>
-            </div>
-            <div>
-              <p>
-                <span class="label">Grupo sanguíneo:</span>
-                <span class="value" id="uGrupo">—</span>
-              </p>
-              <p>
-                <span class="label">Historial receptor:</span><br />
-                <span class="placeholder">(sin datos)</span>
-              </p>
-              <p class="placeholder" id="uNombre">(nombre)</p>
-            </div>
-          </div>
-          <input
-            id="userSearch"
-            placeholder="Nombre, rol o email"
-            style="margin: 10px 0; width: 100%"
-          />
-          <table id="tblUsers">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Rol</th>
-                <th>Email</th>
-                <th>Hospital</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
       </section>
-
-      <h2>Niveles de sangre</h2>
-      <div class="row" style="align-items: center; margin: 6px 0">
-        <span class="tag">Localidad</span>
-        <select id="selCity2">
-          <option>Madrid</option>
-          <option>Bilbao</option>
-          <option>Sevilla</option>
-        </select>
-      </div>
-      <section class="card">
-        <table id="tblBlood">
+      
+      <h2>Inventario de Sangre por Hospital</h2>
+      <div class="card">
+        <table id="tblInvHospital">
           <thead>
             <tr>
-              <th>Tipo</th>
-              <th>Unidades</th>
-              <th>Nivel</th>
-              <th>Estado</th>
+              <th>Hospital</th>
+              <th>Inventario</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
-      </section>
+      </div>
     </div>
 
     <footer class="site-footer">
