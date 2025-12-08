@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
 
-const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
+const { Usuario, Donante, Hospital, Solicitud, Donacion, InventarioSangre } = require("../db");
 
 router.get("/dashboard", async (req, res) => {
   try {
@@ -254,5 +254,57 @@ router.post(
     }
   }
 );
+
+// ======================== GET INVENTARIO POR HOSPITAL ======================== //
+router.get("/inventario", async (req, res) => {
+  try {
+    const inventario = await InventarioSangre.findAll({
+      include: [{ model: Hospital, attributes: ["id", "nombre"] }],
+      order: [["hospital_id", "ASC"]]
+    });
+
+    const grouped = inventario.reduce((acc, item) => {
+      if (!acc[item.Hospital.nombre]) acc[item.Hospital.nombre] = [];
+      acc[item.Hospital.nombre].push({
+        grupo: item.grupo_sanguineo,
+        unidades: item.unidades_disponibles,
+        actualizacion: item.fecha_ultima_actualizacion
+      });
+      return acc;
+    }, {});
+
+    res.json(grouped);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error obteniendo inventario de sangre" });
+  }
+});
+
+router.post("/hospitales/:id/inventario", async (req, res) => {
+  try {
+    const { grupo_sanguineo, cantidad_unidades } = req.body;
+    const hospital_id = req.params.id;
+
+    let inventario = await InventarioSangre.findOne({
+      where: { hospital_id, grupo_sanguineo }
+    });
+
+    if (inventario) {
+      inventario.cantidad_unidades += cantidad_unidades; // suma la nueva cantidad
+      await inventario.save();
+    } else {
+      inventario = await InventarioSangre.create({
+        hospital_id,
+        grupo_sanguineo,
+        cantidad_unidades,
+      });
+    }
+
+    res.json({ message: "Inventario actualizado", inventario });
+  } catch (err) {
+    res.status(500).json({ error: "Error actualizando inventario", details: err.message });
+  }
+});
+
 
 module.exports = router;
