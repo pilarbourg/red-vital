@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>RedVital – Notificación de seguridad</title>
+
+<style>
+  body {
+    background: #f4f6fb;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .container {
+    max-width: 600px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .header {
+    text-align: center;
+    background: #3e4c8f;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+  }
+
+  .header h1 {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .content {
+    margin-top: 25px;
+    font-size: 16px;
+    color: #333;
+  }
+
+  .content p {
+    line-height: 1.5;
+  }
+
+  .highlight {
+    background: #eef2ff;
+    padding: 10px;
+    border-left: 4px solid #3e4c8f;
+    border-radius: 6px;
+    margin: 20px 0;
+    font-size: 15px;
+  }
+
+  .footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+  }
+
+  .footer a {
+    color: #3e4c8f;
+    text-decoration: none;
+  }
+</style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>RedVital – Notificación de Seguridad</h1>
+    </div>
+
+    <div class="content">
+      <p>Hola <strong>{{NOMBRE}}</strong>,</p>
+
+      <p>Queremos informarte que se han realizado cambios importantes en tu cuenta:</p>
+
+      <div class="highlight">
+        <strong>{{CAMBIOS}}</strong>
+      </div>
+
+      <p>Si reconoces este cambio, no es necesario realizar ninguna acción adicional.</p>
+
+      <p>Si NO has sido tú, te recomendamos restablecer tu contraseña inmediatamente y contactar con soporte.</p>
+    </div>
+
+    <div class="footer">
+      <p>Este es un correo automático. No respondas directamente.</p>
+      <p>&copy; 2025 RedVital | Centro Nacional de Donación de Sangre</p>
+    </div>
+  </div>
+</body>
+</html>

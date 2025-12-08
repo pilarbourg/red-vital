@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="/frontend/css/admin.css" />
+  
 </head>
 <body>
   <header>
@@ -27,15 +28,15 @@
       <div class="stats-grid">
         <div class="stat-card">
           <h3>Total de usuarios</h3>
-          <span id="totalUsuarios">0</span>
+          <span id="statTotalUsuarios">0</span>
         </div>
         <div class="stat-card">
           <h3>Total de donantes</h3>
-          <span id="totalDonantes">0</span>
+          <span id="statTotalDonantes">0</span>
         </div>
         <div class="stat-card">
           <h3>Total de hospitales</h3>
-          <span id="totalHospitales">0</span>
+          <span id="statTotalHospitales">0</span>
         </div>
         <div class="stat-card">
           <h3>Total de solicitudes</h3>
@@ -43,11 +44,11 @@
         </div>
         <div class="stat-card">
           <h3>Solicitudes pendientes</h3>
-          <span id="totalSolicitudesPendientes">0</span>
+          <span id="statSolPendientes">0</span>
         </div>
         <div class="stat-card">
           <h3>Solicitudes de alta prioridad</h3>
-          <span id="totalSolicitudesAlta">0</span>
+          <span id="statSolAlta">0</span>
         </div>
         <div class="stat-card">
           <h3>Total de donaciones</h3>
@@ -79,20 +80,19 @@
         <button id="btnRefrescarUsuarios">Refrescar usuarios</button>
       </div>
 
-      <table id="tablaUsuarios">
+      <table>
         <thead>
           <tr>
             <th>ID</th>
             <th>Nombre</th>
             <th>Email</th>
-            <th>Teléfono</th>
             <th>Rol</th>
             <th>Activo</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tablaUsuariosBody">
-          <!-- Rellenado por JS -->
+          <!-- Rellenado dinámicamente por el JS -->
         </tbody>
       </table>
     </section>
@@ -107,9 +107,8 @@
           <select id="filtroEstadoSol">
             <option value="">Todos</option>
             <option value="pendiente">Pendiente</option>
-            <option value="parcial">Parcial</option>
-            <option value="cubierta">Cubierta</option>
-            <option value="cancelada">Cancelada</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="completada">Completada</option>
           </select>
         </label>
 
@@ -126,7 +125,7 @@
         <button id="btnRefrescarSolicitudes">Refrescar solicitudes</button>
       </div>
 
-      <table id="tablaSolicitudes">
+      <table>
         <thead>
           <tr>
             <th>ID</th>
@@ -140,13 +139,13 @@
           </tr>
         </thead>
         <tbody id="tablaSolicitudesBody">
-          <!-- Rellenado por JS -->
+          <!-- Rellenado dinámicamente por el JS -->
         </tbody>
       </table>
     </section>
   </main>
 
-  <div id="toast" class="toast hidden"></div>
+  <script src="../js/auth-guard.js"></script>
   <script src="/frontend/js/admin.js"></script>
 </body>
 </html>

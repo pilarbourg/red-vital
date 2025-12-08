@@ -1,10 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // 1) Comprobar rol HOSPITAL
   const saved = requireRole("HOSPITAL", "/frontend/pages/areahospitalaria.html");
-  if (!saved) return; // ya ha redirigido a login
+  if (!saved) return;
 
-  // 2) Obtener el hospital ligado a este usuario
   let HOSPITAL_ID = null;
   try {
     const res = await fetch(`/api/hospitales/byUsuario/${saved.id}`);
@@ -30,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "login.html";
     });
   }
-  
 
   const addDonationBtn = document.getElementById("addDonationBtn");
   const donationForm = document.getElementById("donationForm");

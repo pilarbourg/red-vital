@@ -96,4 +96,37 @@ async function enviarCorreoConfirmacion(cita) {
   }
 }
 
-module.exports = { enviarCorreoConfirmacion };
+// =======================================================
+//   🔥 NUEVO: ENVIAR EMAIL DE SEGURIDAD AL USUARIO
+// =======================================================
+// === cargar plantilla de seguridad ===
+const securityTemplatePath = path.join(
+  __dirname,
+  "mail-security-template.html"
+);
+const securityTemplate = fs.readFileSync(securityTemplatePath, "utf8");
+
+async function enviarCorreoSeguro(destinatario, asunto, cambiosTexto, nombre="usuario") {
+  if (!destinatario) return;
+
+  let html = securityTemplate;
+  html = html.replace(/{{NOMBRE}}/g, nombre);
+  html = html.replace(/{{CAMBIOS}}/g, cambiosTexto);
+
+  const mailOptions = {
+    from: process.env.MAIL_FROM || process.env.MAIL_USER,
+    to: destinatario,
+    subject: asunto,
+    html
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Correo de seguridad enviado a:", destinatario);
+  } catch (err) {
+    console.error("Error enviando correo de seguridad:", err);
+  }
+}
+
+
+module.exports = { enviarCorreoConfirmacion, enviarCorreoSeguro  };
