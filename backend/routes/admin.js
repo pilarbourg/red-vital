@@ -214,4 +214,60 @@ router.put(
   }
 );
 
+router.post(
+  "/hospitales",
+  [
+    body("nombre").notEmpty().withMessage("El nombre es obligatorio"),
+    body("email").isEmail().withMessage("Email no válido"),
+    body("localizacion")
+      .notEmpty()
+      .withMessage("La localización es obligatoria"),
+    body("password")
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage("La contraseña debe tener al menos 6 caracteres"),
+  ],
+  async (req, res) => {
+    try {
+      const errores = validationResult(req);
+      if (!errores.isEmpty()) {
+        return res.status(400).json({ errores: errores.array() });
+      }
+
+      const { nombre, email, localizacion, password } = req.body;
+
+      const existe = await Usuario.findOne({ where: { email } });
+      if (existe) {
+        return res
+          .status(400)
+          .json({ mensaje: "Ya existe un usuario con ese email" });
+      }
+
+      const hospitalUsuario = await Usuario.create({
+        nombre,
+        email,
+        rol: "HOSPITAL",
+        activo: true,
+        password: password || "123456",
+      });
+
+      const hospital = await Hospital.create({
+        nombre,
+        direccion: localizacion,
+        ciudad: "Madrid",
+        usuario_id: hospitalUsuario.id,
+      });
+
+      res.status(201).json({
+        mensaje: "Hospital creado correctamente",
+        hospital,
+        usuario: hospitalUsuario,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensaje: "Error al crear hospital" });
+    }
+  }
+);
+
 module.exports = router;

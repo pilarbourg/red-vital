@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
-  if (!saved) return;
+  //const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
+  //if (!saved) return;
 
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
-      localStorage.removeItem("user"); 
+      localStorage.removeItem("user");
       window.location.href = "/login.html";
     });
   }
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const $stat = (id) => document.getElementById(id);
 
   const API_BASE = "/api/admin";
-  
+
   const apiFetch = async (endpoint, options = {}) => {
     const headers = {
       "Content-Type": "application/json",
@@ -269,6 +269,37 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   btnRefrescarSolicitudes?.addEventListener("click", cargarSolicitudes);
+
+  const btnAdd = document.getElementById("btnAdd");
+  const hName = document.getElementById("hName");
+  const hLoc = document.getElementById("hLoc");
+  const hEmail = document.getElementById("hEmail");
+
+  btnAdd.addEventListener("click", async () => {
+    const name = hName.value.trim();
+    const location = hLoc.value.trim();
+    const email = hEmail.value.trim();
+
+    if (!name || !location || !email) {
+      alert("Completa todos los campos para crear un hospital");
+      return;
+    }
+
+    try {
+      await apiFetch("/hospitales", {
+        method: "POST",
+        body: JSON.stringify({ nombre: name, localizacion: location, email }),
+      });
+
+      alert("Hospital creado correctamente");
+      hName.value = "";
+      hLoc.value = "";
+      hEmail.value = "";
+    } catch (err) {
+      console.error(err);
+      alert("Error al crear hospital");
+    }
+  });
 
   cargarDashboard();
   cargarUsuarios();
