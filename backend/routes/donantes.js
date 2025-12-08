@@ -5,7 +5,7 @@ const express = require("express");
 const router = express.Router();
 const fetch = require("node-fetch");
 
-const { Donante, Usuario, Donacion, Notificacion, Hospital, Solicitud, Cita } = require("../db");
+const { Donante, Usuario, Donacion, Notificacion, Hospital, Solicitud, Cita, SecurityCode } = require("../db");
 
 // ================== PERFIL DEL DONANTE ==================
 router.get("/donantes/:id/perfil", async (req, res) => {
@@ -273,7 +273,7 @@ const { enviarCorreoSeguro } = require("../utils/mail");
 // ===============================
 // 🔐 ACTUALIZAR CREDENCIALES
 // ===============================
-router.put("/donantes/:id/credenciales", async (req, res) => {
+router.put("/donantes/:id/credenciales/solicitar", async (req, res) => {
   try {
     const { id } = req.params;
     const { email, password, username } = req.body;
@@ -334,29 +334,30 @@ router.put("/donantes/:id/credenciales", async (req, res) => {
     }
 
     // ===============================
-    // 3️⃣ Actualizar nombre de usuario
+    // 3️⃣ Enviar email de confirmación
     // ===============================
-    if (username && username !== usuario.username) {
-      await usuario.update({ username });
-      cambios.push("nombre de usuario");
-    }
-
-    // ===============================
-    // 4️⃣ Enviar email de confirmación
-    // ===============================
-    if (cambios.length > 0) {
+   
+      const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiracion = new Date(Date.now() + 10 * 60 * 1000);
+console.log(codigo);
+    await SecurityCode.create({
+      usuario_id: usuario.id,
+      codigo,
+      tipo: "CAMBIO_CREDENCIALES",
+      expiracion,
+      email,
+      password
+    });
   await enviarCorreoSeguro(
-    usuario.email,
-    "Cambios en tu cuenta – RedVital",
-    cambios.join(", "),
-    usuario.username || "usuario"
-  );
-}
-
+        usuario.email,
+        "Código de verificación – RedVital",
+        `Tu código de verificación es: <strong>${codigo}</strong>`,
+        usuario.username
+      );
 
     return res.json({
       ok: true,
-      message: "Credenciales actualizadas correctamente",
+      message: "Código enviado al email.",
       cambios
     });
 
@@ -366,6 +367,161 @@ router.put("/donantes/:id/credenciales", async (req, res) => {
   }
 });
 
+router.post("/donantes/:id/credenciales/verificar", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { codigo } = req.body;
+
+    const donante = await Donante.findByPk(id);
+    if (!donante) return res.status(404).json({ ok: false, error: "Donante no encontrado" });
+
+    const usuario = await Usuario.findByPk(donante.usuario_id);
+
+    const registro = await SecurityCode.findOne({
+      where: {
+        usuario_id: usuario.id,
+        codigo,
+        tipo: "CAMBIO_CREDENCIALES"
+      }
+    });
+
+    if (!registro) {
+      return res.status(400).json({ ok: false, error: "Código incorrecto" });
+    }
+
+    if (new Date() > registro.expiracion) {
+      return res.status(400).json({ ok: false, error: "Código expirado" });
+    }
+
+    let cambios = [];
+
+    if (registro.newEmail) {
+      usuario.email = registro.newEmail;
+      cambios.push("email");
+    }
+
+    if (registro.newPassword) {
+      usuario.password = await bcrypt.hash(registro.newPassword, 10);
+      cambios.push("contraseña");
+    }
+
+    if (registro.newUsername) {
+      usuario.username = registro.newUsername;
+      cambios.push("usuario");
+    }
+
+    await usuario.save();
+    await registro.destroy();
+
+    await enviarCorreoSeguro(
+      usuario.email,
+      "Cambios aplicados – RedVital",
+      `Se han aplicado los cambios: ${cambios.join(", ")}`,
+      usuario.username
+    );
+
+    return res.json({ ok: true, cambios });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+router.put("/donantes/:id/perfil", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { direccion, telefono, condiciones } = req.body;
+
+    // Obtener donante
+    const donante = await Donante.findByPk(id);
+    if (!donante) {
+      return res.status(404).json({ ok: false, error: "Donante no encontrado" });
+    }
+
+    // Obtener usuario asociado
+    const usuario = await Usuario.findByPk(donante.usuario_id);
+    if (!usuario) {
+      return res.status(404).json({ ok: false, error: "Usuario no encontrado" });
+    }
+
+    let cambios = [];
+
+    // ========================
+    // 1) Actualizar dirección
+    // ========================
+    if (direccion) {
+      const geo = await validarDireccion(direccion);
+
+      if (!geo) {
+        return res.status(400).json({
+          ok: false,
+          error: "La dirección no existe. Verifícala."
+        });
+      }
+
+      await usuario.update({
+        direccion,
+        latitud: geo.lat,
+        longitud: geo.lon
+      });
+    }
+
+
+    // ========================
+    // 2) Actualizar teléfono
+    // ========================
+    if (telefono && telefono !== usuario.telefono) {
+      await usuario.update({ telefono });
+      cambios.push("teléfono");
+    }
+
+    // ====================================
+    // 3) Actualizar afecciones del donante
+    // ====================================
+    if (condiciones && condiciones !== donante.condiciones) {
+      await donante.update({ condiciones });
+      cambios.push("condiciones médicas");
+    }
+
+    return res.json({
+      ok: true,
+      cambios,
+      message: "Perfil actualizado correctamente"
+    });
+
+  } catch (err) {
+    console.error("❌ Error actualización perfil:", err);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+
+
+async function validarDireccion(direccion) {
+  if (!direccion) return null;
+
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`;
+
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "RedVital/1.0 (email@example.com)"
+    }
+  });
+
+  const data = await res.json();
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return null; // Dirección no válida
+  }
+
+  return {
+    lat: Number(data[0].lat),
+    lon: Number(data[0].lon)
+  };
+}
+
+module.exports = { validarDireccion };
 
 router.get("/donantes/:id/credenciales", async (req, res) => {
   try {
