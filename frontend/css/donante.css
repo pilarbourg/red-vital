@@ -645,6 +645,8 @@ body {
   background-color: #94c0d9;
   border-radius: 10px;
 }
+.content-section { display: none; } 
+.content-section.active-section { display: block; }
 @media (max-width: 768px) {
   .container-user,
   .centers-card {
