@@ -1,3 +1,6 @@
+require("dotenv").config();
+console.log("DEBUG MAIL:", process.env.MAIL_USER, process.env.MAIL_PASS);
+
 const express = require("express");
 const path = require("path");
 const cors = require("cors");

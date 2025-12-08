@@ -267,28 +267,102 @@ router.get("/donantes/:id/hospitales_cercanos", async (req, res) => {
 
 
 // ================== ACTUALIZAR CREDENCIALES ==================
-// PUT /api/donantes/:id/credenciales
+const bcrypt = require("bcrypt");
+const { enviarCorreoSeguro } = require("../utils/mail");
+
+// ===============================
+// 🔐 ACTUALIZAR CREDENCIALES
+// ===============================
 router.put("/donantes/:id/credenciales", async (req, res) => {
   try {
-    const donante = await Donante.findByPk(req.params.id);
+    const { id } = req.params;
+    const { email, password, username } = req.body;
 
+    const donante = await Donante.findByPk(id, { include: Usuario });
     if (!donante) {
-      return res.status(404).json({ ok: false, message: "Donante no encontrado" });
+      return res.status(404).json({ ok: false, error: "Donante no encontrado" });
     }
 
-    const usuarioId =  await Usuario.findByPk(donante.usuario_id);
+    const usuario = await Usuario.findByPk(donante.usuario_id);
 
-    const updateData = {};
-    if (req.body.email) updateData.email = req.body.email;
-    if (req.body.password) updateData.password = req.body.password;
+    let cambios = [];
 
-    await Usuario.update(updateData, { where: { id: usuarioId } });
+    // ===============================
+    // 1️⃣ Validar EMAIL
+    // ===============================
+    if (email && email !== usuario.email) {
 
-    res.json({ ok: true, message: "Credenciales actualizadas" });
+      // Expresión regular de email válido
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ ok: false, error: error.message });
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ ok: false, error: "Email no válido" });
+      }
+
+      // Comprobar si ya existe ese email
+      const existe = await Usuario.findOne({ where: { email } });
+      if (existe) {
+        return res.status(400).json({ ok: false, error: "Este email ya está en uso" });
+      }
+
+      await usuario.update({ email });
+      cambios.push("email");
+    }
+
+    // ===============================
+    // 2️⃣ Validar CONTRASEÑA SEGURA
+    // ===============================
+    if (password) {
+      const segura =
+        password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[0-9]/.test(password) &&
+        /[\W]/.test(password);
+
+      if (!segura) {
+        return res.status(400).json({
+          ok: false,
+          error:
+            "La contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y símbolo."
+        });
+      }
+
+      const hash = await bcrypt.hash(password, 10);
+      await usuario.update({ password: hash });
+      cambios.push("contraseña");
+    }
+
+    // ===============================
+    // 3️⃣ Actualizar nombre de usuario
+    // ===============================
+    if (username && username !== usuario.username) {
+      await usuario.update({ username });
+      cambios.push("nombre de usuario");
+    }
+
+    // ===============================
+    // 4️⃣ Enviar email de confirmación
+    // ===============================
+    if (cambios.length > 0) {
+  await enviarCorreoSeguro(
+    usuario.email,
+    "Cambios en tu cuenta – RedVital",
+    cambios.join(", "),
+    usuario.username || "usuario"
+  );
+}
+
+
+    return res.json({
+      ok: true,
+      message: "Credenciales actualizadas correctamente",
+      cambios
+    });
+
+  } catch (err) {
+    console.error("ERROR ACTUALIZANDO CREDENCIALES:", err);
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
