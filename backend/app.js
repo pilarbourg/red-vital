@@ -18,6 +18,6 @@ app.use("/api", require("./routes/donantes"));
 app.use("/api", require("./routes/auth"));
 app.use("/api", require("./routes/hospitales"));
 app.use("/api", require("./routes/doctores"));
-app.use("/api", require("./routes/admin"));
+app.use("/api/admin", require("./routes/admin"));
 
 module.exports = app;
