@@ -29,6 +29,7 @@
           <a href="areahospitalaria.html" class="button">Área Hospitalaria</a>
           <a href="register.html" class="button">Register</a>
           <a href="login.html" class="button">Login</a>
+          <button id="btnLogout" class="button" type="button">Logout</button>
         </nav>
       </section>
     </header>
@@ -176,6 +177,8 @@
     </footer>
 
     <div id="toast" class="toast hidden"></div>
+
+    <script src="../js/auth-guard.js"></script>
     <script>
       // --- Datos (por ciudad) ---
       const dataByCity = {

@@ -1,15 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE = "/api";
 
-  const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
-  if (!saved) return; // si no es admin, auth-guard redirige a login
+  // 1) Comprobar rol ADMIN
+  const saved = requireRole("ADMIN", "/frontend/pages/areaadmin.html");
+  if (!saved) return; // si no es admin, auth-guard redirige
 
-  // Log Out
+  // 2) Logout
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
-      localStorage.removeItem("user"); 
-      window.location.href = "/login.html";
+      localStorage.removeItem("user");
+      // ruta relativa a /frontend/pages/
+      window.location.href = "login.html";
     });
   }
 
