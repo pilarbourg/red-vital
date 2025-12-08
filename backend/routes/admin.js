@@ -2,9 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
 
-
 const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
-
 
 router.get("/dashboard", async (req, res) => {
   try {
@@ -18,16 +16,12 @@ router.get("/dashboard", async (req, res) => {
       totalDonaciones,
     ] = await Promise.all([
       Usuario.count(),
-      Donante ? Donante.count() : Promise.resolve(0),
-      Hospital ? Hospital.count() : Promise.resolve(0),
-      Solicitud ? Solicitud.count() : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { estado: "PENDIENTE" } })
-        : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { urgencia: "ALTA" } })
-        : Promise.resolve(0),
-      Donacion ? Donacion.count() : Promise.resolve(0),
+      Donante.count(),
+      Hospital.count(),
+      Solicitud.count(),
+      Solicitud.count({ where: { estado: "PENDIENTE" } }),
+      Solicitud.count({ where: { urgencia: "ALTA" } }),
+      Donacion.count(),
     ]);
 
     res.json({
@@ -45,13 +39,12 @@ router.get("/dashboard", async (req, res) => {
   }
 });
 
-
 router.get("/usuarios", async (req, res) => {
   try {
     const { rol, activo } = req.query;
 
     const where = {};
-    if (rol) where.rol = rol;    
+    if (rol) where.rol = rol;
     if (typeof activo !== "undefined") {
       where.activo = activo === "true";
     }
@@ -68,7 +61,6 @@ router.get("/usuarios", async (req, res) => {
   }
 });
 
-
 router.get("/usuarios/:id", async (req, res) => {
   try {
     const usuario = await Usuario.findByPk(req.params.id);
@@ -81,7 +73,6 @@ router.get("/usuarios/:id", async (req, res) => {
     res.status(500).json({ mensaje: "Error al obtener usuario" });
   }
 });
-
 
 router.put(
   "/usuarios/:id",
@@ -135,7 +126,6 @@ router.put(
   }
 );
 
-
 router.delete("/usuarios/:id", async (req, res) => {
   try {
     const usuario = await Usuario.findByPk(req.params.id);
@@ -152,14 +142,13 @@ router.delete("/usuarios/:id", async (req, res) => {
   }
 });
 
-
 router.get("/solicitudes", async (req, res) => {
   try {
     const { estado, prioridad } = req.query;
 
     const where = {};
     if (estado) where.estado = estado.toUpperCase();
-    if (prioridad) where.urgencia = prioridad.toUpperCase();;
+    if (prioridad) where.urgencia = prioridad.toUpperCase();
 
     const solicitudes = await Solicitud.findAll({
       where,
@@ -173,22 +162,21 @@ router.get("/solicitudes", async (req, res) => {
     });
 
     res.json(
-  solicitudes.map((s) => ({
-    id: s.id,
-    tipoSangre: s.grupo_sanguineo,
-    cantidad: s.cantidad_unidades,
-    prioridad: s.urgencia.toLowerCase(), // "ALTA" -> "alta"
-    estado: s.estado.toLowerCase(),      // "PENDIENTE" -> "pendiente"
-    Hospital: { nombre: s.Hospital.nombre },
-    createdAt: s.createdAt,
-  }))
-);
+      solicitudes.map((s) => ({
+        id: s.id,
+        tipoSangre: s.grupo_sanguineo,
+        cantidad: s.cantidad_unidades,
+        prioridad: s.urgencia.toLowerCase(),
+        estado: s.estado.toLowerCase(),
+        Hospital: { nombre: s.Hospital.nombre },
+        createdAt: s.createdAt,
+      }))
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al listar solicitudes" });
   }
 });
-
 
 router.put(
   "/solicitudes/:id",
