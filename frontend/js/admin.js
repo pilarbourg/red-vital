@@ -1,391 +1,229 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = "/api";
+const express = require("express");
+const router = express.Router();
+const { body, validationResult } = require("express-validator");
 
 
-//Log Out
+const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
 
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-      window.location.href = "/login.html";
+
+router.get("/dashboard", async (req, res) => {
+  try {
+    const [
+      totalUsuarios,
+      totalDonantes,
+      totalHospitales,
+      totalSolicitudes,
+      solicitudesPendientes,
+      solicitudesAlta,
+      totalDonaciones,
+    ] = await Promise.all([
+      Usuario.count(),
+      Donante ? Donante.count() : Promise.resolve(0),
+      Hospital ? Hospital.count() : Promise.resolve(0),
+      Solicitud ? Solicitud.count() : Promise.resolve(0),
+      Solicitud
+        ? Solicitud.count({ where: { estado: "PENDIENTE" } })
+        : Promise.resolve(0),
+      Solicitud
+        ? Solicitud.count({ where: { urgencia: "ALTA" } })
+        : Promise.resolve(0),
+      Donacion ? Donacion.count() : Promise.resolve(0),
+    ]);
+
+    res.json({
+      totalUsuarios,
+      totalDonantes,
+      totalHospitales,
+      totalSolicitudes,
+      solicitudesPendientes,
+      solicitudesAlta,
+      totalDonaciones,
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al obtener datos del dashboard" });
   }
-
-//Gestión de pestañas
-
-  const tabButtons = document.querySelectorAll(".tab-button");
-  const tabs = document.querySelectorAll(".tab");
-
-  tabButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      tabButtons.forEach((b) => b.classList.remove("active"));
-      button.classList.add("active");
-
-      const tabId = button.dataset.tab;
-      tabs.forEach((tab) => tab.classList.remove("active"));
-
-      if (tabId) {
-        const activeTab = document.getElementById(tabId);
-        if (activeTab) activeTab.classList.add("active");
-      }
-    });
-  });
-
-
-
-  const apiFetch = async (endpoint, options = {}) => {
-    const headers = {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    };
-
-    const respuesta = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    let data = {};
-    try {
-      data = await respuesta.json();
-    } catch {
-      data = {};
-    }
-
-    if (!respuesta.ok) {
-      throw new Error(data.mensaje || "Error en la petición");
-    }
-
-    return data;
-  };
-
-
-
-//Dashboard
-
-  const $stat = (id) => document.getElementById(id);
-
-  const cargarDashboard = async () => {
-    try {
-      const info = await apiFetch("/admin/dashboard");
-
-      const elTotalUsuarios = $stat("statTotalUsuarios");
-      if (elTotalUsuarios)
-        elTotalUsuarios.textContent = info.totalUsuarios ?? 0;
-
-      const elTotalDonantes = $stat("statTotalDonantes");
-      if (elTotalDonantes)
-        elTotalDonantes.textContent = info.totalDonantes ?? 0;
-
-      const elTotalHospitales = $stat("statTotalHospitales");
-      if (elTotalHospitales)
-        elTotalHospitales.textContent = info.totalHospitales ?? 0;
-
-      const elTotalSolicitudes = $stat("statTotalSolicitudes");
-      if (elTotalSolicitudes)
-        elTotalSolicitudes.textContent = info.totalSolicitudes ?? 0;
-
-      const elSolPendientes = $stat("statSolPendientes");
-      if (elSolPendientes)
-        elSolPendientes.textContent = info.solicitudesPendientes ?? 0;
-
-      const elSolAlta = $stat("statSolAlta");
-      if (elSolAlta)
-        elSolAlta.textContent = info.solicitudesAlta ?? 0;
-
-      const elTotalDonaciones = $stat("statTotalDonaciones");
-      if (elTotalDonaciones)
-        elTotalDonaciones.textContent = info.totalDonaciones ?? 0;
-    } catch (error) {
-      console.error(error);
-      alert("Error al cargar el dashboard");
-    }
-  };
-
-
-//Usuarios
-
-  const filtroRol = document.getElementById("filtroRol");
-  const filtroActivos = document.getElementById("filtroActivos");
-  const btnRefrescarUsuarios = document.getElementById("btnRefrescarUsuarios");
-  const tablaUsuariosBody = document.getElementById("tablaUsuariosBody");
-
-  const cargarUsuarios = async () => {
-    if (!tablaUsuariosBody) return;
-
-    try {
-      const params = new URLSearchParams();
-
-      if (filtroRol instanceof HTMLSelectElement && filtroRol.value) {
-        params.set("rol", filtroRol.value);
-      }
-
-      if (filtroActivos instanceof HTMLInputElement && filtroActivos.checked) {
-        params.set("activo", "true");
-      }
-
-      const usuarios = await apiFetch(
-        `/admin/usuarios?${params.toString()}`
-      );
-
-      tablaUsuariosBody.innerHTML = "";
-
-      for (const u of usuarios) {
-        const tr = document.createElement("tr");
-
-        const isDonante = u.rol === "DONANTE" || u.rol === "donante";
-        const isHospital = u.rol === "HOSPITAL" || u.rol === "hospital";
-        const isAdmin = u.rol === "ADMIN" || u.rol === "admin";
-
-        tr.innerHTML = `
-          <td>${u.id}</td>
-          <td>
-            <input type="text" value="${u.nombre || ""}" data-field="nombre" />
-          </td>
-          <td>
-            <input type="email" value="${u.email}" data-field="email" />
-          </td>
-          <td>
-            <select data-field="rol">
-              <option value="DONANTE" ${isDonante ? "selected" : ""}>Donante</option>
-              <option value="HOSPITAL" ${isHospital ? "selected" : ""}>Hospital</option>
-              <option value="ADMIN" ${isAdmin ? "selected" : ""}>Admin</option>
-            </select>
-          </td>
-          <td>
-            <input type="checkbox" data-field="activo" ${
-              u.activo ? "checked" : ""
-            } />
-          </td>
-          <td>
-            <button class="btnGuardarUsuario" data-id="${u.id}">Guardar</button>
-            <button class="btnEliminarUsuario" data-id="${u.id}">Eliminar</button>
-          </td>
-        `;
-
-        tablaUsuariosBody.appendChild(tr);
-      }
-
-      tablaUsuariosBody
-        .querySelectorAll(".btnGuardarUsuario")
-        .forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            const id = e.currentTarget.getAttribute("data-id");
-            if (id) guardarUsuarioFila(id);
-          });
-        });
-
-      tablaUsuariosBody
-        .querySelectorAll(".btnEliminarUsuario")
-        .forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            const id = e.currentTarget.getAttribute("data-id");
-            if (id) eliminarUsuario(id);
-          });
-        });
-    } catch (error) {
-      console.error(error);
-      alert("Error al cargar usuarios");
-    }
-  };
-
-  const guardarUsuarioFila = async (id) => {
-    if (!tablaUsuariosBody) return;
-
-    try {
-      const filas = Array.from(tablaUsuariosBody.querySelectorAll("tr"));
-      const fila = filas.find(
-        (tr) =>
-          tr.querySelector(".btnGuardarUsuario")?.getAttribute("data-id") ===
-          id
-      );
-
-      if (!fila) return;
-
-      const campos = fila.querySelectorAll("input, select");
-      const payload = {};
-
-      campos.forEach((el) => {
-        const field = el.getAttribute("data-field");
-        if (!field) return;
-
-        if (el instanceof HTMLInputElement && el.type === "checkbox") {
-          payload[field] = el.checked;
-        } else if (
-          el instanceof HTMLInputElement ||
-          el instanceof HTMLSelectElement
-        ) {
-          payload[field] = el.value;
-        }
-      });
-
-      await apiFetch(`/admin/usuarios/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
-
-      alert("Usuario actualizado");
-      cargarUsuarios();
-    } catch (error) {
-      console.error(error);
-      alert("Error al actualizar usuario");
-    }
-  };
-
-  const eliminarUsuario = async (id) => {
-    const confirmar = window.confirm(
-      "¿Seguro que quieres eliminar este usuario?"
-    );
-    if (!confirmar) return;
-
-    try {
-      await apiFetch(`/admin/usuarios/${id}`, {
-        method: "DELETE",
-      });
-
-      alert("Usuario eliminado");
-      cargarUsuarios();
-    } catch (error) {
-      console.error(error);
-      alert("Error al eliminar usuario");
-    }
-  };
-
-  if (btnRefrescarUsuarios) {
-    btnRefrescarUsuarios.addEventListener("click", cargarUsuarios);
-  }
-
-
-
-//Solicitudes del Usuario
-
-  const filtroEstadoSol = document.getElementById("filtroEstadoSol");
-  const filtroPrioridadSol = document.getElementById("filtroPrioridadSol");
-  const btnRefrescarSolicitudes = document.getElementById(
-    "btnRefrescarSolicitudes"
-  );
-  const tablaSolicitudesBody = document.getElementById("tablaSolicitudesBody");
-
-  const cargarSolicitudes = async () => {
-    if (!tablaSolicitudesBody) return;
-
-    try {
-      const params = new URLSearchParams();
-
-      if (
-        filtroEstadoSol instanceof HTMLSelectElement &&
-        filtroEstadoSol.value
-      ) {
-        params.set("estado", filtroEstadoSol.value);
-      }
-
-      if (
-        filtroPrioridadSol instanceof HTMLSelectElement &&
-        filtroPrioridadSol.value
-      ) {
-        params.set("prioridad", filtroPrioridadSol.value);
-      }
-
-      const solicitudes = await apiFetch(
-        `/admin/solicitudes?${params.toString()}`
-      );
-
-      tablaSolicitudesBody.innerHTML = "";
-
-      for (const s of solicitudes) {
-        const tr = document.createElement("tr");
-        const fecha = s.createdAt
-          ? new Date(s.createdAt).toLocaleString()
-          : "-";
-
-        tr.innerHTML = `
-          <td>${s.id}</td>
-          <td>${s.Hospital && s.Hospital.nombre ? s.Hospital.nombre : "-"}</td>
-          <td>${s.tipoSangre}</td>
-          <td>${s.cantidad}</td>
-          <td>
-            <select class="selPrioridad" data-id="${s.id}">
-              <option value="alta" ${s.prioridad === "alta" ? "selected" : ""}>Alta</option>
-              <option value="media" ${s.prioridad === "media" ? "selected" : ""}>Media</option>
-              <option value="baja" ${s.prioridad === "baja" ? "selected" : ""}>Baja</option>
-            </select>
-          </td>
-          <td>
-            <select class="selEstado" data-id="${s.id}">
-              <option value="pendiente" ${
-                s.estado === "pendiente" ? "selected" : ""
-              }>Pendiente</option>
-              <option value="en_proceso" ${
-                s.estado === "en_proceso" ? "selected" : ""
-              }>En proceso</option>
-              <option value="completada" ${
-                s.estado === "completada" ? "selected" : ""
-              }>Completada</option>
-            </select>
-          </td>
-          <td>${fecha}</td>
-          <td>
-            <button class="btnGuardarSol" data-id="${s.id}">Guardar</button>
-          </td>
-        `;
-
-        tablaSolicitudesBody.appendChild(tr);
-      }
-
-      tablaSolicitudesBody
-        .querySelectorAll(".btnGuardarSol")
-        .forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            const id = e.currentTarget.getAttribute("data-id");
-            if (id) guardarSolicitud(id);
-          });
-        });
-    } catch (error) {
-      console.error(error);
-      alert("Error al cargar solicitudes");
-    }
-  };
-
-  const guardarSolicitud = async (id) => {
-    if (!tablaSolicitudesBody) return;
-
-    try {
-      const filas = Array.from(tablaSolicitudesBody.querySelectorAll("tr"));
-      const fila = filas.find(
-        (tr) =>
-          tr.querySelector(".btnGuardarSol")?.getAttribute("data-id") === id
-      );
-
-      if (!fila) return;
-
-      const selEstado = fila.querySelector(".selEstado");
-      const selPrioridad = fila.querySelector(".selPrioridad");
-
-      const payload = {
-        estado: selEstado ? selEstado.value : undefined,
-        prioridad: selPrioridad ? selPrioridad.value : undefined,
-      };
-
-      await apiFetch(`/admin/solicitudes/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
-
-      alert("Solicitud actualizada");
-      cargarSolicitudes();
-    } catch (error) {
-      console.error(error);
-      alert("Error al actualizar solicitud");
-    }
-  };
-
-  if (btnRefrescarSolicitudes) {
-    btnRefrescarSolicitudes.addEventListener("click", cargarSolicitudes);
-  }
-
-
-
-
-  cargarDashboard();
-  cargarUsuarios();
-  cargarSolicitudes();
 });
+
+
+router.get("/usuarios", async (req, res) => {
+  try {
+    const { rol, activo } = req.query;
+
+    const where = {};
+    if (rol) where.rol = rol;    
+    if (typeof activo !== "undefined") {
+      where.activo = activo === "true";
+    }
+
+    const usuarios = await Usuario.findAll({
+      where,
+      order: [["id", "ASC"]],
+    });
+
+    res.json(usuarios);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al listar usuarios" });
+  }
+});
+
+
+router.get("/usuarios/:id", async (req, res) => {
+  try {
+    const usuario = await Usuario.findByPk(req.params.id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+    res.json(usuario);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al obtener usuario" });
+  }
+});
+
+
+router.put(
+  "/usuarios/:id",
+  [
+    body("email").optional().isEmail().withMessage("Email no válido"),
+    body("rol")
+      .optional()
+      .isIn(["DONANTE", "HOSPITAL", "ADMIN"])
+      .withMessage("Rol no válido"),
+    body("activo")
+      .optional()
+      .isBoolean()
+      .withMessage("El campo 'activo' debe ser booleano"),
+  ],
+  async (req, res) => {
+    try {
+      const errores = validationResult(req);
+      if (!errores.isEmpty()) {
+        return res.status(400).json({ errores: errores.array() });
+      }
+
+      const usuario = await Usuario.findByPk(req.params.id);
+      if (!usuario) {
+        return res.status(404).json({ mensaje: "Usuario no encontrado" });
+      }
+
+      const { nombre, email, rol, activo } = req.body;
+
+      // Si se intenta cambiar el email, comprobar que no exista ya
+      if (email && email !== usuario.email) {
+        const existe = await Usuario.findOne({ where: { email } });
+        if (existe) {
+          return res
+            .status(400)
+            .json({ mensaje: "Ese email ya está siendo utilizado" });
+        }
+        usuario.email = email;
+      }
+
+      if (typeof nombre !== "undefined") usuario.nombre = nombre;
+      if (typeof rol !== "undefined") usuario.rol = rol;
+      if (typeof activo !== "undefined") usuario.activo = activo;
+
+      await usuario.save();
+
+      res.json({ mensaje: "Usuario actualizado correctamente", usuario });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensaje: "Error al actualizar usuario" });
+    }
+  }
+);
+
+
+router.delete("/usuarios/:id", async (req, res) => {
+  try {
+    const usuario = await Usuario.findByPk(req.params.id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    await usuario.destroy();
+
+    res.json({ mensaje: "Usuario eliminado correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al eliminar usuario" });
+  }
+});
+
+
+router.get("/solicitudes", async (req, res) => {
+  try {
+    const { estado, prioridad } = req.query;
+
+    const where = {};
+    if (estado) where.estado = estado.toUpperCase();
+    if (prioridad) where.urgencia = prioridad.toUpperCase();;
+
+    const solicitudes = await Solicitud.findAll({
+      where,
+      include: [
+        {
+          model: Hospital,
+          attributes: ["id", "nombre"],
+        },
+      ],
+      order: [["id", "DESC"]],
+    });
+
+    res.json(
+  solicitudes.map((s) => ({
+    id: s.id,
+    tipoSangre: s.grupo_sanguineo,
+    cantidad: s.cantidad_unidades,
+    prioridad: s.urgencia.toLowerCase(), // "ALTA" -> "alta"
+    estado: s.estado.toLowerCase(),      // "PENDIENTE" -> "pendiente"
+    Hospital: { nombre: s.Hospital.nombre },
+    createdAt: s.createdAt,
+  }))
+);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al listar solicitudes" });
+  }
+});
+
+
+router.put(
+  "/solicitudes/:id",
+  [
+    body("estado")
+      .isIn(["pendiente", "parcial", "cubierta", "cancelada"])
+      .withMessage("Estado no válido"),
+    body("prioridad")
+      .isIn(["alta", "media", "baja"])
+      .withMessage("Prioridad no válida"),
+  ],
+  async (req, res) => {
+    try {
+      const errores = validationResult(req);
+      if (!errores.isEmpty()) {
+        return res.status(400).json({ errores: errores.array() });
+      }
+
+      const solicitud = await Solicitud.findByPk(req.params.id);
+      if (!solicitud) {
+        return res.status(404).json({ mensaje: "Solicitud no encontrada" });
+      }
+
+      const { estado, urgencia } = req.body;
+      if (typeof estado !== "undefined") solicitud.estado = estado;
+      if (typeof prioridad !== "undefined") solicitud.urgencia = urgencia;
+
+      await solicitud.save();
+
+      res.json({ mensaje: "Solicitud actualizada correctamente", solicitud });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensaje: "Error al actualizar solicitud" });
+    }
+  }
+);
+
+module.exports = router;
