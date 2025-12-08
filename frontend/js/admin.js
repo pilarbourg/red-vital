@@ -1,10 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE = "/api";
 
+  const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
+  if (!saved) return; // si no es admin, auth-guard redirige a login
+
   // Log Out
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
+      localStorage.removeItem("user"); 
       window.location.href = "/login.html";
     });
   }
