@@ -59,7 +59,7 @@ Proyecto **funcional en entorno local**, con:
 
 
 ## 5. Estructura del repositorio
-
+```txt
 red-vital/
 ├── backend/              # Servidor Node.js + API REST + Socket.io
 │   ├── app.js            # Configuración principal de la app Express
@@ -82,7 +82,7 @@ red-vital/
 ├── package.json          # Dependencias del back-end
 ├── package-lock.json
 └── README.md             # Este archivo
-
+```
 
 ## 6. Instalación de dependencias 
 
