@@ -91,13 +91,13 @@ red-vital/
 ```bash
 git clone https://github.com/oliviagallego/red-vital.git
 cd red-vital
-
+```
 ### 2. Instalar las dependencias del backend
 
 Desde la raíz del proyecto:
 ```bash
 npm install
-
+```
 Con este comando se instalan todas las dependencias declaradas en package.json
 (por ejemplo: express, sequelize, nodemailer, socket.io, dotenv, etc.).
 Solo harías npm install express o similar si quisieras añadir nuevas librerías al proyecto.
@@ -107,7 +107,7 @@ Solo harías npm install express o similar si quisieras añadir nuevas librería
 Desde la raíz del proyecto, levanta el servidor backend con:
 ```bash
 node backend/server.js
-
+```
 Esto hará que:
 - Se cargue la configuración del backend (Express, rutas, Socket.io).
 - Se inicialice la base de datos SQLite en backend/db/redvital.db y se ejecuten las semillas
@@ -117,7 +117,7 @@ Después:
 1. Abre tu navegador y entra en:
 ```bash
 http://localhost:3000/
-
+```
 2. Desde la página de inicio podrás navegar a:
 - Home Page
 - Registro / Inicio de sesión
