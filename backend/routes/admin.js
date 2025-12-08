@@ -61,16 +61,37 @@ router.get("/usuarios", async (req, res) => {
   }
 });
 
-router.get("/usuarios/:id", async (req, res) => {
+router.get("/usuarios/donantes", async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.params.id);
-    if (!usuario) {
-      return res.status(404).json({ mensaje: "Usuario no encontrado" });
-    }
-    res.json(usuario);
+    const donantes = await Usuario.findAll({
+      where: { rol: "DONANTE" },
+      order: [["id", "ASC"]],
+    });
+
+    res.json(donantes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: "Error al obtener usuario" });
+    res.status(500).json({ mensaje: "Error al obtener donantes" });
+  }
+});
+
+router.get("/usuarios/hospitales", async (req, res) => {
+  try {
+    const hospitales = await Usuario.findAll({
+      where: { rol: "HOSPITAL" },
+      order: [["id", "ASC"]],
+      include: [
+        {
+          model: Hospital,
+          attributes: ["id", "direccion", "ciudad"],
+        },
+      ],
+    });
+
+    res.json(hospitales);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al obtener hospitales" });
   }
 });
 
@@ -177,42 +198,6 @@ router.get("/solicitudes", async (req, res) => {
     res.status(500).json({ mensaje: "Error al listar solicitudes" });
   }
 });
-
-router.put(
-  "/solicitudes/:id",
-  [
-    body("estado")
-      .isIn(["pendiente", "parcial", "cubierta", "cancelada"])
-      .withMessage("Estado no válido"),
-    body("prioridad")
-      .isIn(["alta", "media", "baja"])
-      .withMessage("Prioridad no válida"),
-  ],
-  async (req, res) => {
-    try {
-      const errores = validationResult(req);
-      if (!errores.isEmpty()) {
-        return res.status(400).json({ errores: errores.array() });
-      }
-
-      const solicitud = await Solicitud.findByPk(req.params.id);
-      if (!solicitud) {
-        return res.status(404).json({ mensaje: "Solicitud no encontrada" });
-      }
-
-      const { estado, urgencia } = req.body;
-      if (typeof estado !== "undefined") solicitud.estado = estado;
-      if (typeof prioridad !== "undefined") solicitud.urgencia = urgencia;
-
-      await solicitud.save();
-
-      res.json({ mensaje: "Solicitud actualizada correctamente", solicitud });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensaje: "Error al actualizar solicitud" });
-    }
-  }
-);
 
 router.post(
   "/hospitales",

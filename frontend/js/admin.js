@@ -301,6 +301,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  const tblDonantesBody = document.querySelector("#tblDonantes tbody");
+
+  const cargarDonantes = async (query = "") => {
+    try {
+      const params = new URLSearchParams();
+      if (query) params.set("search", query);
+
+      const donantes = await apiFetch(
+        `/usuarios/donantes?${params.toString()}`
+      );
+      tblDonantesBody.innerHTML = "";
+
+      donantes.forEach((d) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${d.nombre}</td>
+            <td>${d.email}</td>
+            <td>${d.grupo_sanguineo || "-"}</td>
+            <td>${d.ultima_donacion || "-"}</td>
+          `;
+        tblDonantesBody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Error al cargar donantes");
+    }
+  };
+
+  const tblHospitalesBody = document.querySelector("#tblHospitales tbody");
+
+  const cargarHospitales = async () => {
+    try {
+      const hospitales = await apiFetch("/usuarios/hospitales");
+      tblHospitalesBody.innerHTML = "";
+
+      hospitales.forEach((h) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${h.nombre}</td>
+            <td>${h.email}</td>
+            <td>${h.direccion || "-"}</td>
+            <td>${h.ciudad || "-"}</td>
+          `;
+        tblHospitalesBody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Error al cargar hospitales");
+    }
+  };
+
+  cargarDonantes();
+  cargarHospitales();
   cargarDashboard();
   cargarUsuarios();
   cargarSolicitudes();

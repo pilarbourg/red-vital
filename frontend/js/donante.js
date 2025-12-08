@@ -6,7 +6,10 @@ function getSavedUser() {
   if (!u) return null;
   return JSON.parse(u);
 }
-
+document.getElementById("btnConfirmarCodigo")
+        .addEventListener("click", verificarCodigo);
+document.getElementById("btnConfirmarCambios")
+        .addEventListener("click", solicitarCambioCredenciales);
 /* ==========================================================
      RESOLVER DONANTE_ID REAL A PARTIR DEL USUARIO LOGUEADO
 ========================================================== */
@@ -69,9 +72,10 @@ async function cargarPerfil() {
   document.getElementById("donante-sexo").textContent = d.genero;
   document.getElementById("donante-grupo").textContent = d.grupo_sanguineo;
   document.getElementById("donante-edad").textContent = calcularEdad(d.dob);
+
   document.getElementById("user-email").textContent = d.usuario.email;
   document.getElementById("user-rol").textContent = "DONANTE";
-
+  
   const lista = document.getElementById("donante-afecciones");
   lista.innerHTML = "";
   if (d.condiciones) {
@@ -128,23 +132,86 @@ async function cargarCredenciales() {
     console.error("❌ Error cargando credenciales:", err);
   }
 }
-async function activarFormularioCredenciales() {
-  const form = document.querySelector(".user-form");
+let codigoPendiente = false; // indica si estamos esperando código
+
+async function solicitarCambioCredenciales() {
+  const form = document.getElementById("credencialesForm");
+  if (!form) return
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+
+  const body = {};
+  if (email) body.newEmail = email;
+  if (password) body.newPassword = password;
+
+
+  const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales/solicitar`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showToast(data.error || "Error solicitando cambios", "error");
+    return;
+  }
+
+  showToast("Código enviado a tu correo.", "success");
+
+  // PASAR A LA SIGUIENTE VISTA
+  document.getElementById("credenciales-step1").classList.add("hidden");
+  document.getElementById("credenciales-step2").classList.remove("hidden");
+
+  codigoPendiente = true;
+}
+
+async function verificarCodigo() {
+  const codigo = document.getElementById("codigo-verificacion").value;
+
+  if (!codigo) {
+    showToast("Introduce el código", "error");
+    return;
+  }
+
+  const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales/verificar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ codigo })
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showToast(data.error || "Código incorrecto", "error");
+    return;
+  }
+
+  showToast("Datos actualizados correctamente", "success");
+
+  // Volvemos al step1 y recargamos credenciales visibles
+  document.getElementById("credenciales-step1").classList.remove("hidden");
+  document.getElementById("credenciales-step2").classList.add("hidden");
+
+  cargarCredenciales();
+  cargarPerfil();
+}
+
+function activarFormularioPerfil() {
+  const form = document.getElementById("credencialesFormPerfil");
   if (!form) return;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById("email")?.value.trim();
-    const password = document.getElementById("password")?.value.trim();
-    const username = document.getElementById("username")?.value.trim();
+    const direccion = document.getElementById("direccion")?.value.trim();
+    const telefono = document.getElementById("telefono")?.value.trim();
+    const afecciones = document.getElementById("afecciones")?.value.trim();
 
-    const body = {};
-    if (email) body.email = email;
-    if (password) body.password = password;
-    if (username) body.username = username;
+    const body = { direccion, telefono, condiciones: afecciones };
 
-    const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales`, {
+    const res = await fetch(`/api/donantes/${DONANTE_ID}/perfil`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -152,13 +219,14 @@ async function activarFormularioCredenciales() {
 
     const data = await res.json();
 
-    if (!data.ok) {
-      showToast(data.error, "error");
-      return;
-    }
+    if (data.ok) {
+      showToast("Perfil actualizado correctamente 👍", "success");
 
-    showToast("Credenciales actualizadas correctamente", "success");
-    cargarCredenciales();
+      // Refrescar vista actual
+      setTimeout(() => location.reload(), 800);
+    } else {
+      showToast(data.error || "Error actualizando perfil", "error");
+    }
   });
 }
 
@@ -376,12 +444,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const resolved = await resolveDonanteId();
   if (!resolved) return;
+activarFormularioPerfil();
 
   cargarPerfil();
   cargarCentros();
   cargarHistorial();
   cargarNotificaciones();
   cargarCredenciales();
-  activarFormularioCredenciales();
   activarNavegacion();
 });
