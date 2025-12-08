@@ -2,9 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
 
-
 const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
-
 
 router.get("/dashboard", async (req, res) => {
   try {
@@ -18,16 +16,12 @@ router.get("/dashboard", async (req, res) => {
       totalDonaciones,
     ] = await Promise.all([
       Usuario.count(),
-      Donante ? Donante.count() : Promise.resolve(0),
-      Hospital ? Hospital.count() : Promise.resolve(0),
-      Solicitud ? Solicitud.count() : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { estado: "PENDIENTE" } })
-        : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { urgencia: "ALTA" } })
-        : Promise.resolve(0),
-      Donacion ? Donacion.count() : Promise.resolve(0),
+      Donante.count(),
+      Hospital.count(),
+      Solicitud.count(),
+      Solicitud.count({ where: { estado: "PENDIENTE" } }),
+      Solicitud.count({ where: { urgencia: "ALTA" } }),
+      Donacion.count(),
     ]);
 
     res.json({
@@ -45,13 +39,12 @@ router.get("/dashboard", async (req, res) => {
   }
 });
 
-
 router.get("/usuarios", async (req, res) => {
   try {
     const { rol, activo } = req.query;
 
     const where = {};
-    if (rol) where.rol = rol;    
+    if (rol) where.rol = rol;
     if (typeof activo !== "undefined") {
       where.activo = activo === "true";
     }
@@ -68,20 +61,39 @@ router.get("/usuarios", async (req, res) => {
   }
 });
 
-
-router.get("/usuarios/:id", async (req, res) => {
+router.get("/usuarios/donantes", async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.params.id);
-    if (!usuario) {
-      return res.status(404).json({ mensaje: "Usuario no encontrado" });
-    }
-    res.json(usuario);
+    const donantes = await Usuario.findAll({
+      where: { rol: "DONANTE" },
+      order: [["id", "ASC"]],
+    });
+
+    res.json(donantes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: "Error al obtener usuario" });
+    res.status(500).json({ mensaje: "Error al obtener donantes" });
   }
 });
 
+router.get("/usuarios/hospitales", async (req, res) => {
+  try {
+    const hospitales = await Usuario.findAll({
+      where: { rol: "HOSPITAL" },
+      order: [["id", "ASC"]],
+      include: [
+        {
+          model: Hospital,
+          attributes: ["id", "direccion", "ciudad"],
+        },
+      ],
+    });
+
+    res.json(hospitales);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al obtener hospitales" });
+  }
+});
 
 router.put(
   "/usuarios/:id",
@@ -135,7 +147,6 @@ router.put(
   }
 );
 
-
 router.delete("/usuarios/:id", async (req, res) => {
   try {
     const usuario = await Usuario.findByPk(req.params.id);
@@ -152,14 +163,13 @@ router.delete("/usuarios/:id", async (req, res) => {
   }
 });
 
-
 router.get("/solicitudes", async (req, res) => {
   try {
     const { estado, prioridad } = req.query;
 
     const where = {};
     if (estado) where.estado = estado.toUpperCase();
-    if (prioridad) where.urgencia = prioridad.toUpperCase();;
+    if (prioridad) where.urgencia = prioridad.toUpperCase();
 
     const solicitudes = await Solicitud.findAll({
       where,
@@ -173,32 +183,34 @@ router.get("/solicitudes", async (req, res) => {
     });
 
     res.json(
-  solicitudes.map((s) => ({
-    id: s.id,
-    tipoSangre: s.grupo_sanguineo,
-    cantidad: s.cantidad_unidades,
-    prioridad: s.urgencia.toLowerCase(), // "ALTA" -> "alta"
-    estado: s.estado.toLowerCase(),      // "PENDIENTE" -> "pendiente"
-    Hospital: { nombre: s.Hospital.nombre },
-    createdAt: s.createdAt,
-  }))
-);
+      solicitudes.map((s) => ({
+        id: s.id,
+        tipoSangre: s.grupo_sanguineo,
+        cantidad: s.cantidad_unidades,
+        prioridad: s.urgencia.toLowerCase(),
+        estado: s.estado.toLowerCase(),
+        Hospital: { nombre: s.Hospital.nombre },
+        createdAt: s.createdAt,
+      }))
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al listar solicitudes" });
   }
 });
 
-
-router.put(
-  "/solicitudes/:id",
+router.post(
+  "/hospitales",
   [
-    body("estado")
-      .isIn(["pendiente", "parcial", "cubierta", "cancelada"])
-      .withMessage("Estado no válido"),
-    body("prioridad")
-      .isIn(["alta", "media", "baja"])
-      .withMessage("Prioridad no válida"),
+    body("nombre").notEmpty().withMessage("El nombre es obligatorio"),
+    body("email").isEmail().withMessage("Email no válido"),
+    body("localizacion")
+      .notEmpty()
+      .withMessage("La localización es obligatoria"),
+    body("password")
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage("La contraseña debe tener al menos 6 caracteres"),
   ],
   async (req, res) => {
     try {
@@ -207,21 +219,38 @@ router.put(
         return res.status(400).json({ errores: errores.array() });
       }
 
-      const solicitud = await Solicitud.findByPk(req.params.id);
-      if (!solicitud) {
-        return res.status(404).json({ mensaje: "Solicitud no encontrada" });
+      const { nombre, email, localizacion, password } = req.body;
+
+      const existe = await Usuario.findOne({ where: { email } });
+      if (existe) {
+        return res
+          .status(400)
+          .json({ mensaje: "Ya existe un usuario con ese email" });
       }
 
-      const { estado, urgencia } = req.body;
-      if (typeof estado !== "undefined") solicitud.estado = estado;
-      if (typeof prioridad !== "undefined") solicitud.urgencia = urgencia;
+      const hospitalUsuario = await Usuario.create({
+        nombre,
+        email,
+        rol: "HOSPITAL",
+        activo: true,
+        password: password || "123456",
+      });
 
-      await solicitud.save();
+      const hospital = await Hospital.create({
+        nombre,
+        direccion: localizacion,
+        ciudad: "Madrid",
+        usuario_id: hospitalUsuario.id,
+      });
 
-      res.json({ mensaje: "Solicitud actualizada correctamente", solicitud });
+      res.status(201).json({
+        mensaje: "Hospital creado correctamente",
+        hospital,
+        usuario: hospitalUsuario,
+      });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensaje: "Error al actualizar solicitud" });
+      res.status(500).json({ mensaje: "Error al crear hospital" });
     }
   }
 );
