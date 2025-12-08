@@ -20,4 +20,20 @@ app.use("/api", require("./routes/hospitales"));
 app.use("/api", require("./routes/doctores"));
 app.use("/api", require("./routes/admin"));
 
+// 🚀 ARRANQUE DEL SERVIDOR
+const { sequelize } = require("./db");
+const PORT = 3000;
+
+sequelize
+  .sync()
+  .then(() => {
+    console.log("Base de datos sincronizada.");
+    app.listen(PORT, () => {
+      console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Error al iniciar la BD:", err);
+  });
+
 module.exports = app;

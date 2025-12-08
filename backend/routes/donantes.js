@@ -5,7 +5,7 @@ const express = require("express");
 const router = express.Router();
 const fetch = require("node-fetch");
 
-const { Donante, Usuario, Donacion, Notificacion, Hospital, Solicitud  } = require("../db");
+const { Donante, Usuario, Donacion, Notificacion, Hospital, Solicitud, Cita } = require("../db");
 
 // ================== PERFIL DEL DONANTE ==================
 router.get("/donantes/:id/perfil", async (req, res) => {
@@ -42,26 +42,85 @@ router.get("/donantes/:id/perfil", async (req, res) => {
   }
 });
 
+const { Op } = require("sequelize");
+
+router.get("/donantes/:id/dashboard", async (req, res) => {
+  try {
+    const donanteId = req.params.id;
+    const hoy = new Date();
+
+    /* ==========================================
+       1) DONACIONES PASADAS
+    ========================================== */
+    const donaciones = await Donacion.findAll({
+      where: { usuario_id: donanteId },
+      include: [
+        {
+          model: Solicitud,
+          include: [{ model: Hospital }]
+        }
+      ],
+      order: [["fecha", "DESC"]]
+    });
+
+    /* ==========================================
+       2) CITAS FUTURAS
+    ========================================== */
+    const citas = await Cita.findAll({
+      where: {
+        donante_id: donanteId,
+        fecha: { [Op.gte]: hoy }
+      },
+      include: [{ model: Hospital }],
+      order: [["fecha", "ASC"]]
+    });
+
+    res.json({
+      ok: true,
+      donaciones,
+      citas
+    });
+
+  } catch (err) {
+    console.error("ERROR DASHBOARD:", err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 
 // ================== HISTORIAL DE DONACIONES ==================
 router.get("/donantes/:id/historial", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const historial = await Donacion.findAll({
-      where: { usuario_id: id },
+   const historial = await Donacion.findAll({
+      where: { usuario_id: donanteId },
       include: [
         {
           model: Solicitud,
-          include: [
-            {
-              model: Hospital
-            }
-          ]
+          include: [{ model: Hospital }]
         }
-      ]
+      ],
+      order: [["fecha", "DESC"]]
     });
 
+    // 2. CITAS PRÓXIMAS
+    const hoy = new Date();
+
+    const citas = await Cita.findAll({
+      where: {
+        donante_id: donanteId,
+        fecha: { [Op.gte]: hoy }
+      },
+      include: [{ model: Hospital }],
+      order: [["fecha", "ASC"]]
+    });
+
+    res.json({
+      ok: true,
+      historial,
+      citas
+    });
    res.json(historial.map(d => ({
   fecha: d.fecha,
   cantidad_ml: d.cantidad_ml,
@@ -78,16 +137,42 @@ router.get("/donantes/:id/historial", async (req, res) => {
 router.get("/donantes/:id/notificaciones", async (req, res) => {
   try {
     const donante = await Donante.findByPk(req.params.id);
-
+    
     if (!donante) {
       return res.status(404).json({ ok: false, error: "Donante no encontrado" });
     }
+      const usuario_id= donante.usuario_id;
+      const grupo = donante.grupo_sanguineo;
 
-    const notificaciones = await Notificacion.findAll({
-      where: { usuario_id: donante.usuario_id }
+    // 1) Notificaciones personales del usuario
+    const personales = await Notificacion.findAll({
+      where: { usuario_id }
     });
 
-    res.json(notificaciones);
+    // 2) Notificaciones globales emitidas por hospitales
+    const globales = await Notificacion.findAll({
+      where: { tipo: "HOSPITAL" }
+    });
+
+    // 3) Unificamos ambas listas
+    const todas = [...personales, ...globales];
+
+    // 2️⃣ Solicitudes urgentes de hospitales (coincida grupo sanguíneo)
+    const solicitudes = await Solicitud.findAll({
+      where: {
+        grupo_sanguineo: grupo,
+        estado: "PENDIENTE",
+        urgencia: ["MEDIA", "ALTA"]
+      },
+      include: [ Hospital ]
+    });
+
+    return res.json({
+      ok: true,
+      personales,
+      globales,
+      solicitudes
+    });
 
   } catch (err) {
     console.error("ERROR NOTIFICACIONES:", err);
