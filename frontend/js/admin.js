@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
+  const saved = requireRole("ADMIN", "/frontend/pages/areaadmin.html");
   if (!saved) return;
 
   const btnLogout = document.getElementById("btnLogout");
