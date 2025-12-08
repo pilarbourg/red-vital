@@ -1,7 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
+  if (!saved) return;
+
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
+      localStorage.removeItem("user"); 
       window.location.href = "/login.html";
     });
   }
