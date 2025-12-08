@@ -53,14 +53,14 @@
           <form class="blood-form">
             <label>Tipo de Sangre:
               <select name="tipo">
-                <option>A+</option>
-                <option>A−</option>
-                <option>B+</option>
-                <option>B−</option>
-                <option>O+</option>
-                <option>O−</option>
-                <option>AB+</option>
-                <option>AB−</option>
+                  <option>O+</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
               </select>
             </label>
             <label>Cantidad:
@@ -92,15 +92,14 @@
           <div class="filters">
             <label for="grupo-sanguineo-filter">Grupo Sanguíneo:
               <select id="grupo-sanguineo-filter">
-                <option>Todos</option>
-                <option>A+</option>
-                <option>A−</option>
-                <option>B+</option>
-                <option>B−</option>
-                <option>O+</option>
-                <option>O−</option>
-                <option>AB+</option>
-                <option>AB−</option>
+                  <option>O+</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
               </select>
             </label>
             <label for="nombre-donante-filter">Nombre:
@@ -141,14 +140,14 @@
               <label>Grupo Sanguíneo:
                 <select>
                   <option>Todos</option>
-                  <option>A+</option>
-                  <option>A−</option>
-                  <option>B+</option>
-                  <option>B−</option>
                   <option>O+</option>
-                  <option>O−</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
                   <option>AB+</option>
-                  <option>AB−</option>
+                  <option>AB-</option>
                 </select>
               </label>  
               <button type="button" class="btn-create btn-search">Buscar</button>
@@ -281,6 +280,7 @@
       <div id="toast" class="toast hidden"></div>
 
       <script src="../js/auth-guard.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
       <script src="../js/areahospitalaria.js"></script>
   </body>
 </html>

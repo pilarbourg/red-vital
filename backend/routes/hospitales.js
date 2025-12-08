@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 
 const {
   Usuario,
@@ -138,22 +138,29 @@ router.get("/hospitales/:id/solicitudes", async (req, res) => {
   }
 });
 
-//view compatible donors
 router.get("/hospitales/:hospitalId/donantes", async (req, res) => {
   try {
     const { hospitalId } = req.params;
     const { grupo, nombre } = req.query;
 
-    let filtro = {};
+    const condiciones = [];
 
-    if (grupo && grupo !== "Todos") filtro.grupo_sanguineo = grupo;
-
-    if (nombre) {
-      filtro[Op.or] = [
-        { nombre: { [Op.like]: `%${nombre}%` } },
-        { apellidos: { [Op.like]: `%${nombre}%` } },
-      ];
+    if (grupo && grupo !== "Todos") {
+      condiciones.push({ grupo_sanguineo: grupo });
     }
+
+    if (nombre && nombre.trim() !== "") {
+      const tokens = nombre.trim().split(/\s+/);
+      const nombreConditions = tokens.map(token => ({
+        [Op.or]: [
+          { nombre: { [Op.like]: `%${token}%` } },
+          { apellidos: { [Op.like]: `%${token}%` } },
+        ],
+      }));
+      condiciones.push({ [Op.and]: nombreConditions });
+    }
+
+    const filtro = condiciones.length > 0 ? { [Op.and]: condiciones } : {};
 
     const donantes = await Donante.findAll({
       where: filtro,
@@ -161,15 +168,13 @@ router.get("/hospitales/:hospitalId/donantes", async (req, res) => {
 
     res.json(donantes);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Error searching donors", details: err.message });
+    console.error("Error fetching donors:", err);
+    res.status(500).json({ error: "Error searching donors", details: err.message });
   }
 });
 
 //send a notification to a donor
-router.post("/donantes/notificar", async (req, res) => {
-  //tested
+router.post("/donantes/notificar", async (req, res) => { //tested
   try {
     const { usuario_id, grupo_sanguineo } = req.body;
 
@@ -205,8 +210,7 @@ router.put("/solicitud/:id", async (req, res) => {
 });
 
 //register donation's results
-router.post("/hospitales/donaciones", async (req, res) => {
-  //tested
+router.post("/hospitales/donaciones", async (req, res) => { //tested
   try {
     const result = await Donacion.create(req.body);
     res.json({ message: "Resultado registrado", result });

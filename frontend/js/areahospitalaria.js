@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await res.json();
 
     if (!res.ok || !data.ok) {
-      alert("No se ha encontrado un hospital asociado a este usuario");
+      showToast("No se ha encontrado un hospital asociado a este usuario", "error");
       return;
     }
 
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("Hospital logueado:", HOSPITAL_ID, data.nombre);
   } catch (err) {
     console.error("Error obteniendo hospital por usuario:", err);
-    alert("No se han podido cargar los datos del hospital.");
+    showToast("No se han podido cargar los datos del hospital", "error");
     return;
   }
 
@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "login.html";
     });
   }
+  
 
   const addDonationBtn = document.getElementById("addDonationBtn");
   const donationForm = document.getElementById("donationForm");
@@ -378,7 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const pie = document.getElementById("completedPie");
 
   async function loadHospitalStats() {
-    const hospitalId = HOSPITAL_ID; // TODO: replace with dynamic ID
+    const hospitalId = HOSPITAL_ID; 
 
     try {
       const response = await fetch(
@@ -434,6 +435,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyColor(select, select.value);
   }
 
+  async function loadDonantesSelect() {
+    try {
+      const res = await fetch(`http://localhost:3000/api/hospitales/${HOSPITAL_ID}/donantes`);
+      if (!res.ok) throw new Error("Error fetching donantes");
+      const donantes = await res.json();
+
+      const donanteSelect = document.getElementById("donanteSelect");
+      donanteSelect.innerHTML = '<option value="">-- Selecciona un donante --</option>';
+
+      donantes.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d.id;
+        option.textContent = `${d.nombre} ${d.apellidos} (${d.grupo_sanguineo})`;
+        donanteSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error(error);
+      showToast("Error cargando donantes para registrar", "error");
+    }
+  }
+
+  async function loadSolicitudesSelect() {
+    try {
+      const res = await fetch(`http://localhost:3000/api/hospitales/${HOSPITAL_ID}/solicitudes`);
+      if (!res.ok) throw new Error("Error fetching solicitudes");
+      const solicitudes = await res.json();
+
+      const solicitudSelect = document.getElementById("solicitudSelect");
+      solicitudSelect.innerHTML = '<option value="">-- Selecciona una solicitud --</option>';
+
+      solicitudes.forEach(s => {
+        solicitudSelect.appendChild(
+          new Option(
+            `${s.grupo_sanguineo} - ${s.cantidad_unidades} unidades`,
+            s.id
+          )
+        );
+      });
+    } catch (error) {
+      console.error(error);
+      showToast("Error cargando solicitudes para registrar", "error");
+    }
+  }
+
+  loadDonantesSelect();
+  loadSolicitudesSelect();
+
   function updateSolicitudInDashboard(solicitud) {
     const tbody = document.getElementById("solicitudesTableBody");
     const row = tbody
@@ -483,9 +531,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const data = await res.json();
         console.log("Solicitud creada:", data);
+        showToast("Solicitud creada exitosamente ✔", "success");
       } catch (err) {
         console.error(err);
+        showToast("Error al crear la solicitud", "error");
       }
     });
   }
+
+  const socket = io(); 
+
+  socket.on("connect", () => {
+    console.log("Socket conectado:", socket.id);
+  });
+
+  socket.on("solicitud:nueva", (solicitud) => {
+    console.log("Solicitud nueva recibida via socket", solicitud);
+    addSolicitudToDashboard(solicitud);
+  });
+
+  socket.on("solicitud:update", (solicitud) => {
+    console.log("Solicitud actualizada recibida via socket", solicitud);
+    updateSolicitudInDashboard(solicitud);
+  });
+
 });
