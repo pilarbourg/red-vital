@@ -36,6 +36,7 @@ body {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
   text-decoration: none;
   background-color: #457b9d;
   border: none;
