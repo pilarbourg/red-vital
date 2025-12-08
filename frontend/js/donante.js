@@ -128,10 +128,6 @@ async function cargarCredenciales() {
     console.error("❌ Error cargando credenciales:", err);
   }
 }
-
-/* ==========================================================
-                 GUARDAR NUEVAS CREDENCIALES
-========================================================== */
 async function activarFormularioCredenciales() {
   const form = document.querySelector(".user-form");
   if (!form) return;
@@ -139,9 +135,9 @@ async function activarFormularioCredenciales() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById("email")?.value;
-    const password = document.getElementById("password")?.value;
-    const username = document.getElementById("username")?.value;
+    const email = document.getElementById("email")?.value.trim();
+    const password = document.getElementById("password")?.value.trim();
+    const username = document.getElementById("username")?.value.trim();
 
     const body = {};
     if (email) body.email = email;
@@ -155,14 +151,17 @@ async function activarFormularioCredenciales() {
     });
 
     const data = await res.json();
-    if (data.ok) {
-      showToast("Credenciales actualizadas correctamente", "success");
-      cargarCredenciales();  // refresca pantalla
-      document.getElementById("update-msg").classList.remove("hidden");
-      cargarCredenciales();
+
+    if (!data.ok) {
+      showToast(data.error, "error");
+      return;
     }
+
+    showToast("Credenciales actualizadas correctamente", "success");
+    cargarCredenciales();
   });
 }
+
 
 // =============================
 //   NAVEGACIÓN ENTRE SECCIONES
