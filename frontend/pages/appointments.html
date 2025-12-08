@@ -87,20 +87,16 @@
             </label>
             <label class="field-identity">
               Teléfono
-              <input id="phone" placeholder="+34 600 000 000" />
+              <input id="phone" placeholder="+34 600 000 000" required />
             </label>
             <label class="field-identity">
               Fecha de nacimiento
-              <input id="dob" type="date" />
+              <input id="dob" type="date" required />
             </label>
 
             <label>
               Fecha
               <input id="date" type="date" required />
-            </label>
-            <label>
-              Hora
-              <input id="time" type="time" required />
             </label>
 
             <label>
@@ -109,14 +105,7 @@
                 <option value="">(Cualquiera disponible)</option>
               </select>
             </label>
-            <label>
-              Médico
-              <select id="doctorSelect" required>
-                <option value="">Selecciona un médico</option>
-              </select>
-            </label>
 
-            
             <label>
               Departamento
               <select id="dept">
@@ -124,6 +113,18 @@
                 <option value="HEMATOLOGIA">Hematología</option>
                 <option value="GENERAL">General</option>
               </select>
+            </label>
+
+            <label>
+              Médico
+              <select id="doctorSelect" required>
+                <option value="">Selecciona un médico</option>
+              </select>
+            </label>
+
+            <label>
+              Hora
+              <input id="time" type="time" required readonly placeholder="Selecciona una hora en el horario" />
             </label>
 
             <label class="full">

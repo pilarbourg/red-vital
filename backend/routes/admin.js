@@ -3,7 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require("express-validator");
 
 
-const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../models");
+const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
 
 
 router.get("/dashboard", async (req, res) => {

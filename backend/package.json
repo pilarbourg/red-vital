@@ -12,9 +12,13 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
-    "express": "^5.2.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-validator": "^7.3.1",
     "node-fetch": "^2.7.0",
+    "nodemailer": "^7.0.11",
     "sequelize": "^6.37.7",
+    "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7"
   }
 }

@@ -16,7 +16,7 @@ h1 {
   align-items: center;
   gap: 10px;
   background-color: #d53a3a;
-  color: #fff;
+  color: #FAFCFF;
   padding: 10px 15px;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
@@ -46,7 +46,7 @@ h1 {
   justify-content: space-between;
   align-items: center;
   padding: 15px 40px;
-  background-color: #fff;
+  background-color: #FAFCFF;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 0;
@@ -103,7 +103,7 @@ h1 {
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  color: white;
+  color: FAFCFF;
   background: linear-gradient(-45deg, #8dbfde, #87c5ec, #4e9dce, #78adce);
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
@@ -152,7 +152,7 @@ h1 {
 
 .hero .highlight {
   background-color: #f05454;
-  color: #ffffff;
+  color: #FAFCFF;
   margin-left: 10px;
   font-weight: bold;
   padding: 0px 15px;
@@ -185,7 +185,7 @@ h1 {
   padding: 12px 30px;
   border-radius: 30px;
   background-color: #f05454;
-  color: #fff;
+  color: #FAFCFF;
   font-weight: 600;
   transition: background-color 0.3s ease;
 }
@@ -194,10 +194,14 @@ h1 {
   background-color: #f07575;
 }
 
+main {
+  background-color: #FAFCFF;
+}
+
 .nuestras-especialidades {
   padding: 3rem;
   text-align: center;
-  background-color: #f9fbfc;
+  background-color: #FAFCFF;
 }
 
 .nuestras-especialidades h2 {
@@ -236,8 +240,13 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f9fbfc;
-  background-image: radial-gradient(circle at 99% 99%, #ffffff 0%, #457b9d 20%, #457b9d00 80%);
+  background-color: #FAFCFF;
+  background-image: radial-gradient(
+    circle at 99% 99%,
+    #FAFCFF 0%,
+    #457b9d 20%,
+    #457b9d00 80%
+  );
 }
 
 .img-wrapper img {
@@ -260,7 +269,7 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #FAFCFF;
   font-weight: 600;
   color: #457b9d;
   border-top: 5px solid #457b9d;
@@ -271,13 +280,13 @@ h1 {
   margin-bottom: 2rem;
   padding: 1rem;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
-              rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+    rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
   text-align: center;
 }
 
 .especialidades p:hover {
   background-color: #457b9d;
-  color: #fff;
+  color: #FAFCFF;
   transform: translateY(-6px) scale(1.05);
   border-color: transparent;
 }
@@ -321,7 +330,7 @@ h1 {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background-color: #f9fbfc;
+  background-color: #FAFCFF;
   border-radius: 0;
   padding: 30px 25px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
@@ -462,7 +471,7 @@ h1 {
 }
 
 .equipo div {
-  background: #ffffff;
+  background: #FAFCFF;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
     rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
   padding: 1.5rem 1rem;
@@ -521,7 +530,7 @@ h1 {
 .footer-brand img {
   width: 40px;
   height: 40px;
-  background-color: #ffffff;
+  background-color: #FAFCFF;
   border-radius: 50%;
   padding: 0.5%;
 }
@@ -531,7 +540,7 @@ h1 {
 }
 
 .footer-links a {
-  color: #ffffff;
+  color: #FAFCFF;
   text-decoration: none;
   margin: 0 1rem;
   transition: color 0.3s;
@@ -543,7 +552,7 @@ h1 {
 
 .footer-copy {
   font-size: 0.85rem;
-  color: #ffffff;
+  color: #FAFCFF;
 }
 
 .noticias {
@@ -551,11 +560,11 @@ h1 {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2.5rem;
   padding: 5rem 10%;
-  background-color: #f9f9f9;
+  background-color: #FAFCFF;
 }
 
 .noticia {
-  background: #ffffff;
+  background: #FAFCFF;
   overflow: hidden;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
     rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
@@ -624,7 +633,7 @@ h1 {
 
 .contacto {
   padding: 5rem 2rem;
-  background-color: #f9fbfc;
+  background-color: #FAFCFF;
   text-align: center;
 }
 
@@ -660,10 +669,10 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  background-color: #ffffff;
+  background-color: #FAFCFF;
   padding: 1rem 1.5rem;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 6px 10px -2px,
-              rgba(0, 0, 0, 0.05) 0px 3px 6px -1px;
+    rgba(0, 0, 0, 0.05) 0px 3px 6px -1px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   min-width: 250px;
 }
@@ -671,7 +680,7 @@ h1 {
 .contactos div:hover {
   transform: translateY(-5px);
   box-shadow: rgba(0, 0, 0, 0.15) 0px 10px 15px -3px,
-              rgba(0, 0, 0, 0.1) 0px 5px 8px -1px;
+    rgba(0, 0, 0, 0.1) 0px 5px 8px -1px;
 }
 
 .contactos img {
@@ -684,4 +693,59 @@ h1 {
   color: #457b9d;
   margin: 0;
   font-weight: bold;
+}
+
+.servicio-card {
+  background: #FAFCFF;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 15px;
+}
+
+.stat h3 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.stat span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28px;
+  color: #FAFCFF;
+  font-weight: bold;
+  text-align: center;
+  background-color: #457b9d;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #89bedf;
+}
+
+
+#btnLogout {
+  background-color: #457b9d;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #e8eef4;
+  font-size: 0.95rem;
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+}
+
+#btnLogout:hover {
+  background-color: #022c556d;
+  color: #ffffff;
+  transform: translateY(-2px);
 }

@@ -1,5 +1,7 @@
 const express = require('express');
-const { Cita, Donante, Hospital } = require('../db');
+const { Cita, Donante, Usuario, Hospital } = require('../db');
+const { enviarCorreoConfirmacion } = require('../utils/mail');
+// const hospital = require('../db/models/hospital');
 
 const router = express.Router();
 
@@ -17,7 +19,7 @@ function calcularEdad(fechaISO) {
 
 
 // Obtener todas las citas (con filtros opcionales)
-router.get('/citas', async (req, res) => {
+router.get('/cita', async (req, res) => {
   try {
     const { donanteId, hospitalId, fecha } = req.query;
     const where = {};
@@ -39,7 +41,7 @@ router.get('/citas', async (req, res) => {
 });
 
 // Obtener citas de un donante concreto
-router.get('/donantes/:id/citas', async (req, res) => {
+router.get('/donantes/:id/cita', async (req, res) => {
   try {
     const donanteId = req.params.id;
 
@@ -56,7 +58,7 @@ router.get('/donantes/:id/citas', async (req, res) => {
 });
 
 // Obtener citas de un hospital concreto
-router.get('/hospitales/:id/citas', async (req, res) => {
+router.get('/hospitales/:id/cita', async (req, res) => {
   try {
     const hospitalId = req.params.id;
 
@@ -73,19 +75,19 @@ router.get('/hospitales/:id/citas', async (req, res) => {
 });
 
 // Crear una nueva cita
-router.post('/citas', async (req, res) => {
+router.post('/cita', async (req, res) => {
   try {
     const {
-      donante_id,          // opcional: si viene, es donante registrado
-      es_invitado,         // booleano
+      donante_id,         
+      es_invitado,        
       nombre_donante,
       email_donante,
       telefono_donante,
-      genero_donante,      // debe ser uno de: 'MASCULINO','FEMENINO','OTRO','PREFIERO_NO_DECIRLO'
-      dob_donante,         // fecha nacimiento en formato YYYY-MM-DD
+      genero_donante,     
+      dob_donante,       
 
       hospital_id,
-      fecha,               // fecha de la cita
+      fecha,              
       hora,
       departamento,
       mensaje,
@@ -116,7 +118,10 @@ router.post('/citas', async (req, res) => {
 
     //CASO 1: donante registrado (con login)
     if (donante_id) {
-      const donante = await Donante.findByPk(donante_id);
+      const donante = await Donante.findByPk(donante_id, {
+        include: [{ model: Usuario, as: 'usuario' }],
+      });
+
       if (!donante) {
         return res.status(400).json({ error: 'Donante no encontrado' });
       }
@@ -134,12 +139,12 @@ router.post('/citas', async (req, res) => {
       dataCita.donante_id    = donante_id;
       dataCita.es_invitado   = false;
       dataCita.nombre_donante   = `${donante.nombre} ${donante.apellidos || ''}`.trim();
-      dataCita.email_donante    = donante.email;
-      dataCita.telefono_donante = donante.telefono || null;
-      dataCita.genero_donante   = donante.genero || null; // asegúrate que coincide con el ENUM
+      dataCita.email_donante    = donante.usuario?.email || null;
+      dataCita.telefono_donante = donante.usuario?.telefono || null;
+      dataCita.genero_donante   = donante.genero || null; 
       dataCita.dob_donante      = dob;
 
-    // 👤 CASO 2: invitado (sin login)
+    //CASO 2: invitado (sin login)
     } else {
       if (!es_invitado) {
         return res.status(400).json({
@@ -179,7 +184,7 @@ router.post('/citas', async (req, res) => {
 
 
 // Actualizar una cita (estado, fecha/hora, mensaje)
-router.patch('/citas/:id', async (req, res) => {
+router.patch('/cita/:id', async (req, res) => {
   try {
     const id = req.params.id;
     const { fecha, hora, departamento, mensaje, status } = req.body;
@@ -189,6 +194,8 @@ router.patch('/citas/:id', async (req, res) => {
       return res.status(404).json({ error: 'Cita no encontrada' });
     }
 
+    const prevStatus = cita.status;
+
     if (fecha) cita.fecha = fecha;
     if (hora) cita.hora = hora;
     if (departamento) cita.departamento = departamento;
@@ -196,7 +203,20 @@ router.patch('/citas/:id', async (req, res) => {
     if (status) cita.status = status;
 
     await cita.save();
+
+    if (status === 'CONFIRMADA' && prevStatus !== 'CONFIRMADA') {
+      //cita.hospital_nombre = hospital.nombre || null;
+      //cita.hospital_ciudad = hospital.ciudad || null;
+
+      const hosp = await Hospital.findByPk(cita.hospital_id);
+      cita.hospital_nombre = hosp ? hosp.nombre : null;
+      cita.hospital_ciudad = hosp ? hosp.ciudad : null;
+
+      await enviarCorreoConfirmacion(cita);
+    }
+
     res.json(cita);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error actualizando cita' });
@@ -204,7 +224,7 @@ router.patch('/citas/:id', async (req, res) => {
 });
 
 // Eliminar una cita (cancelarla definitivamente)
-router.delete('/citas/:id', async (req, res) => {
+router.delete('/cita/:id', async (req, res) => {
   try {
     const id = req.params.id;
     const cita = await Cita.findByPk(id);

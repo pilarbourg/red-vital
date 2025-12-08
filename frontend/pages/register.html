@@ -34,18 +34,84 @@
 
     <main class="form-container">
       <h1>REDVITAL</h1>
-      <form action="#" method="POST" class="form">
-        <label>Nombre:</label>
-        <input type="text" placeholder="Tu nombre" required />
-
-        <label>Apellido:</label>
-        <input type="text" placeholder="Tu apellido" required />
+      <h2>Crear cuenta</h2>
+      
+      <form id="registerForm" class="form">
 
         <label>Email:</label>
-        <input type="email" placeholder="Correo electrónico" required />
+        <input id="email" type="email" placeholder="Correo electrónico" required />
+
+        <label>Teléfono:</label>
+        <input id="telefono" type="telefono" placeholder="+34 600 000 000"  required />
 
         <label>Password:</label>
-        <input type="password" placeholder="Contraseña" required />
+        <input id="password" type="password" placeholder="Contraseña" required />
+
+        <div id="rol-wrapper">
+          <label for="rolSelect">¿Cómo quieres registrarte?</label>
+          <select id="rolSelect">
+            <option value="">Selecciona una opción</option>
+            <option value="DONANTE">Donante</option>
+            <option value="HOSPITAL">Hospital</option>
+            <option value="ADMIN">Administrador</option>
+          </select>
+        </div>
+
+        <!-- Campos específicos DONANTE -->
+        <div id="donorFields" class="hidden">
+          <h3>Datos de donante</h3>
+          <label for="donante-nombre">Nombre</label>
+          <input id="donante-nombre" type="text" />
+
+          <label for="donante-apellidos">Apellidos</label>
+          <input id="donante-apellidos" type="text" />
+
+          <label for="donante-genero">Género</label>
+          <select id="donante-genero">
+            <option value="">(Opcional)</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMENINO">Femenino</option>
+            <option value="OTRO">Otro</option>
+            <option value="PREFIERO_NO_DECIRLO">Prefiero no decirlo</option>
+          </select>
+
+          <label for="donante-dob">Fecha de nacimiento</label>
+          <input id="donante-dob" type="date" />
+
+          <label for="donante-grupo">Grupo sanguíneo</label>
+          <select id="donante-grupo">
+            <option value="">Selecciona...</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+
+          <label for="donante-radio">Radio km</label>
+          <input id="donante-radio" type="number" min="1" value="10" />
+
+          <label for="donante-condiciones">Condiciones médicas (opcional)</label>
+          <textarea id="donante-condiciones"></textarea>
+        </div>
+
+        <!-- Campos específicos HOSPITAL -->
+        <div id="hospitalFields" class="hidden">
+          <h3>Datos del hospital</h3>
+          <label for="hospital-nombre">Nombre del hospital</label>
+          <input id="hospital-nombre" type="text" />
+
+          <label for="hospital-direccion">Dirección del hospital</label>
+          <input id="hospital-direccion" type="text" />
+
+          <label for="hospital-ciudad">Ciudad</label>
+          <input id="hospital-ciudad" type="text" />
+        </div>
+        
+        <input id="rol" type="hidden" value="" />
 
         <button type="submit">Registrarse</button>
       </form>
@@ -68,29 +134,79 @@
       </div>
     </footer>
 
-    <form id="registerForm">
-  <!-- tus inputs ya hechos -->
-</form>
+    <script src="../js/register.js"></script>
+<!--     <script>
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = (params.get("role") || "").toUpperCase();
+      
+      const hiddenRolInput = document.getElementById("rol");
+      const rolWrapper = document.getElementById("rol-wrapper");
+      const rolSelect = document.getElementById("rolSelect");
 
-<script>
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+      if (roleFromUrl) {
+        // CASO 1: vienes de un área concreta (Donante, Hospital...)
+        // Usamos el rol de la URL y ocultamos el selector
+        hiddenRolInput.value = roleFromUrl;
+        if (rolWrapper) {
+          rolWrapper.style.display = "none";
+        }
+      } else {
+        // CASO 2: vienes del botón Register genérico
+        // Mostramos el desplegable y usamos lo que el usuario elija
+        if (rolWrapper) {
+          rolWrapper.style.display = "block";
+        }
 
-  const data = {
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
-    rol: document.getElementById('rol').value
-  };
+        if (rolSelect) {
+          rolSelect.addEventListener("change", () => {
+            hiddenRolInput.value = rolSelect.value;
+          });
+        }
+      }
 
-  const res = await fetch('/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
+      document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-  const json = await res.json();
-  alert(json.message);
-});
-</script>
-</body>
+        // Por si acaso alguien le da a enviar sin elegir rol en el desplegable
+        if (!hiddenRolInput.value) {
+          alert("Por favor, selecciona cómo quieres registrarte (Donante u Hospital).");
+          return;
+        }
+
+        const data = {
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+          rol: document.getElementById("rol").value,
+        };
+
+        try {
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const json = await res.json();
+          alert(json.mensaje);
+
+          if (res.ok) {
+            // Mantener ?next=
+            const params = new URLSearchParams(window.location.search);
+            const next =
+              params.get("next") ||
+              "/frontend/pages/appointments.html?mode=registered";
+            // Volvemos a login, conservando next y role
+            const loginParams = new URLSearchParams({
+              next,
+              role: roleParam,
+            });
+            window.location.href = "login.html?next=" + encodeURIComponent(next);
+          }
+        } catch (err) {
+          alert("Error conectando con el servidor.");
+          console.error(err);
+        }
+      });
+    </script> -->
+  </body>
 </html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RedVital | Confirmación de cita</title>
+    <link rel="stylesheet" href="../css/index.css" />
+    <link rel="stylesheet" href="../css/appointments.css" />
+  </head>
+  <body>
+    <header>
+      <section class="title-header">
+        <h4>Centro de Donaciones de Sangre</h4>
+        <span>|</span>
+        <h4>Donar Sangre es Donar Vida</h4>
+      </section>
+      <section class="header">
+        <div class="icon-title-header">
+          <img src="../assets/svgs/icon_logo.svg" alt="Small Logo" />
+          <h1>REDVITAL</h1>
+        </div>
+
+        <nav class="button-container">
+          <a href="../../index.html" class="button">Home</a>
+          <a href="appointments.html" class="button">Citas</a>
+          <a href="areaadmin.html" class="button">Área Administración</a>
+          <a href="areadonante.html" class="button">Área Donante</a>
+          <a href="areahospitalaria.html" class="button">Área Hospitalaria</a>
+          <a href="register.html" class="button">Register</a>
+          <a href="login.html" class="button">Login</a>
+        </nav>
+      </section>
+    </header>
+
+    <section class="appt-hero">
+      <img
+        src="../assets/images/akram-huseyn-fKC9eWRnlGY-unsplash.jpg"
+        alt="Sala de donación"
+      />
+    </section>
+
+    <main class="appt-wrap">
+      <section class="confirm-card">
+        <h2 class="confirm-title">Tu cita está casi lista</h2>
+        <p class="confirm-subtitle">
+          Revisa los datos de tu cita. Puedes confirmarla, cambiarla o cancelarla.
+        </p>
+
+        <div class="confirm-row">
+          <strong>Donante</strong>
+          <span id="cf-name"></span>
+        </div>
+
+        <div class="confirm-row">
+          <strong>Fecha y hora</strong>
+          <span id="cf-datetime"></span>
+        </div>
+
+        <div class="confirm-row">
+          <strong>Hospital</strong>
+          <span id="cf-hospital"></span>
+        </div>
+
+        <div class="confirm-row">
+          <strong>Médico y departamento</strong>
+          <span id="cf-doctor"></span>
+        </div>
+
+        <div class="confirm-buttons">
+          <button id="btn-confirm" class="btn-confirm">
+            Confirmar cita
+          </button>
+          <button id="btn-change" class="btn-secondary">
+            Cambiar cita
+          </button>
+          <button id="btn-cancel" class="btn-ghost">
+            Cancelar
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <section class="appt-banner">
+      <img src="../assets/images/logo_RedVital.png" alt="RedVital" />
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="../assets/svgs/icon_logo.svg" alt="RedVital Logo" />
+          <span>RedVital</span>
+        </div>
+        <div class="footer-links">
+          <a href="areaadmin.html">Admin</a>
+          <a href="areadonante.html">Donante</a>
+          <a href="areahospitalaria.html">Hospital</a>
+        </div>
+        <div class="footer-copy">
+          &copy; 2025 RedVital | All rights reserved
+        </div>
+      </div>
+    </footer>
+
+    <script src="../js/appointment-confirmation.js"></script>
+  </body>
+</html>

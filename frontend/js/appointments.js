@@ -6,30 +6,72 @@ document.addEventListener('DOMContentLoaded', () => {
   const modeHint  = document.getElementById('modeHint');
   const hospitalSelect = document.getElementById('hospital');
   const doctorSelect   = document.getElementById('doctorSelect');
+  const dateInput      = document.getElementById('date');
+
   const identityInputs = document.querySelectorAll('.field-identity input, .field-identity select');
+
+  const API_BASE = "http://localhost:3000";
 
   let appointmentMode = null;
   let citas     = [];
   let hospitals = [];
-  let doctorAssignments = {};
   let currentDonor = null;
-    
-  const ME_ENDPOINT = '/api/donantes/me';
+
+  const DAILY_SLOTS = [
+  '08:00','08:30','09:00','09:30','10:00','10:30',
+  '11:00','11:30','12:00','12:30',
+  '16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30'];
+  
+  let selectedSlot = null;
+
+  //Parámetros al volver de la confirmación (cambiar cita)
+  const urlParams   = new URLSearchParams(window.location.search);
+  const initialMode = urlParams.get('mode'); 
+
+  const preFecha      = urlParams.get('fecha') || '';
+  const preHora       = urlParams.get('hora') || '';
+  const preHospitalId = urlParams.get('hospitalId') || '';
+  const preDept       = urlParams.get('departamento') || '';
+  const preDoctor     = urlParams.get('doctor') || '';
+
+  const preName    = urlParams.get('nombre') || '';
+  const preEmail   = urlParams.get('email') || '';
+  const prePhone   = urlParams.get('telefono') || '';
+  const preDob     = urlParams.get('dob') || '';
+  const preGender  = urlParams.get('genero') || '';
 
   async function loadCurrentDonor() {
     try {
-      const res = await fetch(ME_ENDPOINT, {
-        credentials: 'include',
-      });
+      const saved = JSON.parse(localStorage.getItem('user'));
 
-      if (!res.ok) {
-        currentDonor = null;
+      if (!saved || !saved.id) {
+        const params = new URLSearchParams({
+          next: '/frontend/pages/appointments.html?mode=registered',
+          role: 'DONANTE',
+        });
+        window.location.href = `login.html?${params.toString()}`;
         return null;
       }
 
+      const res  = await fetch(`${API_BASE}/api/donantes/byUsuario/${saved.id}`);
       const data = await res.json();
-      currentDonor = data;
-      return data;
+
+      if (!data.ok) {
+        console.error('Error obteniendo donante por usuario', data);
+        return null;
+      }
+
+      currentDonor = {
+        id: data.id,
+        nombre: data.nombre,
+        apellidos: data.apellidos,
+        genero: data.genero,
+        fecha_nacimiento: data.dob,
+        email: (data.usuario && data.usuario.email) || saved.email || '',
+        telefono: (data.usuario && data.usuario.telefono) || saved.telefono || '',
+      };
+
+      return currentDonor;
     } catch (err) {
       console.error('Error cargando donante logueado', err);
       currentDonor = null;
@@ -37,16 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const DOCTOR_NAMES = [
-    'Dra. Ana Torres',
-    'Dr. Luis García',
-    'Dra. Elena López',
-    'Dr. Javier Martín',
-    'Dra. Paula Ruiz',
-    'Dr. Miguel Sánchez',
-    'Dra. Carmen Díaz',
-    'Dr. Sergio Romero',
-  ];
   
   function setMode(mode) {
     appointmentMode = mode;
@@ -61,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupGuestMode();
       form.classList.remove('hidden');
     } else if (mode === 'registered') {
-      modeHint.textContent = 'Usaremos los datos de tu perfil de donante (simulado aquí).';
+      modeHint.textContent = 'Usaremos los datos de tu perfil de donante.';
       modeHint.classList.remove('hidden');
       setupRegisteredMode();
       form.classList.remove('hidden');
@@ -85,19 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDonorId = null;
     
     async function setupRegisteredMode() {
-      if (!currentDonor) {
-        const me = await loadCurrentDonor();
-        if (!me) {
-          const params = new URLSearchParams({
-            next: '/frontend/pages/appointments.html',
-            mode: 'registered',
-          });
-          window.location.href = `login.html?${params.toString()}`;
-          return;
-        }
-      }
-
-      const d = currentDonor;
+      const d = currentDonor || await loadCurrentDonor();
+      if (!d) return;
 
       document.getElementById('name').value =
         `${d.nombre} ${d.apellidos || ''}`.trim();
@@ -118,48 +139,54 @@ document.addEventListener('DOMContentLoaded', () => {
         doctorSelect.innerHTML = '<option value="">Selecciona un médico</option>';
     }
 
-
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.dataset.mode;
+
+        // 1) Soy donante registrado → SIEMPRE ir a login
+        if (mode === 'registered') {
+          const params = new URLSearchParams({
+            next: '/frontend/pages/appointments.html?mode=registered',
+            role: 'DONANTE',
+          });
+          window.location.href = `login.html?${params.toString()}`;
+          return;
+        }
+
+        // 2) Registrarme como donante: ir a register
         if (mode === 'register') {
           const params = new URLSearchParams({
-            next: '/frontend/pages/appointments.html',
-            mode: 'registered',
+            next: '/frontend/pages/appointments.html?mode=registered',
+            role: 'DONANTE',
           });
           window.location.href = `register.html?${params.toString()}`;
           return;
         }
+
+        // 3) Invitado: solo en este caso usamos setMode('guest')
         setMode(mode);
       });
     });
     
-    const urlParams   = new URLSearchParams(window.location.search);
-    const initialMode = urlParams.get('mode');
-    if (initialMode === 'registered') {
-      setMode('registered');
+    if (initialMode === 'registered' || initialMode === 'guest') {
+      setMode(initialMode);
     }
 
-    function assignDoctorsToHospitals(list) {
-      const stored = localStorage.getItem('rv_doctorAssignments');
-      if (stored) {
-        try {
-          doctorAssignments = JSON.parse(stored);
-          return;
-        } catch (_) {}
-      }
+    if (initialMode === 'guest') {
+      if (preName)   document.getElementById('name').value   = preName;
+      if (preEmail)  document.getElementById('email').value  = preEmail;
+      if (prePhone)  document.getElementById('phone').value  = prePhone;
+      if (preDob)    document.getElementById('dob').value    = preDob;
+      if (preGender) document.getElementById('gender').value = preGender;
+    }
 
-      const available = [...DOCTOR_NAMES];
-      doctorAssignments = {};
-
-      list.forEach(h => {
-        if (!available.length) return;
-        const idx = Math.floor(Math.random() * available.length);
-        const doc = available.splice(idx, 1)[0];
-        doctorAssignments[h.id] = [doc]; 
-      });
-
-      localStorage.setItem('rv_doctorAssignments', JSON.stringify(doctorAssignments));
+    if (preFecha && dateInput) {
+      dateInput.value = preFecha;
+    }
+    if (preHora) {
+      selectedSlot = preHora;
+      const timeInput = document.getElementById('time');
+      if (timeInput) timeInput.value = preHora;
     }
 
     function renderHospitals() {
@@ -172,97 +199,158 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.textContent = `${h.nombre} – ${h.ciudad}`;
         hospitalSelect.appendChild(opt);
       });
+
+      // Si venimos de cambiar cita, preseleccionamos el hospital y departamento
+      if (preHospitalId) {
+        hospitalSelect.value = preHospitalId;
+      }
+      if (preDept && deptSelect) {
+        deptSelect.value = preDept;
+      }
+
+      // Cargamos médicos y preseleccionamos el de la cita anterior
+      if ((preHospitalId || preDept) && doctorSelect) {
+        loadDoctorsForSelection().then(() => {
+          if (preDoctor) {
+            doctorSelect.value = preDoctor;
+          }
+          // Con todo elegido, pintamos los slots y marcamos la hora
+          renderSlots();
+        });
+      }
+
     }
 
-    function renderDoctorsForHospital(hospitalId) {
+    const deptSelect = document.getElementById('dept');
+    async function loadDoctorsForSelection() {
       if (!doctorSelect) return;
+
       doctorSelect.innerHTML = '<option value="">Selecciona un médico</option>';
 
-      if (!hospitalId) return;
-      const docs = doctorAssignments[hospitalId] || [];
-      docs.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        doctorSelect.appendChild(opt);
-      });
-    }
+      const hospitalId = hospitalSelect.value;
+      const deptValue  = deptSelect ? deptSelect.value : '';
 
-    if (hospitalSelect) {
-      hospitalSelect.addEventListener('change', e => {
-        renderDoctorsForHospital(e.target.value);
-      });
-    }
+      if (!hospitalId || !deptValue) {
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams({
+          hospitalId: hospitalId,
+          departamento: deptValue,
+        });
+
+        const res = await fetch(`${API_BASE}/api/doctores?${params.toString()}`);
+        if (!res.ok) throw new Error('Error al cargar doctores');
+
+        const doctores = await res.json();
+
+        if (!Array.isArray(doctores) || !doctores.length) {
+          return;
+        }
+
+        doctores.forEach(doc => {
+          const opt = document.createElement('option');
+          opt.value = doc.nombre;
+          opt.textContent = doc.nombre;
+          doctorSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Error cargando doctores:', err);
+      }
+    }   
 
     async function loadHospitals() {
       try {
-        const res = await fetch('/api/hospitales');
+        const res = await fetch(`${API_BASE}/api/hospitales`);
         if (!res.ok) throw new Error('Error al cargar hospitales');
 
         hospitals = await res.json();
         if (!Array.isArray(hospitals)) hospitals = [];
-
-        assignDoctorsToHospitals(hospitals);
         renderHospitals();
+
       } catch (err) {
         console.error(err);
         hospitals = [
           { id: 1, nombre: 'Hospital Central', ciudad: 'Madrid' },
           { id: 2, nombre: 'Clínica Norte', ciudad: 'Madrid' },
         ];
-        assignDoctorsToHospitals(hospitals);
         renderHospitals();
       }
+
+      if (preHospitalId && hospitalSelect) {
+        hospitalSelect.value = preHospitalId;
+      }
+
+      if (preDept && deptSelect) {
+        deptSelect.value = preDept;
+      }
+
+      if (preHospitalId && preDept) {
+        await loadDoctorsForSelection();
+        if (preDoctor && doctorSelect) {
+          doctorSelect.value = preDoctor;
+        }
+      }
+
     }
 
     async function loadCitas() {
       try {
-        const res = await fetch('/api/citas');
+        const res = await fetch(`${API_BASE}/api/cita`);
         if (!res.ok) throw new Error('Error al cargar citas');
         citas = await res.json();
-        renderCitas();
+        renderSlots();
       } catch (err) {
         console.error(err);
         slotsEl.innerHTML = "<p class='appt-empty'>Error al cargar citas.</p>";
       }
     }
 
-    function renderCitas() {
-      if (!citas.length) {
-        slotsEl.innerHTML = "<p class='appt-empty'>No hay citas.</p>";
+    function renderSlots() {
+      if (!slotsEl) return;
+
+      const date       = dateInput.value;
+      const hospitalId = hospitalSelect.value;
+      const deptValue  = deptSelect ? deptSelect.value : '';
+      const doctorName = doctorSelect ? doctorSelect.value : '';
+
+      if (!date || !hospitalId || !deptValue || !doctorName) {
+        slotsEl.innerHTML =
+          "<p class='appt-empty'>Selecciona fecha, hospital, departamento y médico para ver los horarios disponibles.</p>";
         return;
       }
 
-      const sorted = [...citas].sort((a, b) =>
-        (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || ''))
-      );
+      const takenHours = citas
+        .filter(c =>
+          String(c.hospital_id) === String(hospitalId) &&
+          c.departamento === deptValue &&
+          c.doctor === doctorName &&
+          c.fecha === date &&
+          c.status !== 'CANCELADA'
+        )
+        .map(c => c.hora);
 
-      const html = sorted
-        .map(c => {
-          const hosp = hospitals.find(h => String(h.id) === String(c.hospital_id));
-          const hospLabel = hosp ? hosp.nombre : `Hospital #${c.hospital_id}`;
-          return `
-            <li class="appt-slot">
-              <div class="appt-slot-main">
-                <strong>${c.fecha}</strong> · ${c.hora || '—'}
-                <span class="appt-badge">${c.departamento || 'General'}</span>
-              </div>
-              <div class="appt-slot-sub">
-                ${hospLabel} · Médico: ${c.doctor || 'Por asignar'}
-                · <em>${c.status || 'PENDIENTE'}</em>
-              </div>
-              <div class="appt-actions">
-                <button data-act="done"    data-id="${c.id}">Completada</button>
-                <button data-act="resched" data-id="${c.id}">Reprogramar</button>
-                <button data-act="cancel"  data-id="${c.id}">Cancelar</button>
-              </div>
-            </li>
-          `;
-        })
-        .join('');
+      const html = DAILY_SLOTS.map(hora => {
+        const isTaken    = takenHours.includes(hora);
+        const isSelected = selectedSlot === hora;
+
+        return `
+          <li class="appt-slot ${isTaken ? 'is-taken' : 'is-free'} ${isSelected ? 'is-selected' : ''}"
+              data-hora="${hora}">
+            <div class="appt-slot-main">
+              <strong>${hora}</strong>
+              <span class="appt-badge">
+                ${isTaken ? 'No disponible' : 'Disponible'}
+              </span>
+            </div>
+          </li>
+        `;
+      }).join('');
 
       slotsEl.innerHTML = html;
     }
+
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -275,22 +363,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       let hospitalId = hospitalSelect.value;
-      if (!hospitalId && hospitals.length) {
-        const rnd = hospitals[Math.floor(Math.random() * hospitals.length)];
-        hospitalId = rnd.id;
-        hospitalSelect.value = hospitalId;
-        renderDoctorsForHospital(hospitalId);
+      if (!hospitalId) {
+        alert('Selecciona un hospital.');
+        return;
+      }
+
+      const deptValue = document.getElementById('dept').value;
+      if (!deptValue) {
+        alert('Selecciona un departamento.');
+        return;
       }
 
       let doctorName = doctorSelect.value;
-      if (!doctorName && hospitalId && doctorAssignments[hospitalId]) {
-        const docs = doctorAssignments[hospitalId];
-        if (docs.length) {
-          doctorName = docs[0];
-          doctorSelect.value = doctorName;
-        }
-      }
-
       if (!doctorName) {
         alert('Selecciona un médico para la cita.');
         return;
@@ -313,9 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         body.donante_id  = currentDonor.id;
         body.es_invitado = false;
-
-      } else {
-
+      } else{
         if (!v('name') || !v('email') || !v('dob')) {
           alert('Nombre, email y fecha de nacimiento son obligatorios para invitados.');
           return;
@@ -329,74 +411,104 @@ document.addEventListener('DOMContentLoaded', () => {
         body.genero_donante   = document.getElementById('gender').value || null;
         body.dob_donante      = v('dob');
       }
-
-      try {
-        const res = await fetch('/api/citas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || 'Error al crear cita');
-        }
-
-        form.reset();
-        if (appointmentMode === 'registered') {
-          setupRegisteredMode();
-        }
-        feedback.classList.remove('hidden');
-        setTimeout(() => feedback.classList.add('hidden'), 2500);
-
-        await loadCitas();
-      } catch (err) {
-        console.error(err);
-        alert('No se ha podido crear la cita.');
-      }
-    });
-
-
-    slotsEl.addEventListener('click', async e => {
-      const btn = e.target.closest('button[data-act]');
-      if (!btn) return;
-
-      const id  = btn.dataset.id;
-      const act = btn.dataset.act;
-
-      try {
-        if (act === 'cancel') {
-          await fetch(`/api/citas/${id}`, { method: 'DELETE' });
-        }
-
-        if (act === 'done') {
-          await fetch(`/api/citas/${id}`, {
-            method: 'PATCH',
+        try {
+          const res = await fetch('/api/cita', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'CONFIRMADA' }),
+            body: JSON.stringify(body),
           });
-        }
 
-        if (act === 'resched') {
-          const current = citas.find(c => String(c.id) === String(id));
-          const nf = prompt('Nueva fecha (YYYY-MM-DD):', current?.fecha || '');
-          const nh = prompt('Nueva hora (HH:MM):', current?.hora || '');
-          if (nf && nh) {
-            await fetch(`/api/citas/${id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ fecha: nf, hora: nh, status: 'PENDIENTE' }),
-            });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Error al crear cita');
           }
-        }
 
-        await loadCitas();
-      } catch (err) {
-        console.error(err);
-        alert('No se ha podido actualizar la cita.');
-      }
+          const citaCreada = await res.json();
+
+          const hosp = hospitals.find(h => String(h.id) === String(citaCreada.hospital_id));
+
+          const nombreDonante =
+            appointmentMode === 'registered'
+              ? `${currentDonor.nombre} ${currentDonor.apellidos || ''}`.trim()
+              : body.nombre_donante;
+
+          const baseParams = {
+            mode: appointmentMode || 'guest',
+            nombre: nombreDonante,
+            fecha: citaCreada.fecha,
+            hora: citaCreada.hora,
+            hospital: hosp ? hosp.nombre : '',
+            ciudad: hosp ? hosp.ciudad : '',
+            doctor: citaCreada.doctor || '',
+            departamento: citaCreada.departamento || '',
+            citaId: citaCreada.id,
+            hospitalId: citaCreada.hospital_id,
+          };
+
+          if (appointmentMode === 'guest') {
+            baseParams.nombre_donante   = body.nombre_donante;
+            baseParams.email_donante    = body.email_donante;
+            baseParams.telefono_donante = body.telefono_donante || '';
+            baseParams.dob_donante      = body.dob_donante;
+            baseParams.genero_donante   = body.genero_donante || '';
+          }
+
+          const params = new URLSearchParams(baseParams);
+          
+          window.location.href = `/frontend/pages/appointment-confirmation.html?${params.toString()}`;
+
+        } catch (err) {
+          console.error(err);
+          alert('No se ha podido crear la cita.');
+        }
     });
 
+    if (hospitalSelect) {
+      hospitalSelect.addEventListener('change', () => {
+        loadDoctorsForSelection();
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    if (deptSelect) {
+      deptSelect.addEventListener('change', () => {
+        loadDoctorsForSelection();
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    if (doctorSelect) {
+      doctorSelect.addEventListener('change', () => {
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    if (dateInput) {
+      dateInput.addEventListener('change', () => {
+        selectedSlot = null;
+        document.getElementById('time').value = '';
+        renderSlots();
+      });
+    }
+
+    slotsEl.addEventListener('click', e => {
+      const li = e.target.closest('.appt-slot');
+      if (!li) return;
+
+      if (li.classList.contains('is-taken')) return;
+
+      selectedSlot = li.dataset.hora;
+      document.getElementById('time').value = selectedSlot;
+      renderSlots();
+    });
     
   loadHospitals().then(loadCitas);
 });
+
+
