@@ -1,9 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_BASE = "/api";
 
-
-//Log Out
-
+  // Log Out
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
@@ -11,8 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-//Gestión de pestañas
-
+  // Gestión de pestañas
   const tabButtons = document.querySelectorAll(".tab-button");
   const tabs = document.querySelectorAll(".tab");
 
@@ -30,8 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-
 
   const apiFetch = async (endpoint, options = {}) => {
     const headers = {
@@ -58,10 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return data;
   };
 
-
-
-//Dashboard
-
+  // Dashboard
   const $stat = (id) => document.getElementById(id);
 
   const cargarDashboard = async () => {
@@ -101,9 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-
-//Usuarios
-
+  // Usuarios
   const filtroRol = document.getElementById("filtroRol");
   const filtroActivos = document.getElementById("filtroActivos");
   const btnRefrescarUsuarios = document.getElementById("btnRefrescarUsuarios");
@@ -254,10 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnRefrescarUsuarios.addEventListener("click", cargarUsuarios);
   }
 
-
-
-//Solicitudes del Usuario
-
+  // Solicitudes del Usuario
   const filtroEstadoSol = document.getElementById("filtroEstadoSol");
   const filtroPrioridadSol = document.getElementById("filtroPrioridadSol");
   const btnRefrescarSolicitudes = document.getElementById(
@@ -275,14 +262,14 @@ document.addEventListener("DOMContentLoaded", () => {
         filtroEstadoSol instanceof HTMLSelectElement &&
         filtroEstadoSol.value
       ) {
-        params.set("estado", filtroEstadoSol.value);
+        params.set("estado", filtroEstadoSol.value.toUpperCase());
       }
 
       if (
         filtroPrioridadSol instanceof HTMLSelectElement &&
         filtroPrioridadSol.value
       ) {
-        params.set("prioridad", filtroPrioridadSol.value);
+        params.set("urgencia", filtroPrioridadSol.value.toUpperCase());
       }
 
       const solicitudes = await apiFetch(
@@ -300,26 +287,20 @@ document.addEventListener("DOMContentLoaded", () => {
         tr.innerHTML = `
           <td>${s.id}</td>
           <td>${s.Hospital && s.Hospital.nombre ? s.Hospital.nombre : "-"}</td>
-          <td>${s.tipoSangre}</td>
-          <td>${s.cantidad}</td>
+          <td>${s.grupo_sanguineo}</td>
+          <td>${s.cantidad_unidades}</td>
           <td>
-            <select class="selPrioridad" data-id="${s.id}">
-              <option value="alta" ${s.prioridad === "alta" ? "selected" : ""}>Alta</option>
-              <option value="media" ${s.prioridad === "media" ? "selected" : ""}>Media</option>
-              <option value="baja" ${s.prioridad === "baja" ? "selected" : ""}>Baja</option>
+            <select class="selUrgencia" data-id="${s.id}">
+              <option value="ALTA"  ${s.urgencia === "ALTA" ? "selected" : ""}>Alta</option>
+              <option value="MEDIA" ${s.urgencia === "MEDIA" ? "selected" : ""}>Media</option>
+              <option value="BAJA"  ${s.urgencia === "BAJA" ? "selected" : ""}>Baja</option>
             </select>
           </td>
           <td>
             <select class="selEstado" data-id="${s.id}">
-              <option value="pendiente" ${
-                s.estado === "pendiente" ? "selected" : ""
-              }>Pendiente</option>
-              <option value="en_proceso" ${
-                s.estado === "en_proceso" ? "selected" : ""
-              }>En proceso</option>
-              <option value="completada" ${
-                s.estado === "completada" ? "selected" : ""
-              }>Completada</option>
+              <option value="PENDIENTE"   ${s.estado === "PENDIENTE" ? "selected" : ""}>Pendiente</option>
+              <option value="EN_PROCESO"  ${s.estado === "EN_PROCESO" ? "selected" : ""}>En proceso</option>
+              <option value="COMPLETADA"  ${s.estado === "COMPLETADA" ? "selected" : ""}>Completada</option>
             </select>
           </td>
           <td>${fecha}</td>
@@ -358,11 +339,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!fila) return;
 
       const selEstado = fila.querySelector(".selEstado");
-      const selPrioridad = fila.querySelector(".selPrioridad");
+      const selUrgencia = fila.querySelector(".selUrgencia");
 
       const payload = {
-        estado: selEstado ? selEstado.value : undefined,
-        prioridad: selPrioridad ? selPrioridad.value : undefined,
+        estado:
+          selEstado instanceof HTMLSelectElement ? selEstado.value : undefined,
+        urgencia:
+          selUrgencia instanceof HTMLSelectElement ? selUrgencia.value : undefined,
       };
 
       await apiFetch(`/admin/solicitudes/${id}`, {
@@ -381,9 +364,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnRefrescarSolicitudes) {
     btnRefrescarSolicitudes.addEventListener("click", cargarSolicitudes);
   }
-
-
-
 
   cargarDashboard();
   cargarUsuarios();

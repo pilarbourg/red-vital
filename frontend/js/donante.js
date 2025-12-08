@@ -156,11 +156,58 @@ async function activarFormularioCredenciales() {
 
     const data = await res.json();
     if (data.ok) {
+      showToast("Credenciales actualizadas correctamente", "success");
+      cargarCredenciales();  // refresca pantalla
       document.getElementById("update-msg").classList.remove("hidden");
       cargarCredenciales();
     }
   });
 }
+
+// =============================
+//   NAVEGACIÓN ENTRE SECCIONES
+// =============================
+
+// Seleccionamos los botones del menú lateral
+const navItems = document.querySelectorAll(".nav-item-card");
+
+// Seleccionamos TODAS las secciones de contenido
+const contentSections = document.querySelectorAll(".content-section");
+
+// Asignamos evento click a cada botón
+navItems.forEach(item => {
+    item.addEventListener("click", () => {
+        
+        // 1) Quitar clase activa de todos los botones
+        navItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        
+        // 2) Ocultar todas las secciones
+        contentSections.forEach(sec => sec.classList.remove("active-section"));
+        
+        // 3) Mostrar solo la sección clicada
+        const target = item.dataset.target; // ejemplo: "perfil"
+        const sectionToShow = document.getElementById(target);
+        
+        if (sectionToShow) {
+            sectionToShow.classList.add("active-section");
+            sectionToShow.scrollIntoView({ behavior: "smooth" });
+        }
+    });
+});
+
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
 
 /* ==========================================================
                  CARGAR NOTIFICACIONES

@@ -22,10 +22,10 @@ router.get("/dashboard", async (req, res) => {
       Hospital ? Hospital.count() : Promise.resolve(0),
       Solicitud ? Solicitud.count() : Promise.resolve(0),
       Solicitud
-        ? Solicitud.count({ where: { estado: "pendiente" } })
+        ? Solicitud.count({ where: { estado: "PENDIENTE" } })
         : Promise.resolve(0),
       Solicitud
-        ? Solicitud.count({ where: { prioridad: "alta" } })
+        ? Solicitud.count({ where: { urgencia: "ALTA" } })
         : Promise.resolve(0),
       Donacion ? Donacion.count() : Promise.resolve(0),
     ]);
@@ -158,8 +158,8 @@ router.get("/solicitudes", async (req, res) => {
     const { estado, prioridad } = req.query;
 
     const where = {};
-    if (estado) where.estado = estado;
-    if (prioridad) where.prioridad = prioridad;
+    if (estado) where.estado = estado.toUpperCase();
+    if (prioridad) where.urgencia = prioridad.toUpperCase();;
 
     const solicitudes = await Solicitud.findAll({
       where,
@@ -172,7 +172,17 @@ router.get("/solicitudes", async (req, res) => {
       order: [["id", "DESC"]],
     });
 
-    res.json(solicitudes);
+    res.json(
+  solicitudes.map((s) => ({
+    id: s.id,
+    tipoSangre: s.grupo_sanguineo,
+    cantidad: s.cantidad_unidades,
+    prioridad: s.urgencia.toLowerCase(), // "ALTA" -> "alta"
+    estado: s.estado.toLowerCase(),      // "PENDIENTE" -> "pendiente"
+    Hospital: { nombre: s.Hospital.nombre },
+    createdAt: s.createdAt,
+  }))
+);
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al listar solicitudes" });
@@ -184,11 +194,9 @@ router.put(
   "/solicitudes/:id",
   [
     body("estado")
-      .optional()
-      .isIn(["pendiente", "en_proceso", "completada"])
+      .isIn(["pendiente", "parcial", "cubierta", "cancelada"])
       .withMessage("Estado no válido"),
     body("prioridad")
-      .optional()
       .isIn(["alta", "media", "baja"])
       .withMessage("Prioridad no válida"),
   ],
@@ -204,9 +212,9 @@ router.put(
         return res.status(404).json({ mensaje: "Solicitud no encontrada" });
       }
 
-      const { estado, prioridad } = req.body;
+      const { estado, urgencia } = req.body;
       if (typeof estado !== "undefined") solicitud.estado = estado;
-      if (typeof prioridad !== "undefined") solicitud.prioridad = prioridad;
+      if (typeof prioridad !== "undefined") solicitud.urgencia = urgencia;
 
       await solicitud.save();
 
