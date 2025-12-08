@@ -83,7 +83,7 @@ red-vital/
 ├── package.json          # Dependencias del back-end
 ├── package-lock.json
 └── README.md             # Este archivo
-
+```text
 
 ## 6. Instalación de dependencias 
 
