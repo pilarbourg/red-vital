@@ -145,12 +145,10 @@ router.get("/hospitales/:hospitalId/donantes", async (req, res) => {
 
     const condiciones = [];
 
-    // Exact match for blood group (no LIKE, no ILIKE)
     if (grupo && grupo !== "Todos") {
       condiciones.push({ grupo_sanguineo: grupo });
     }
 
-    // Name filter with LIKE for partial match
     if (nombre && nombre.trim() !== "") {
       const tokens = nombre.trim().split(/\s+/);
       const nombreConditions = tokens.map(token => ({
@@ -176,8 +174,7 @@ router.get("/hospitales/:hospitalId/donantes", async (req, res) => {
 });
 
 //send a notification to a donor
-router.post("/donantes/notificar", async (req, res) => {
-  //tested
+router.post("/donantes/notificar", async (req, res) => { //tested
   try {
     const { usuario_id, grupo_sanguineo } = req.body;
 
@@ -213,8 +210,7 @@ router.put("/solicitud/:id", async (req, res) => {
 });
 
 //register donation's results
-router.post("/hospitales/donaciones", async (req, res) => {
-  //tested
+router.post("/hospitales/donaciones", async (req, res) => { //tested
   try {
     const result = await Donacion.create(req.body);
     res.json({ message: "Resultado registrado", result });
