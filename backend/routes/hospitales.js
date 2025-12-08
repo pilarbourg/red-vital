@@ -73,7 +73,7 @@ router.get("/hospitales/:id/inventario", async (req, res) => {
     const latestDates = await InventarioSangre.findAll({
       attributes: [
         "grupo_sanguineo",
-        [Sequelize.fn("MAX", Sequelize.col("createdAt")), "maxCreatedAt"],
+        [Sequelize.fn("MAX", Sequelize.col("fecha_ultima_actualizacion")), "maxFechaUltimaActualizacion"],
       ],
       where: { hospital_id: hospitalId },
       group: ["grupo_sanguineo"],
@@ -84,9 +84,9 @@ router.get("/hospitales/:id/inventario", async (req, res) => {
       return res.json([]); // no inventory yet
     }
 
-    const orConditions = latestDates.map(({ grupo_sanguineo, maxCreatedAt }) => ({
+    const orConditions = latestDates.map(({ grupo_sanguineo, maxFechaUltimaActualizacion }) => ({
       grupo_sanguineo,
-      createdAt: maxCreatedAt,
+      fecha_ultima_actualizacion: maxFechaUltimaActualizacion,
       hospital_id: hospitalId,
     }));
 
@@ -125,14 +125,13 @@ router.post("/hospitales/:id/inventario", async (req, res) => {
       }
     }
 
-    // Prepare records to insert
     const newRecords = inventario.map((item) => ({
       hospital_id: hospitalId,
       grupo_sanguineo: item.grupo_sanguineo,
-      cantidad_unidades: item.cantidad,
+      unidades_disponibles: item.cantidad,
+      fecha_ultima_actualizacion: new Date().toISOString(), 
     }));
 
-    // Bulk create new inventory entries
     await InventarioSangre.bulkCreate(newRecords);
 
     res.json({ message: "Inventario actualizado correctamente" });
