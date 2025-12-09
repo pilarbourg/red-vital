@@ -34,7 +34,7 @@ header h1 {
 }
 
 #btnLogout {
-  background-color: #457b9d;
+  background-color: #457b9d !important;
   border: none;
   border-radius: 999px;
   font-weight: 600;

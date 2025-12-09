@@ -4,12 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const percentageEl = document.getElementById("coveredPercentage");
   const pie = document.getElementById("completedPie");
 
-  const hospitalId = 2; // TODO REPLACE
-
   async function loadStats() {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/hospitales/${hospitalId}/solicitudes/stats`
+        "http://localhost:3000/api/hospitales/solicitudes/stats"
       );
       if (!res.ok) throw new Error("Error fetching stats");
 
