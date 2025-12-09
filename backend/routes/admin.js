@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
+const { Op, Sequelize } = require("sequelize");
 
 const { Usuario, Donante, Hospital, Solicitud, Donacion, InventarioSangre } = require("../db");
 
@@ -66,26 +67,36 @@ router.get("/usuarios/donantes", async (req, res) => {
     const donantes = await Usuario.findAll({
       where: { rol: "DONANTE" },
       order: [["id", "ASC"]],
+      include: [
+        {
+          model: Donante,
+          attributes: ['grupo_sanguineo', 'fecha_ultima_donacion']
+        }
+      ],
     });
 
-    res.json(donantes);
+    const resultado = donantes.map(d => ({
+      id: d.id,
+      nombre: d.nombre,
+      email: d.email,
+      grupo_sanguineo: d.Donante ? d.Donante.grupo_sanguineo : null,
+      ultima_donacion: d.Donante ? d.Donante.fecha_ultima_donacion : null,
+    }));
+
+    res.json(resultado);
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al obtener donantes" });
   }
 });
 
+
 router.get("/usuarios/hospitales", async (req, res) => {
   try {
     const hospitales = await Usuario.findAll({
       where: { rol: "HOSPITAL" },
       order: [["id", "ASC"]],
-      include: [
-        {
-          model: Hospital,
-          attributes: ["id", "direccion", "ciudad"],
-        },
-      ],
+      include: [{ model: Hospital, required: false, attributes: ["nombre"] }],
     });
 
     res.json(hospitales);
@@ -255,30 +266,117 @@ router.post(
   }
 );
 
-
-router.get("/inventario", async (req, res) => {
+router.get("/inventarios", async (req, res) => {
   try {
-    const inventario = await InventarioSangre.findAll({
-      include: [{ model: Hospital, attributes: ["id", "nombre"] }],
-      order: [["hospital_id", "ASC"]]
+    const hospitales = await Hospital.findAll({
+      attributes: ['id', 'nombre'],
     });
 
-    const grouped = inventario.reduce((acc, item) => {
-      if (!acc[item.Hospital.nombre]) acc[item.Hospital.nombre] = [];
-      acc[item.Hospital.nombre].push({
-        grupo: item.grupo_sanguineo,
-        unidades: item.unidades_disponibles,
-        actualizacion: item.fecha_ultima_actualizacion
-      });
-      return acc;
-    }, {});
+    const resultado = await Promise.all(
+      hospitales.map(async (hospital) => {
+        const inventarios = await InventarioSangre.findAll({
+          where: { hospital_id: hospital.id },
+          order: [['fecha_ultima_actualizacion', 'DESC']],
+        });
 
-    res.json(grouped);
+        return {
+          hospital: {
+            id: hospital.id,
+            nombre: hospital.nombre,
+          },
+          inventarios,
+        };
+      })
+    );
+
+    res.json(resultado);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error obteniendo inventario de sangre" });
+    console.error("Error obteniendo inventarios:", error);
+    res.status(500).json({ error: "Error obteniendo inventarios" });
   }
 });
+
+router.get("/inventarios/ultimos-por-grupo", async (req, res) => {
+  try {
+    const hospitales = await Hospital.findAll({
+      attributes: ['id', 'nombre'],
+    });
+
+    const resultado = await Promise.all(
+      hospitales.map(async (hospital) => {
+        const grupos = await InventarioSangre.findAll({
+          where: { hospital_id: hospital.id },
+          attributes: [
+            [Sequelize.fn('DISTINCT', Sequelize.col('grupo_sanguineo')), 'grupo_sanguineo']
+          ],
+          raw: true,
+        });
+
+        const inventarios = await Promise.all(
+          grupos.map(async (g) => {
+            return await InventarioSangre.findOne({
+              where: {
+                hospital_id: hospital.id,
+                grupo_sanguineo: g.grupo_sanguineo,
+              },
+              order: [['fecha_ultima_actualizacion', 'DESC']],
+            });
+          })
+        );
+
+        return {
+          hospital: {
+            id: hospital.id,
+            nombre: hospital.nombre,
+          },
+          inventarios,  
+        };
+      })
+    );
+
+    res.json(resultado);
+  } catch (error) {
+    console.error("Error obteniendo inventarios:", error);
+    res.status(500).json({ error: "Error obteniendo inventarios" });
+  }
+});
+
+
+// routes/admin.js (o donde tengas las rutas admin)
+router.get("/inventarios/ultimos", async (req, res) => {
+  try {
+    // 1. Traer todos los hospitales activos (o todos los que quieras)
+    const hospitales = await Hospital.findAll({
+      attributes: ['id', 'nombre'],
+    });
+
+    // 2. Para cada hospital, obtener el último inventario
+    const inventariosUltimos = await Promise.all(
+      hospitales.map(async (hospital) => {
+        const ultimoInventario = await InventarioSangre.findOne({
+          where: { hospital_id: hospital.id },
+          order: [['fecha_ultima_actualizacion', 'DESC']],
+        });
+
+        return {
+          hospital: {
+            id: hospital.id,
+            nombre: hospital.nombre,
+          },
+          inventario: ultimoInventario || null,
+        };
+      })
+    );
+
+    res.json(inventariosUltimos);
+  } catch (error) {
+    console.error("Error obteniendo últimos inventarios:", error);
+    res.status(500).json({ error: "Error obteniendo últimos inventarios" });
+  }
+});
+
+module.exports = router;
+
 
 
 router.post("/hospitales/:id/inventario", async (req, res) => {

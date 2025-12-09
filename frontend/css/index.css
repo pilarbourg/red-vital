@@ -730,7 +730,6 @@ main {
   border: 4px solid #89bedf;
 }
 
-
 #btnLogout {
   background-color: #457b9d;
   border: none;
@@ -749,7 +748,6 @@ main {
   color: #ffffff;
   transform: translateY(-2px);
 }
-
 
 .toast {
   position: fixed;

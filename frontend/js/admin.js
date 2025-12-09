@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${s.id}</td>
           <td>${s.Hospital?.nombre || "-"}</td>
           <td>${s.grupo_sanguineo}</td>
-          <td>${s.cantidad_unidades}</td>
+          <td>${s.unidades_disponibles}</td>
           <td>
             <select class="selUrgencia" data-id="${s.id}">
               <option value="ALTA" ${
@@ -243,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Error al cargar solicitudes");
     }
   };
+  
 
   const guardarSolicitud = async (id) => {
     const fila = Array.from(tablaSolicitudesBody.querySelectorAll("tr")).find(
@@ -316,13 +317,14 @@ document.addEventListener("DOMContentLoaded", () => {
       donantes.forEach((d) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${d.nombre}</td>
-            <td>${d.email}</td>
-            <td>${d.grupo_sanguineo || "-"}</td>
-            <td>${d.ultima_donacion || "-"}</td>
-          `;
+          <td>${d.nombre}</td>
+          <td>${d.email}</td>
+          <td>${d.grupo_sanguineo || "-"}</td>
+          <td>${d.ultima_donacion || "-"}</td>
+        `;
         tblDonantesBody.appendChild(tr);
       });
+
     } catch (err) {
       console.error(err);
       alert("Error al cargar donantes");
@@ -356,43 +358,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function cargarInventarioHospital() {
     try {
-      const data = await apiFetch("/inventario"); // ruta de arriba
+      const data = await apiFetch("/inventarios/ultimos-por-grupo"); 
+
       tblInvHospital.innerHTML = "";
 
-      Object.keys(data).forEach(hospital => {
+      data.forEach(({ hospital, inventarios }) => {
         const tr = document.createElement("tr");
 
+        const inventarioHTML = inventarios.length > 0
+          ? `
+            <table class="subtable">
+              <tr><th>Grupo</th><th>Unidades</th><th>Última actualización</th></tr>
+              ${inventarios.map(i => `
+                <tr>
+                  <td>${i.grupo_sanguineo}</td>
+                  <td>${i.unidades_disponibles}</td>
+                  <td>${new Date(i.fecha_ultima_actualizacion).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </table>
+          `
+          : `<em>No hay inventario disponible</em>`;
+
         tr.innerHTML = `
-          <td><strong>${hospital}</strong></td>
+          <td><strong>${hospital.nombre}</strong></td>
           <td>
             <details>
               <summary>Ver inventario</summary>
-              <table class="subtable">
-                <tr><th>Grupo</th><th>Unidades</th><th>Última actualización</th></tr>
-                ${data[hospital].map(i => `
-                  <tr>
-                    <td>${i.grupo}</td>
-                    <td>${i.unidades}</td>
-                    <td>${new Date(i.actualizacion).toLocaleDateString()}</td>
-                  </tr>
-                `).join("")}
-              </table>
+              ${inventarioHTML}
             </details>
           </td>
         `;
+
         tblInvHospital.appendChild(tr);
       });
 
-    } catch(err) {
+
+    } catch (err) {
       console.error(err);
       alert("Error cargando inventario de sangre");
     }
   }
 
-  // CALL IT WITH THE REST 🔥
+
+
   cargarInventarioHospital();
-
-
   cargarDonantes();
   cargarHospitales();
   cargarDashboard();
