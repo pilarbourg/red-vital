@@ -1,12 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-  //const saved = requireRole("ADMIN", "/frontend/pages/admin.html");
-  //if (!saved) return;
+  const saved = requireRole("ADMIN", "/frontend/pages/areaadmin.html");
+  if (!saved) return;
 
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
       localStorage.removeItem("user"); 
-      window.location.href = "/login.html";
+      const next = encodeURIComponent("/frontend/pages/areaadmin.html");
+      window.location.href = `login.html?role=ADMIN&next=${next}`;
     });
   }
 

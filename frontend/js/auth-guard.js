@@ -2,7 +2,6 @@
 function requireRole(rolRequerido, nextPage) {
   const saved = JSON.parse(localStorage.getItem('user') || 'null');
 
-  // 1) No hay usuario -> mandar a login
   if (!saved) {
     const params = new URLSearchParams({
       next: nextPage,
@@ -12,7 +11,6 @@ function requireRole(rolRequerido, nextPage) {
     return null;
   }
 
-  // 2) Hay usuario pero el rol NO coincide -> también a login
   if (saved.rol !== rolRequerido) {
     const params = new URLSearchParams({
       next: nextPage,
@@ -22,6 +20,5 @@ function requireRole(rolRequerido, nextPage) {
     return null;
   }
 
-  // 3) Todo correcto
-  return saved; // { id, rol, ... }
+  return saved;
 }
