@@ -45,7 +45,7 @@ function renderTemplate(cita) {
   const baseUrl = process.env.FRONTEND_BASE_URL || 'http://localhost:3000';
 
   const hospitalTexto = cita.hospital_nombre
-    ? `${cita.hospital_nombre}$`
+    ? `${cita.hospital_nombre}`
     : `Hospital #${cita.hospital_id}`;
 
   const query = buildAppointmentQuery(cita);
@@ -96,10 +96,6 @@ async function enviarCorreoConfirmacion(cita) {
   }
 }
 
-// =======================================================
-//   🔥 NUEVO: ENVIAR EMAIL DE SEGURIDAD AL USUARIO
-// =======================================================
-// === cargar plantilla de seguridad ===
 const securityTemplatePath = path.join(
   __dirname,
   "mail-security-template.html"
