@@ -88,6 +88,10 @@ Donacion.belongsTo(Donante, {
   targetKey: "usuario_id",
 });
 
+// Usuario 1–n SecurityCodes
+Usuario.hasMany(SecurityCode, { foreignKey: "usuario_id" });
+SecurityCode.belongsTo(Usuario, { foreignKey: "usuario_id" });
+
 module.exports = {
   sequelize,
   Usuario,
