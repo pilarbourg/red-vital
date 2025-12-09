@@ -23,8 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   '16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30'];
   
   let selectedSlot = null;
-
-  //Parámetros al volver de la confirmación (cambiar cita)
+  
   const urlParams   = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode'); 
 
@@ -200,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hospitalSelect.appendChild(opt);
       });
 
-      // Si venimos de cambiar cita, preseleccionamos el hospital y departamento
+      
       if (preHospitalId) {
         hospitalSelect.value = preHospitalId;
       }
@@ -208,13 +207,13 @@ document.addEventListener('DOMContentLoaded', () => {
         deptSelect.value = preDept;
       }
 
-      // Cargamos médicos y preseleccionamos el de la cita anterior
+      
       if ((preHospitalId || preDept) && doctorSelect) {
         loadDoctorsForSelection().then(() => {
           if (preDoctor) {
             doctorSelect.value = preDoctor;
           }
-          // Con todo elegido, pintamos los slots y marcamos la hora
+          
           renderSlots();
         });
       }

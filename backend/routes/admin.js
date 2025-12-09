@@ -353,7 +353,7 @@ router.get("/inventarios/ultimos-por-grupo", async (req, res) => {
 });
 
 
-// routes/admin.js (o donde tengas las rutas admin)
+
 router.get("/inventarios/ultimos", async (req, res) => {
   try {
     // 1. Traer todos los hospitales activos (o todos los que quieras)

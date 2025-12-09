@@ -67,7 +67,7 @@ async function seedDonantes(usuarioId) {
 
   if (count === 0) {
     await Donante.create({
-      usuario_id: usuarioId, // <-- AHORA SÍ USAMOS el usuario creado
+      usuario_id: usuarioId,
       nombre: "Usuario",
       apellidos: "Test",
       genero: "OTRO",
@@ -175,7 +175,6 @@ async function seedDoctores() {
     // copiamos y barajamos la lista base
     const shuffled = [...doctoresSeed].sort(() => Math.random() - 0.5);
 
-    // cuántos doctores quieres por hospital (por ejemplo entre 4 y todos)
     const min = 20;
     const max = doctoresSeed.length;
     const n = Math.max(min, Math.floor(Math.random() * (max - min + 1)) + min);

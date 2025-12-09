@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const fechaLimite = solicitud.fecha_limite
           ? new Date(solicitud.fecha_limite).toLocaleDateString()
           : "-";
-        //TODO : handle the date
+        
         tr.innerHTML = `
           <td>${solicitud.grupo_sanguineo}</td>
           <td>${solicitud.cantidad_unidades}</td>

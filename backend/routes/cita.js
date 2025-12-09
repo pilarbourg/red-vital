@@ -1,7 +1,7 @@
 const express = require('express');
 const { Cita, Donante, Usuario, Hospital } = require('../db');
 const { enviarCorreoConfirmacion } = require('../utils/mail');
-// const hospital = require('../db/models/hospital');
+
 
 const router = express.Router();
 

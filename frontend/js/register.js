@@ -1,16 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const nextFromUrl = params.get("next");
-  // Si no viene ?next=, usamos lo que ponía el script original del HTML
+ 
   const next = nextFromUrl || "/frontend/pages/appointments.html?mode=registered";
-  const forcedRole = (params.get("role") || "").toUpperCase(); // DONANTE / HOSPITAL / ADMIN o ""
+  const forcedRole = (params.get("role") || "").toUpperCase(); 
 
   const form = document.getElementById("registerForm");
 
   const emailInput = document.getElementById("email");
   const passInput = document.getElementById("password");
 
-  // Estos dos pueden no existir en tu HTML actual, por eso los tratamos como opcionales
   const direccionInput = document.getElementById("direccion");
   const telefonoInput = document.getElementById("telefono");
 

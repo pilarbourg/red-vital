@@ -1,13 +1,10 @@
-/* Se debe unir a la DB los modelos:
-donante, usuario, disponibilidad, donacion, notificacion
-*/
 const express = require("express");
 const router = express.Router();
 const fetch = require("node-fetch");
 
 const { Donante, Usuario, Donacion, Notificacion, Hospital, Solicitud, Cita, SecurityCode } = require("../db");
 
-// ================== PERFIL DEL DONANTE ==================
+
 router.get("/donantes/:id/perfil", async (req, res) => {
   try {
     const donante = await Donante.findByPk(req.params.id, {
@@ -49,9 +46,7 @@ router.get("/donantes/:id/dashboard", async (req, res) => {
     const donanteId = req.params.id;
     const hoy = new Date();
 
-    /* ==========================================
-       1) DONACIONES PASADAS
-    ========================================== */
+    
     const donaciones = await Donacion.findAll({
       where: { usuario_id: donanteId },
       include: [
@@ -63,9 +58,7 @@ router.get("/donantes/:id/dashboard", async (req, res) => {
       order: [["fecha", "DESC"]]
     });
 
-    /* ==========================================
-       2) CITAS FUTURAS
-    ========================================== */
+   
     const citas = await Cita.findAll({
       where: {
         donante_id: donanteId,
@@ -88,7 +81,7 @@ router.get("/donantes/:id/dashboard", async (req, res) => {
 });
 
 
-// ================== HISTORIAL DE DONACIONES ==================
+
 router.get("/donantes/:id/historial", async (req, res) => {
   try {
     const { id } = req.params;
@@ -104,7 +97,6 @@ router.get("/donantes/:id/historial", async (req, res) => {
       order: [["fecha", "DESC"]]
     });
 
-    // 2. CITAS PRÓXIMAS
     const hoy = new Date();
 
     const citas = await Cita.findAll({
@@ -133,7 +125,7 @@ router.get("/donantes/:id/historial", async (req, res) => {
   }
 });
 
-// ================== NOTIFICACIONES ==================
+
 router.get("/donantes/:id/notificaciones", async (req, res) => {
   try {
     const donante = await Donante.findByPk(req.params.id);
@@ -157,7 +149,7 @@ router.get("/donantes/:id/notificaciones", async (req, res) => {
     // 3) Unificamos ambas listas
     const todas = [...personales, ...globales];
 
-    // 2️⃣ Solicitudes urgentes de hospitales (coincida grupo sanguíneo)
+    // Solicitudes urgentes de hospitales
     const solicitudes = await Solicitud.findAll({
       where: {
         grupo_sanguineo: grupo,
@@ -181,7 +173,6 @@ router.get("/donantes/:id/notificaciones", async (req, res) => {
 });
 
 
-// ================== HOSPITALES CERCANOS =================
 
 async function geocode(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
@@ -229,7 +220,7 @@ router.get("/donantes/:id/hospitales_cercanos", async (req, res) => {
     const direccionUsuario = donante.usuario.direccion;
 
     if (!direccionUsuario) {
-      return res.json([]); // No tiene dirección → no hay hospitales cercanos
+      return res.json([]); 
     }
 
     // Geocode donante
@@ -266,13 +257,9 @@ router.get("/donantes/:id/hospitales_cercanos", async (req, res) => {
 });
 
 
-// ================== ACTUALIZAR CREDENCIALES ==================
 const bcrypt = require("bcrypt");
 const { enviarCorreoSeguro } = require("../utils/mail");
 
-// ===============================
-// 🔐 ACTUALIZAR CREDENCIALES
-// ===============================
 router.put("/donantes/:id/credenciales/solicitar", async (req, res) => {
   try {
     const { id } = req.params;
@@ -287,9 +274,6 @@ router.put("/donantes/:id/credenciales/solicitar", async (req, res) => {
 
     let cambios = [];
 
-    // ===============================
-    // 1️⃣ Validar EMAIL
-    // ===============================
     if (email && email !== usuario.email) {
 
       // Expresión regular de email válido
@@ -309,9 +293,7 @@ router.put("/donantes/:id/credenciales/solicitar", async (req, res) => {
       cambios.push("email");
     }
 
-    // ===============================
-    // 2️⃣ Validar CONTRASEÑA SEGURA
-    // ===============================
+
     if (password) {
       const segura =
         password.length >= 8 &&
@@ -332,14 +314,11 @@ router.put("/donantes/:id/credenciales/solicitar", async (req, res) => {
       await usuario.update({ password: hash });
       cambios.push("contraseña");
     }
-
-    // ===============================
-    // 3️⃣ Enviar email de confirmación
-    // ===============================
-   
-      const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     const expiracion = new Date(Date.now() + 10 * 60 * 1000);
-console.log(codigo);
+    console.log(codigo);
+    
     await SecurityCode.create({
       usuario_id: usuario.id,
       codigo,
@@ -348,12 +327,13 @@ console.log(codigo);
       email,
       password
     });
-  await enviarCorreoSeguro(
-        usuario.email,
-        "Código de verificación – RedVital",
-        `Tu código de verificación es: <strong>${codigo}</strong>`,
-        usuario.username
-      );
+    
+    await enviarCorreoSeguro(
+      usuario.email,
+      "Código de verificación – RedVital",
+      `Tu código de verificación es: <strong>${codigo}</strong>`,
+      usuario.username
+    );
 
     return res.json({
       ok: true,
@@ -447,9 +427,6 @@ router.put("/donantes/:id/perfil", async (req, res) => {
 
     let cambios = [];
 
-    // ========================
-    // 1) Actualizar dirección
-    // ========================
     if (direccion) {
       const geo = await validarDireccion(direccion);
 
@@ -468,17 +445,11 @@ router.put("/donantes/:id/perfil", async (req, res) => {
     }
 
 
-    // ========================
-    // 2) Actualizar teléfono
-    // ========================
     if (telefono && telefono !== usuario.telefono) {
       await usuario.update({ telefono });
       cambios.push("teléfono");
     }
 
-    // ====================================
-    // 3) Actualizar afecciones del donante
-    // ====================================
     if (condiciones && condiciones !== donante.condiciones) {
       await donante.update({ condiciones });
       cambios.push("condiciones médicas");
@@ -491,7 +462,7 @@ router.put("/donantes/:id/perfil", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Error actualización perfil:", err);
+    console.error("Error actualización perfil:", err);
     return res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -542,7 +513,6 @@ router.get("/donantes/:id/credenciales", async (req, res) => {
       ok: true,
       email: usuario.email,
       rol: usuario.rol,
-      //password: usuario.password
     });
 
   } catch (err) {
@@ -560,7 +530,7 @@ router.get("/donantes/test", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-//===================== BUSCAR DONANTE POR USUARIO ==================
+
 router.get("/donantes/byUsuario/:usuario_id", async (req, res) => {
   try {
     const usuario_id = req.params.usuario_id;

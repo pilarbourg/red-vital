@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Confirmar cita -> status CONFIRMADA
   btnConfirm.addEventListener('click', async () => {
     try {
       const res = await fetch(`/api/cita/${citaId}`, {
@@ -79,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Cambiar cita -> la marcamos CANCELADA y volvemos a la pantalla de pedir cita
+  
   btnChange.addEventListener('click', async () => {
     const sure = confirm(
       '¿Seguro que quieres cambiar esta cita? Se cancelará y podrás crear otra.'
@@ -120,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  // Cancelar cita -> status CANCELADA y a home
   btnCancel.addEventListener('click', async () => {
     const sure = confirm('¿Seguro que quieres cancelar esta cita?');
     if (!sure) return;

@@ -1,6 +1,4 @@
-/* ==========================================================
-     UTILIDAD: obtener usuario guardado en localStorage
-========================================================== */
+
 function getSavedUser() {
   const u = localStorage.getItem("user");
   if (!u) return null;
@@ -10,9 +8,6 @@ document.getElementById("btnConfirmarCodigo")
         .addEventListener("click", verificarCodigo);
 document.getElementById("btnConfirmarCambios")
         .addEventListener("click", solicitarCambioCredenciales);
-/* ==========================================================
-     RESOLVER DONANTE_ID REAL A PARTIR DEL USUARIO LOGUEADO
-========================================================== */
 
 let DONANTE_ID = null;
 
@@ -43,9 +38,6 @@ async function resolveDonanteId() {
   }
 }
 
-/* ==========================================================
-                 CALCULAR EDAD
-========================================================== */
 function calcularEdad(dob) {
   const n = new Date(dob);
   const h = new Date();
@@ -57,9 +49,7 @@ function calcularEdad(dob) {
   return edad;
 }
 
-/* ==========================================================
-                 CARGAR PERFIL DEL DONANTE
-========================================================== */
+
 async function cargarPerfil() {
   const res = await fetch(`/api/donantes/${DONANTE_ID}/perfil`);
   const d = await res.json();
@@ -85,9 +75,7 @@ async function cargarPerfil() {
   }
 }
 
-/* ==========================================================
-                 CARGAR HOSPITALES CERCANOS
-========================================================== */
+
 async function cargarCentros() {
   try {
     const res = await fetch(`/api/donantes/${DONANTE_ID}/hospitales_cercanos`);
@@ -110,29 +98,26 @@ async function cargarCentros() {
     });
 
   } catch (err) {
-    console.error("❌ ERROR al cargar centros:", err);
+    console.error(" ERROR al cargar centros:", err);
   }
 }
 
-/* ==========================================================
-                 CARGAR CREDENCIALES DEL USUARIO
-========================================================== */
 async function cargarCredenciales() {
   try {
     const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales`);
     const data = await res.json();
 
     if (!data.ok) {
-      console.error("❌ Error credenciales", data);
+      console.error(" Error credenciales", data);
       return;
     }
   
 
   } catch (err) {
-    console.error("❌ Error cargando credenciales:", err);
+    console.error(" Error cargando credenciales:", err);
   }
 }
-let codigoPendiente = false; // indica si estamos esperando código
+let codigoPendiente = false;
 
 async function solicitarCambioCredenciales() {
   const form = document.getElementById("credencialesForm");
@@ -160,7 +145,6 @@ async function solicitarCambioCredenciales() {
 
   showToast("Código enviado a tu correo.", "success");
 
-  // PASAR A LA SIGUIENTE VISTA
   document.getElementById("credenciales-step1").classList.add("hidden");
   document.getElementById("credenciales-step2").classList.remove("hidden");
 
@@ -230,11 +214,6 @@ function activarFormularioPerfil() {
   });
 }
 
-
-// =============================
-//   NAVEGACIÓN ENTRE SECCIONES
-// =============================
-
 // Seleccionamos los botones del menú lateral
 const navItems = document.querySelectorAll(".nav-item-card");
 
@@ -276,9 +255,7 @@ function showToast(message, type = "success") {
     }, 3000);
   }
 
-/* ==========================================================
-                 CARGAR NOTIFICACIONES
-========================================================== */
+  
 async function cargarNotificaciones() {
   try {
     const res = await fetch(`/api/donantes/${DONANTE_ID}/notificaciones`);
@@ -302,9 +279,7 @@ async function cargarNotificaciones() {
       return;
     }
 
-    /* =======================
-       NOTIFICACIONES PERSONALES
-    ======================= */
+    
     if (data.personales.length === 0) {
       box.innerHTML += "<p>No tienes notificaciones personales.</p>";
     } else {
@@ -319,9 +294,6 @@ async function cargarNotificaciones() {
     }
 
 
-    /* =======================
-       SOLICITUDES URGENTES
-    ======================= */
     if (solicitudes.length) {
       box.innerHTML += `<h3>🩸 Solicitudes Urgentes de Hospitales</h3>`;
 
@@ -354,9 +326,7 @@ function formatDate(dateStr) {
   });
 }
 
-/* ==========================================================
-                 CARGAR HISTORIAL DONACIONES
-========================================================== */
+
 async function cargarHistorial() {
   if (!DONANTE_ID) return console.error("❌ No hay DONANTE_ID");
 
@@ -374,9 +344,7 @@ async function cargarHistorial() {
 
     const { donaciones, citas } = data;
 
-    /* ========================
-        DONACIONES PASADAS
-    ========================= */
+    
     cont.innerHTML += `<h3 class="section-title">Donaciones previas</h3>`;
 
     if (!donaciones.length) {
@@ -393,9 +361,7 @@ async function cargarHistorial() {
       });
     }
 
-    /* ========================
-         CITAS FUTURAS
-    ========================= */
+    
     cont.innerHTML += `<h3 class="section-title">Próximas citas</h3>`;
 
     if (!citas.length) {
@@ -417,9 +383,7 @@ async function cargarHistorial() {
   }
 }
 
-/* ==========================================================
-                 NAVEGACIÓN ENTRE SECCIONES
-========================================================== */
+
 function activarNavegacion() {
   const navItems = document.querySelectorAll(".nav-item-card");
   const sections = document.querySelectorAll(".content-section");
@@ -437,12 +401,10 @@ function activarNavegacion() {
   });
 }
 
-/* ==========================================================
-                 INICIO GLOBAL
-========================================================== */
+
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // 1) Comprobar rol (si quieres usar el guard genérico)
+  // 1) Comprobar rol
   if (typeof requireRole === "function") {
     const saved = requireRole("DONANTE", "/frontend/pages/areadonante.html");
     if (!saved) return; // te redirige a login si no toca estar aquí
