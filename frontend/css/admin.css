@@ -34,11 +34,11 @@ header h1 {
 }
 
 #btnLogout {
-  background-color: #457b9d;
+  background-color: #457b9d !important;
   border: none;
   border-radius: 999px;
   font-weight: 600;
-  color: #e8eef4;
+  color: #457b9d !important;
   font-size: 0.95rem;
   padding: 0.6rem 1.4rem;
   cursor: pointer;
