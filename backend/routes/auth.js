@@ -199,4 +199,5 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
+router.crearDoctoresParaHospital = crearDoctoresParaHospital;
 module.exports = router;

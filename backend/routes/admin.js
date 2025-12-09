@@ -4,6 +4,8 @@ const { body, validationResult } = require("express-validator");
 const { Op, Sequelize } = require("sequelize");
 
 const { Usuario, Donante, Hospital, Solicitud, Donacion, InventarioSangre } = require("../db");
+const authRouter = require("./auth");
+const { crearDoctoresParaHospital } = authRouter;
 
 router.get("/dashboard", async (req, res) => {
   try {
@@ -210,18 +212,12 @@ router.get("/solicitudes", async (req, res) => {
   }
 });
 
-router.post(
-  "/hospitales",
+router.post( "/hospitales",
   [
     body("nombre").notEmpty().withMessage("El nombre es obligatorio"),
     body("email").isEmail().withMessage("Email no válido"),
-    body("localizacion")
-      .notEmpty()
-      .withMessage("La localización es obligatoria"),
-    body("password")
-      .optional()
-      .isLength({ min: 6 })
-      .withMessage("La contraseña debe tener al menos 6 caracteres"),
+    body("localizacion").notEmpty() .withMessage("La localización es obligatoria"),
+    body("password").optional().isLength({ min: 6 }).withMessage("La contraseña debe tener al menos 6 caracteres"),
   ],
   async (req, res) => {
     try {
@@ -253,6 +249,8 @@ router.post(
         ciudad: "Madrid",
         usuario_id: hospitalUsuario.id,
       });
+
+      await crearDoctoresParaHospital(hospital.id);
 
       res.status(201).json({
         mensaje: "Hospital creado correctamente",
@@ -374,8 +372,6 @@ router.get("/inventarios/ultimos", async (req, res) => {
     res.status(500).json({ error: "Error obteniendo últimos inventarios" });
   }
 });
-
-module.exports = router;
 
 
 
