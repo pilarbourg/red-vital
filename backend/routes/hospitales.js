@@ -386,5 +386,25 @@ router.get("/hospitales/byUsuario/:usuarioId", async (req, res) => {
   }
 });
 
+// stats w/ all hospitals
+router.get("/hospitales/solicitudes/stats", async (req, res) => {
+  try {
+    const [pendientes, cubiertas, total] = await Promise.all([
+      Solicitud.count({ where: { estado: "PENDIENTE" } }),
+      Solicitud.count({ where: { estado: "CUBIERTA" } }),
+      Solicitud.count(),
+    ]);
+
+    res.json({
+      total,
+      pendientes,
+      cubiertas,
+      porcentaje_cubiertas: total > 0 ? (cubiertas / total) * 100 : 0,
+    });
+  } catch (error) {
+    console.error("Error obteniendo estadísticas globales:", error);
+    res.status(500).json({ error: "Error obteniendo estadísticas globales" });
+  }
+});
 
 module.exports = router;
