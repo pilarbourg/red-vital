@@ -4,6 +4,8 @@ const { body, validationResult } = require("express-validator");
 const { Op, Sequelize } = require("sequelize");
 
 const { Usuario, Donante, Hospital, Solicitud, Donacion, InventarioSangre } = require("../db");
+const authRouter = require("./auth");
+const { crearDoctoresParaHospital } = authRouter;
 
 router.get("/dashboard", async (req, res) => {
   try {
@@ -64,23 +66,24 @@ router.get("/usuarios", async (req, res) => {
 
 router.get("/usuarios/donantes", async (req, res) => {
   try {
-    const donantes = await Usuario.findAll({
-      where: { rol: "DONANTE" },
-      order: [["id", "ASC"]],
+    const donantes = await Donante.findAll({
+    
       include: [
         {
-          model: Donante,
-          attributes: ['grupo_sanguineo', 'fecha_ultima_donacion']
+          model: Usuario,
+          attributes: ["id", "email"],
         }
       ],
+      order: [["id", "ASC"]],
     });
 
-    const resultado = donantes.map(d => ({
-      id: d.id,
-      nombre: d.nombre,
-      email: d.email,
-      grupo_sanguineo: d.Donante ? d.Donante.grupo_sanguineo : null,
-      ultima_donacion: d.Donante ? d.Donante.fecha_ultima_donacion : null,
+    const resultado = donantes.map( (d) => ({
+      id: d.usuario ? d.usuario.id : null,
+      nombre: `${d.nombre} ${d.apellidos}`,         
+      email: d.usuario ? d.usuario.email : null,
+      grupo_sanguineo: d.grupo_sanguineo,
+      ultima_donacion: d.fecha_ultima_donacion,
+      
     }));
 
     res.json(resultado);
@@ -93,13 +96,25 @@ router.get("/usuarios/donantes", async (req, res) => {
 
 router.get("/usuarios/hospitales", async (req, res) => {
   try {
-    const hospitales = await Usuario.findAll({
-      where: { rol: "HOSPITAL" },
+    const hospitales = await Hospital.findAll({
       order: [["id", "ASC"]],
-      include: [{ model: Hospital, required: false, attributes: ["nombre"] }],
+      include: [
+        {
+          model: Usuario,
+          attributes: ["id", "email"],
+        },
+      ],
     });
 
-    res.json(hospitales);
+    const resultado = hospitales.map((h) => ({
+      id: h.usuario ? h.usuario.id : null,
+      nombre: h.nombre,                          
+      email: h.usuario ? h.usuario.email : null, 
+      direccion: h.direccion,
+      ciudad: h.ciudad,
+    }));
+
+    res.json(resultado);
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al obtener hospitales" });
@@ -210,18 +225,12 @@ router.get("/solicitudes", async (req, res) => {
   }
 });
 
-router.post(
-  "/hospitales",
+router.post( "/hospitales",
   [
     body("nombre").notEmpty().withMessage("El nombre es obligatorio"),
     body("email").isEmail().withMessage("Email no válido"),
-    body("localizacion")
-      .notEmpty()
-      .withMessage("La localización es obligatoria"),
-    body("password")
-      .optional()
-      .isLength({ min: 6 })
-      .withMessage("La contraseña debe tener al menos 6 caracteres"),
+    body("localizacion").notEmpty() .withMessage("La localización es obligatoria"),
+    body("password").optional().isLength({ min: 6 }).withMessage("La contraseña debe tener al menos 6 caracteres"),
   ],
   async (req, res) => {
     try {
@@ -253,6 +262,8 @@ router.post(
         ciudad: "Madrid",
         usuario_id: hospitalUsuario.id,
       });
+
+      await crearDoctoresParaHospital(hospital.id);
 
       res.status(201).json({
         mensaje: "Hospital creado correctamente",
@@ -374,8 +385,6 @@ router.get("/inventarios/ultimos", async (req, res) => {
     res.status(500).json({ error: "Error obteniendo últimos inventarios" });
   }
 });
-
-module.exports = router;
 
 
 
