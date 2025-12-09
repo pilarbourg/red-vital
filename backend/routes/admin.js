@@ -66,23 +66,24 @@ router.get("/usuarios", async (req, res) => {
 
 router.get("/usuarios/donantes", async (req, res) => {
   try {
-    const donantes = await Usuario.findAll({
-      where: { rol: "DONANTE" },
-      order: [["id", "ASC"]],
+    const donantes = await Donante.findAll({
+    
       include: [
         {
-          model: Donante,
-          attributes: ['grupo_sanguineo', 'fecha_ultima_donacion']
+          model: Usuario,
+          attributes: ["id", "email"],
         }
       ],
+      order: [["id", "ASC"]],
     });
 
-    const resultado = donantes.map(d => ({
-      id: d.id,
-      nombre: d.nombre,
-      email: d.email,
-      grupo_sanguineo: d.Donante ? d.Donante.grupo_sanguineo : null,
-      ultima_donacion: d.Donante ? d.Donante.fecha_ultima_donacion : null,
+    const resultado = donantes.map( (d) => ({
+      id: d.usuario ? d.usuario.id : null,
+      nombre: `${d.nombre} ${d.apellidos}`,         
+      email: d.usuario ? d.usuario.email : null,
+      grupo_sanguineo: d.grupo_sanguineo,
+      ultima_donacion: d.fecha_ultima_donacion,
+      
     }));
 
     res.json(resultado);
@@ -95,13 +96,25 @@ router.get("/usuarios/donantes", async (req, res) => {
 
 router.get("/usuarios/hospitales", async (req, res) => {
   try {
-    const hospitales = await Usuario.findAll({
-      where: { rol: "HOSPITAL" },
+    const hospitales = await Hospital.findAll({
       order: [["id", "ASC"]],
-      include: [{ model: Hospital, required: false, attributes: ["nombre"] }],
+      include: [
+        {
+          model: Usuario,
+          attributes: ["id", "email"],
+        },
+      ],
     });
 
-    res.json(hospitales);
+    const resultado = hospitales.map((h) => ({
+      id: h.usuario ? h.usuario.id : null,
+      nombre: h.nombre,                          
+      email: h.usuario ? h.usuario.email : null, 
+      direccion: h.direccion,
+      ciudad: h.ciudad,
+    }));
+
+    res.json(resultado);
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al obtener hospitales" });
