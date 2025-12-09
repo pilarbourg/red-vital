@@ -442,10 +442,27 @@ function activarNavegacion() {
 ========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
 
+  // 1) Comprobar rol (si quieres usar el guard genérico)
+  if (typeof requireRole === "function") {
+    const saved = requireRole("DONANTE", "/frontend/pages/areadonante.html");
+    if (!saved) return; // te redirige a login si no toca estar aquí
+  }
+
+  // 2) Activar botón Logout
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      localStorage.removeItem("user");
+      const next = encodeURIComponent("/frontend/pages/areadonante.html");
+      window.location.href = `login.html?role=DONANTE&next=${next}`;
+    });
+  }
+
+  // 3) Resto de inicialización de la página
+
   const resolved = await resolveDonanteId();
   if (!resolved) return;
-activarFormularioPerfil();
-
+  activarFormularioPerfil();
   cargarPerfil();
   cargarCentros();
   cargarHistorial();
