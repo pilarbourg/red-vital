@@ -208,23 +208,3 @@ th {
 .placeholder {
   color: #94a3b8;
 }
-
-
-#btnLogout {
-  background-color: #457b9d;
-  border: none;
-  border-radius: 999px;
-  font-weight: 600;
-  color: #e8eef4;
-  font-size: 0.95rem;
-  padding: 0.6rem 1.4rem;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.25s ease;
-}
-
-#btnLogout:hover {
-  background-color: #022c556d;
-  color: #ffffff;
-  transform: translateY(-2px);
-}

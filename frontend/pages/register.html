@@ -66,6 +66,9 @@
           <label for="donante-apellidos">Apellidos</label>
           <input id="donante-apellidos" type="text" />
 
+            <label>Dirección:</label>
+            <input id="direccion" type="text" placeholder="Calle, número, ciudad"  />
+            
           <label for="donante-genero">Género</label>
           <select id="donante-genero">
             <option value="">(Opcional)</option>
@@ -134,79 +137,8 @@
       </div>
     </footer>
 
+    <div id="toast" class="toast hidden"></div>
     <script src="../js/register.js"></script>
-<!--     <script>
-      const params = new URLSearchParams(window.location.search);
-      const roleParam = (params.get("role") || "").toUpperCase();
-      
-      const hiddenRolInput = document.getElementById("rol");
-      const rolWrapper = document.getElementById("rol-wrapper");
-      const rolSelect = document.getElementById("rolSelect");
 
-      if (roleFromUrl) {
-        // CASO 1: vienes de un área concreta (Donante, Hospital...)
-        // Usamos el rol de la URL y ocultamos el selector
-        hiddenRolInput.value = roleFromUrl;
-        if (rolWrapper) {
-          rolWrapper.style.display = "none";
-        }
-      } else {
-        // CASO 2: vienes del botón Register genérico
-        // Mostramos el desplegable y usamos lo que el usuario elija
-        if (rolWrapper) {
-          rolWrapper.style.display = "block";
-        }
-
-        if (rolSelect) {
-          rolSelect.addEventListener("change", () => {
-            hiddenRolInput.value = rolSelect.value;
-          });
-        }
-      }
-
-      document.getElementById("registerForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        // Por si acaso alguien le da a enviar sin elegir rol en el desplegable
-        if (!hiddenRolInput.value) {
-          alert("Por favor, selecciona cómo quieres registrarte (Donante u Hospital).");
-          return;
-        }
-
-        const data = {
-          email: document.getElementById("email").value,
-          password: document.getElementById("password").value,
-          rol: document.getElementById("rol").value,
-        };
-
-        try {
-          const res = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
-
-          const json = await res.json();
-          alert(json.mensaje);
-
-          if (res.ok) {
-            // Mantener ?next=
-            const params = new URLSearchParams(window.location.search);
-            const next =
-              params.get("next") ||
-              "/frontend/pages/appointments.html?mode=registered";
-            // Volvemos a login, conservando next y role
-            const loginParams = new URLSearchParams({
-              next,
-              role: roleParam,
-            });
-            window.location.href = "login.html?next=" + encodeURIComponent(next);
-          }
-        } catch (err) {
-          alert("Error conectando con el servidor.");
-          console.error(err);
-        }
-      });
-    </script> -->
   </body>
 </html>

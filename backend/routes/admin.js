@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
+const { Op, Sequelize } = require("sequelize");
 
-
-const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
-
+const { Usuario, Donante, Hospital, Solicitud, Donacion, InventarioSangre } = require("../db");
 
 router.get("/dashboard", async (req, res) => {
   try {
@@ -18,16 +17,12 @@ router.get("/dashboard", async (req, res) => {
       totalDonaciones,
     ] = await Promise.all([
       Usuario.count(),
-      Donante ? Donante.count() : Promise.resolve(0),
-      Hospital ? Hospital.count() : Promise.resolve(0),
-      Solicitud ? Solicitud.count() : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { estado: "PENDIENTE" } })
-        : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { urgencia: "ALTA" } })
-        : Promise.resolve(0),
-      Donacion ? Donacion.count() : Promise.resolve(0),
+      Donante.count(),
+      Hospital.count(),
+      Solicitud.count(),
+      Solicitud.count({ where: { estado: "PENDIENTE" } }),
+      Solicitud.count({ where: { urgencia: "ALTA" } }),
+      Donacion.count(),
     ]);
 
     res.json({
@@ -45,13 +40,12 @@ router.get("/dashboard", async (req, res) => {
   }
 });
 
-
 router.get("/usuarios", async (req, res) => {
   try {
     const { rol, activo } = req.query;
 
     const where = {};
-    if (rol) where.rol = rol;    
+    if (rol) where.rol = rol;
     if (typeof activo !== "undefined") {
       where.activo = activo === "true";
     }
@@ -68,20 +62,49 @@ router.get("/usuarios", async (req, res) => {
   }
 });
 
-
-router.get("/usuarios/:id", async (req, res) => {
+router.get("/usuarios/donantes", async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.params.id);
-    if (!usuario) {
-      return res.status(404).json({ mensaje: "Usuario no encontrado" });
-    }
-    res.json(usuario);
+    const donantes = await Usuario.findAll({
+      where: { rol: "DONANTE" },
+      order: [["id", "ASC"]],
+      include: [
+        {
+          model: Donante,
+          attributes: ['grupo_sanguineo', 'fecha_ultima_donacion']
+        }
+      ],
+    });
+
+    const resultado = donantes.map(d => ({
+      id: d.id,
+      nombre: d.nombre,
+      email: d.email,
+      grupo_sanguineo: d.Donante ? d.Donante.grupo_sanguineo : null,
+      ultima_donacion: d.Donante ? d.Donante.fecha_ultima_donacion : null,
+    }));
+
+    res.json(resultado);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: "Error al obtener usuario" });
+    res.status(500).json({ mensaje: "Error al obtener donantes" });
   }
 });
 
+
+router.get("/usuarios/hospitales", async (req, res) => {
+  try {
+    const hospitales = await Usuario.findAll({
+      where: { rol: "HOSPITAL" },
+      order: [["id", "ASC"]],
+      include: [{ model: Hospital, required: false, attributes: ["nombre"] }],
+    });
+
+    res.json(hospitales);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al obtener hospitales" });
+  }
+});
 
 router.put(
   "/usuarios/:id",
@@ -135,7 +158,6 @@ router.put(
   }
 );
 
-
 router.delete("/usuarios/:id", async (req, res) => {
   try {
     const usuario = await Usuario.findByPk(req.params.id);
@@ -152,14 +174,13 @@ router.delete("/usuarios/:id", async (req, res) => {
   }
 });
 
-
 router.get("/solicitudes", async (req, res) => {
   try {
     const { estado, prioridad } = req.query;
 
     const where = {};
     if (estado) where.estado = estado.toUpperCase();
-    if (prioridad) where.urgencia = prioridad.toUpperCase();;
+    if (prioridad) where.urgencia = prioridad.toUpperCase();
 
     const solicitudes = await Solicitud.findAll({
       where,
@@ -173,32 +194,34 @@ router.get("/solicitudes", async (req, res) => {
     });
 
     res.json(
-  solicitudes.map((s) => ({
-    id: s.id,
-    tipoSangre: s.grupo_sanguineo,
-    cantidad: s.cantidad_unidades,
-    prioridad: s.urgencia.toLowerCase(), // "ALTA" -> "alta"
-    estado: s.estado.toLowerCase(),      // "PENDIENTE" -> "pendiente"
-    Hospital: { nombre: s.Hospital.nombre },
-    createdAt: s.createdAt,
-  }))
-);
+      solicitudes.map((s) => ({
+        id: s.id,
+        tipoSangre: s.grupo_sanguineo,
+        cantidad: s.unidades_disponibles,
+        prioridad: s.urgencia.toLowerCase(),
+        estado: s.estado.toLowerCase(),
+        Hospital: { nombre: s.Hospital.nombre },
+        createdAt: s.createdAt,
+      }))
+    );
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: "Error al listar solicitudes" });
   }
 });
 
-
-router.put(
-  "/solicitudes/:id",
+router.post(
+  "/hospitales",
   [
-    body("estado")
-      .isIn(["pendiente", "parcial", "cubierta", "cancelada"])
-      .withMessage("Estado no válido"),
-    body("prioridad")
-      .isIn(["alta", "media", "baja"])
-      .withMessage("Prioridad no válida"),
+    body("nombre").notEmpty().withMessage("El nombre es obligatorio"),
+    body("email").isEmail().withMessage("Email no válido"),
+    body("localizacion")
+      .notEmpty()
+      .withMessage("La localización es obligatoria"),
+    body("password")
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage("La contraseña debe tener al menos 6 caracteres"),
   ],
   async (req, res) => {
     try {
@@ -207,23 +230,180 @@ router.put(
         return res.status(400).json({ errores: errores.array() });
       }
 
-      const solicitud = await Solicitud.findByPk(req.params.id);
-      if (!solicitud) {
-        return res.status(404).json({ mensaje: "Solicitud no encontrada" });
+      const { nombre, email, localizacion, password } = req.body;
+
+      const existe = await Usuario.findOne({ where: { email } });
+      if (existe) {
+        return res
+          .status(400)
+          .json({ mensaje: "Ya existe un usuario con ese email" });
       }
 
-      const { estado, urgencia } = req.body;
-      if (typeof estado !== "undefined") solicitud.estado = estado;
-      if (typeof prioridad !== "undefined") solicitud.urgencia = urgencia;
+      const hospitalUsuario = await Usuario.create({
+        nombre,
+        email,
+        rol: "HOSPITAL",
+        activo: true,
+        password: password || "123456",
+      });
 
-      await solicitud.save();
+      const hospital = await Hospital.create({
+        nombre,
+        direccion: localizacion,
+        ciudad: "Madrid",
+        usuario_id: hospitalUsuario.id,
+      });
 
-      res.json({ mensaje: "Solicitud actualizada correctamente", solicitud });
+      res.status(201).json({
+        mensaje: "Hospital creado correctamente",
+        hospital,
+        usuario: hospitalUsuario,
+      });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensaje: "Error al actualizar solicitud" });
+      res.status(500).json({ mensaje: "Error al crear hospital" });
     }
   }
 );
+
+router.get("/inventarios", async (req, res) => {
+  try {
+    const hospitales = await Hospital.findAll({
+      attributes: ['id', 'nombre'],
+    });
+
+    const resultado = await Promise.all(
+      hospitales.map(async (hospital) => {
+        const inventarios = await InventarioSangre.findAll({
+          where: { hospital_id: hospital.id },
+          order: [['fecha_ultima_actualizacion', 'DESC']],
+        });
+
+        return {
+          hospital: {
+            id: hospital.id,
+            nombre: hospital.nombre,
+          },
+          inventarios,
+        };
+      })
+    );
+
+    res.json(resultado);
+  } catch (error) {
+    console.error("Error obteniendo inventarios:", error);
+    res.status(500).json({ error: "Error obteniendo inventarios" });
+  }
+});
+
+router.get("/inventarios/ultimos-por-grupo", async (req, res) => {
+  try {
+    const hospitales = await Hospital.findAll({
+      attributes: ['id', 'nombre'],
+    });
+
+    const resultado = await Promise.all(
+      hospitales.map(async (hospital) => {
+        const grupos = await InventarioSangre.findAll({
+          where: { hospital_id: hospital.id },
+          attributes: [
+            [Sequelize.fn('DISTINCT', Sequelize.col('grupo_sanguineo')), 'grupo_sanguineo']
+          ],
+          raw: true,
+        });
+
+        const inventarios = await Promise.all(
+          grupos.map(async (g) => {
+            return await InventarioSangre.findOne({
+              where: {
+                hospital_id: hospital.id,
+                grupo_sanguineo: g.grupo_sanguineo,
+              },
+              order: [['fecha_ultima_actualizacion', 'DESC']],
+            });
+          })
+        );
+
+        return {
+          hospital: {
+            id: hospital.id,
+            nombre: hospital.nombre,
+          },
+          inventarios,  
+        };
+      })
+    );
+
+    res.json(resultado);
+  } catch (error) {
+    console.error("Error obteniendo inventarios:", error);
+    res.status(500).json({ error: "Error obteniendo inventarios" });
+  }
+});
+
+
+// routes/admin.js (o donde tengas las rutas admin)
+router.get("/inventarios/ultimos", async (req, res) => {
+  try {
+    // 1. Traer todos los hospitales activos (o todos los que quieras)
+    const hospitales = await Hospital.findAll({
+      attributes: ['id', 'nombre'],
+    });
+
+    // 2. Para cada hospital, obtener el último inventario
+    const inventariosUltimos = await Promise.all(
+      hospitales.map(async (hospital) => {
+        const ultimoInventario = await InventarioSangre.findOne({
+          where: { hospital_id: hospital.id },
+          order: [['fecha_ultima_actualizacion', 'DESC']],
+        });
+
+        return {
+          hospital: {
+            id: hospital.id,
+            nombre: hospital.nombre,
+          },
+          inventario: ultimoInventario || null,
+        };
+      })
+    );
+
+    res.json(inventariosUltimos);
+  } catch (error) {
+    console.error("Error obteniendo últimos inventarios:", error);
+    res.status(500).json({ error: "Error obteniendo últimos inventarios" });
+  }
+});
+
+module.exports = router;
+
+
+
+router.post("/hospitales/:id/inventario", async (req, res) => {
+  try {
+    const { grupo_sanguineo, unidades_disponibles } = req.body;
+    const hospital_id = req.params.id;
+
+    let inventario = await InventarioSangre.findOne({
+      where: { hospital_id, grupo_sanguineo }
+    });
+
+    if (inventario) {
+      inventario.unidades_disponibles += unidades_disponibles; // suma la nueva cantidad
+      await inventario.save();
+    } else {
+      inventario = await InventarioSangre.create({
+        hospital_id,
+        grupo_sanguineo,
+        unidades_disponibles,
+      });
+    }
+
+    res.json({ message: "Inventario actualizado", inventario });
+  } catch (err) {
+    res.status(500).json({ error: "Error actualizando inventario", details: err.message });
+  }
+});
+
 
 module.exports = router;

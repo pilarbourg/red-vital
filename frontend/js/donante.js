@@ -1,99 +1,103 @@
 /* ==========================================================
-   OBTENER DONANTE_ID DESDE LOGIN REAL
+     UTILIDAD: obtener usuario guardado en localStorage
 ========================================================== */
-
+function getSavedUser() {
+  const u = localStorage.getItem("user");
+  if (!u) return null;
+  return JSON.parse(u);
+}
+document.getElementById("btnConfirmarCodigo")
+        .addEventListener("click", verificarCodigo);
+document.getElementById("btnConfirmarCambios")
+        .addEventListener("click", solicitarCambioCredenciales);
+/* ==========================================================
+     RESOLVER DONANTE_ID REAL A PARTIR DEL USUARIO LOGUEADO
+========================================================== */
 
 let DONANTE_ID = null;
 
-async function resolveDonanteId(savedUser) {
+async function resolveDonanteId() {
+  const savedUser = getSavedUser();
+  if (!savedUser) {
+    console.error("❌ No hay usuario logueado");
+    window.location.href = "login.html";
+    return null;
+  }
+
   try {
     const res = await fetch(`/api/donantes/byUsuario/${savedUser.id}`);
     const data = await res.json();
 
     if (!res.ok || !data.ok) {
-      console.error("No hay donante asociado a este usuario", data);
+      console.error("❌ No existe un DONANTE para este usuario", data);
       return null;
     }
 
     DONANTE_ID = data.id;
+    console.log("✔ DONANTE_ID =", DONANTE_ID);
     return DONANTE_ID;
+
   } catch (err) {
-    console.error("Error resolviendo DONANTE_ID:", err);
+    console.error("❌ Error resolviendo DONANTE_ID:", err);
     return null;
   }
 }
 
+/* ==========================================================
+                 CALCULAR EDAD
+========================================================== */
+function calcularEdad(dob) {
+  const n = new Date(dob);
+  const h = new Date();
+  let edad = h.getFullYear() - n.getFullYear();
+  if (h.getMonth() < n.getMonth() ||
+      (h.getMonth() === n.getMonth() && h.getDate() < n.getDate())) {
+    edad--;
+  }
+  return edad;
+}
 
 /* ==========================================================
-   INICIO GLOBAL
+                 CARGAR PERFIL DEL DONANTE
 ========================================================== */
-document.addEventListener("DOMContentLoaded", async () => {
+async function cargarPerfil() {
+  const res = await fetch(`/api/donantes/${DONANTE_ID}/perfil`);
+  const d = await res.json();
 
-   // 1) Comprobar que soy DONANTE, si no → login
-  const savedUser = requireRole("DONANTE", "/frontend/pages/areadonante.html");
-  if (!savedUser) return; // requireRole ya redirige
+  document.getElementById("donante-nombre").textContent = `${d.nombre} ${d.apellidos}`;
+  document.getElementById("donante-email").textContent = d.usuario.email;
+  document.getElementById("donante-telefono").textContent = d.usuario.telefono;
+  document.getElementById("donante-direccion").textContent = d.usuario.direccion;
 
-  // 2) Sacar DONANTE_ID real desde el backend
-  await resolveDonanteId(savedUser);
+  document.getElementById("donante-sexo").textContent = d.genero;
+  document.getElementById("donante-grupo").textContent = d.grupo_sanguineo;
+  document.getElementById("donante-edad").textContent = calcularEdad(d.dob);
 
-  if (!DONANTE_ID) {
-    console.error("No se pudo obtener DONANTE_ID");
-    return;
-  }
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-      localStorage.removeItem("user");
-      window.location.href = "login.html";
+  document.getElementById("user-email").textContent = d.usuario.email;
+  document.getElementById("user-rol").textContent = "DONANTE";
+  
+  const lista = document.getElementById("donante-afecciones");
+  lista.innerHTML = "";
+  if (d.condiciones) {
+    d.condiciones.split(",").forEach(c => {
+      lista.innerHTML += `<li>${c.trim()}</li>`;
     });
   }
+}
 
+/* ==========================================================
+                 CARGAR HOSPITALES CERCANOS
+========================================================== */
+async function cargarCentros() {
+  try {
+    const res = await fetch(`/api/donantes/${DONANTE_ID}/hospitales_cercanos`);
+    const lista = await res.json();
 
-  /* ================= PERFIL ================= */
-  fetch(`/api/donantes/${DONANTE_ID}/perfil`)
-    .then(r => r.json())
-    .then(d => {
-      document.getElementById("donante-nombre").textContent =
-        `${d.nombre} ${d.apellidos}`;
-
-      document.getElementById("donante-email").textContent = d.usuario.email;
-      document.getElementById("donante-telefono").textContent = d.usuario.telefono;
-      document.getElementById("donante-direccion").textContent = d.usuario.direccion;
-
-      document.getElementById("donante-sexo").textContent = d.genero;
-      document.getElementById("donante-grupo").textContent = d.grupo_sanguineo;
-      document.getElementById("donante-edad").textContent = calcularEdad(d.dob);
-
-      const lista = document.getElementById("donante-afecciones");
-      lista.innerHTML = "";
-      if (d.condiciones) {
-        d.condiciones.split(",").forEach(c => {
-          lista.innerHTML += `<li>${c.trim()}</li>`;
-        });
-      }
-    });
-
-
-  function calcularEdad(dob) {
-    const n = new Date(dob);
-    const h = new Date();
-    let edad = h.getFullYear() - n.getFullYear();
-    if (h.getMonth() < n.getMonth() ||
-      (h.getMonth() === n.getMonth() && h.getDate() < n.getDate())) edad--;
-    return edad;
-  }
-
-
-  /* ================= HOSPITALES CERCANOS ================= */
-  fetch(`/api/donantes/${DONANTE_ID}/hospitales_cercanos`)
-  .then(res => res.json())
-  .then(lista => {
-       console.log("DEBUG LISTA:", lista); // 👈
     const cont = document.getElementById("centros-list");
     cont.innerHTML = "";
 
-     if (!lista || !Array.isArray(lista) || lista.length === 0) {
-      cont.innerHTML = `<p>No hay centros cercanos disponibles.</p>`;
+    if (!Array.isArray(lista) || lista.length === 0) {
+      cont.innerHTML = `<p>No hay centros disponibles.</p>`;
       return;
     }
 
@@ -104,54 +108,128 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       `;
     });
-  })
-  .catch(err => console.error("ERROR FRONT CENTROS:", err));
 
+  } catch (err) {
+    console.error("❌ ERROR al cargar centros:", err);
+  }
+}
 
-  // ==================== CARGAR CREDENCIALES =====================
-
+/* ==========================================================
+                 CARGAR CREDENCIALES DEL USUARIO
+========================================================== */
 async function cargarCredenciales() {
   try {
     const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales`);
     const data = await res.json();
 
-    if (!data.ok) return console.error("Error cargando credenciales", data);
+    if (!data.ok) {
+      console.error("❌ Error credenciales", data);
+      return;
+    }
+  
 
-    document.getElementById("user-email").textContent = data.email;
-    document.getElementById("user-rol").textContent = data.rol;
   } catch (err) {
-    console.error("Error fetch credenciales:", err);
+    console.error("❌ Error cargando credenciales:", err);
   }
 }
+let codigoPendiente = false; // indica si estamos esperando código
 
-cargarCredenciales();
+async function solicitarCambioCredenciales() {
+  const form = document.getElementById("credencialesForm");
+  if (!form) return
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
 
-const credForm = document.getElementById("credencialesForm");
+  const body = {};
+  if (email) body.newEmail = email;
+  if (password) body.newPassword = password;
 
-if (credForm) {
-  credForm.addEventListener("submit", async (e) => {
+
+  const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales/solicitar`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showToast(data.error || "Error solicitando cambios", "error");
+    return;
+  }
+
+  showToast("Código enviado a tu correo.", "success");
+
+  // PASAR A LA SIGUIENTE VISTA
+  document.getElementById("credenciales-step1").classList.add("hidden");
+  document.getElementById("credenciales-step2").classList.remove("hidden");
+
+  codigoPendiente = true;
+}
+
+async function verificarCodigo() {
+  const codigo = document.getElementById("codigo-verificacion").value;
+
+  if (!codigo) {
+    showToast("Introduce el código", "error");
+    return;
+  }
+
+  const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales/verificar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ codigo })
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showToast(data.error || "Código incorrecto", "error");
+    return;
+  }
+
+  showToast("Datos actualizados correctamente", "success");
+
+  // Volvemos al step1 y recargamos credenciales visibles
+  document.getElementById("credenciales-step1").classList.remove("hidden");
+  document.getElementById("credenciales-step2").classList.add("hidden");
+
+  cargarCredenciales();
+  cargarPerfil();
+}
+
+function activarFormularioPerfil() {
+  const form = document.getElementById("credencialesFormPerfil");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const direccion = document.getElementById("direccion")?.value.trim();
+    const telefono = document.getElementById("telefono")?.value.trim();
+    const afecciones = document.getElementById("afecciones")?.value.trim();
 
-    const body = {};
-    if (email) body.email = email;
-    if (password) body.password = password;
+    const body = { direccion, telefono, condiciones: afecciones };
 
-    const res = await fetch(`/api/donantes/${DONANTE_ID}/credenciales`, {
+    const res = await fetch(`/api/donantes/${DONANTE_ID}/perfil`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
+
     if (data.ok) {
-      alert("Credenciales actualizadas.");
-      cargarCredenciales();  // refresca pantalla
+      showToast("Perfil actualizado correctamente 👍", "success");
+
+      // Refrescar vista actual
+      setTimeout(() => location.reload(), 800);
+    } else {
+      showToast(data.error || "Error actualizando perfil", "error");
     }
   });
 }
+
 
 // =============================
 //   NAVEGACIÓN ENTRE SECCIONES
@@ -184,78 +262,194 @@ navItems.forEach(item => {
         }
     });
 });
+
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
+
+/* ==========================================================
+                 CARGAR NOTIFICACIONES
+========================================================== */
 async function cargarNotificaciones() {
-//const savedUser = JSON.parse(localStorage.getItem("user"));
-  //const id = savedUser?.id_donante;
-
-  if (!DONANTE_ID) return console.error("❌ No hay ID de donante");
-
   try {
     const res = await fetch(`/api/donantes/${DONANTE_ID}/notificaciones`);
-    const lista = await res.json();
+    const data = await res.json();
 
     const box = document.getElementById("notificaciones-list");
     box.innerHTML = "";
-    if (!lista.length) {
-      box.innerHTML += "<p>No tienes notificaciones.</p>";
+
+    if (!data.ok) {
+      box.innerHTML = "<p>Error al cargar notificaciones.</p>";
       return;
     }
 
-    lista.forEach(n => {
-      box.innerHTML += `
-        <div class="notification-item">
-          <h4>${n.mensaje}</h4>
-          <p>${new Date(n.createdAt).toLocaleDateString()}</p>
-        </div>
-      `;
-    });
+    const { personales, globales, solicitudes } = data;
 
-  
+    // Si no hay nada
+    if ((!personales || !personales.length) && 
+    (!globales || !globales.length) &&
+        (!solicitudes || !solicitudes.length)) {
+      box.innerHTML = "<p>No tienes notificaciones.</p>";
+      return;
+    }
+
+    /* =======================
+       NOTIFICACIONES PERSONALES
+    ======================= */
+    if (data.personales.length === 0) {
+      box.innerHTML += "<p>No tienes notificaciones personales.</p>";
+    } else {
+      box.innerHTML += `<h3>🔔 Notificaciones personales</h3>`;
+      data.personales.forEach(n => {
+        box.innerHTML += `
+          <div class="notification-item personal">
+            <h4>${n.titulo || "Aviso"}</h4>
+            <p>${n.mensaje}</p>
+          </div>`;
+      });
+    }
+
+
+    /* =======================
+       SOLICITUDES URGENTES
+    ======================= */
+    if (solicitudes.length) {
+      box.innerHTML += `<h3>🩸 Solicitudes Urgentes de Hospitales</h3>`;
+
+      solicitudes.forEach(s => {
+        box.innerHTML += `
+          <div class="notification-item urgent">
+            <h4>URGENTE: Se necesita sangre ${s.grupo_sanguineo}</h4>
+            <p><strong>Hospital:</strong> ${s.hospital.nombre}</p>
+            <p><strong>Motivo:</strong> ${s.motivo || "—"}</p>
+            <p><strong>Fecha:</strong> ${new Date(s.createdAt).toLocaleDateString()}</p>
+          </div>
+        `;
+      });
+    }
+
   } catch (err) {
-    console.error("Error cargando notificaciones:", err);
+    console.error("❌ Error cargando notificaciones:", err);
   }
 }
-async function cargarHistorial() {
-  //const savedUser = JSON.parse(localStorage.getItem("user"));
- // const id = savedUser?.id_donante;
 
-  if (!DONANTE_ID) return console.error("❌ No hay ID de donante");
+
+function formatDate(dateStr) {
+  if (!dateStr) return "—";
+
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+/* ==========================================================
+                 CARGAR HISTORIAL DONACIONES
+========================================================== */
+async function cargarHistorial() {
+  if (!DONANTE_ID) return console.error("❌ No hay DONANTE_ID");
 
   try {
-    const res = await fetch(`/api/donantes/${DONANTE_ID}/historial`);
-    const lista = await res.json();
+    const res = await fetch(`/api/donantes/${DONANTE_ID}/dashboard`);
+    const data = await res.json();
 
     const cont = document.getElementById("donation-list");
     cont.innerHTML = "";
 
-    if (!lista.length) {
-      cont.innerHTML = "<p>No hay donaciones registradas.</p>";
+    if (!data.ok) {
+      cont.innerHTML = "<p>Error cargando historial.</p>";
       return;
     }
 
-    lista.forEach(d => {
-      cont.innerHTML += `
-        <div class="donation-item">
-          <p><strong>Fecha:</strong> ${formatDate(d.fecha)}</p>
-          <p><strong>Cantidad:</strong> ${d.cantidad_ml} ml</p>
-          <p><strong>Centro:</strong> ${d.centro || "—"}</p>
-        </div>
-      `;
-    });
+    const { donaciones, citas } = data;
+
+    /* ========================
+        DONACIONES PASADAS
+    ========================= */
+    cont.innerHTML += `<h3 class="section-title">Donaciones previas</h3>`;
+
+    if (!donaciones.length) {
+      cont.innerHTML += "<p>No tienes donaciones registradas.</p>";
+    } else {
+      donaciones.forEach(d => {
+        cont.innerHTML += `
+          <div class="donation-item">
+            <p><strong>Fecha:</strong> ${formatDate(d.fecha)}</p>
+            <p><strong>Cantidad:</strong> ${d.cantidad_ml} ml</p>
+            <p><strong>Centro:</strong> ${d.solicitud?.hospital?.nombre || "—"}</p>
+          </div>
+        `;
+      });
+    }
+
+    /* ========================
+         CITAS FUTURAS
+    ========================= */
+    cont.innerHTML += `<h3 class="section-title">Próximas citas</h3>`;
+
+    if (!citas.length) {
+      cont.innerHTML += "<p>No tienes citas programadas.</p>";
+    } else {
+      citas.forEach(c => {
+        cont.innerHTML += `
+          <div class="donation-item future">
+            <p><strong>Fecha:</strong> ${formatDate(c.fecha)}</p>
+            <p><strong>Hora:</strong> ${c.hora || "—"}</p>
+            <p><strong>Centro:</strong> ${c.hospital?.nombre || "—"}</p>
+          </div>
+        `;
+      });
+    }
 
   } catch (err) {
     console.error("Error cargando historial:", err);
   }
 }
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("es-ES", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+
+/* ==========================================================
+                 NAVEGACIÓN ENTRE SECCIONES
+========================================================== */
+function activarNavegacion() {
+  const navItems = document.querySelectorAll(".nav-item-card");
+  const sections = document.querySelectorAll(".content-section");
+
+  navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      navItems.forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+
+      sections.forEach(s => s.classList.remove("active-section"));
+
+      const target = item.dataset.target;
+      document.getElementById(target).classList.add("active-section");
+    });
   });
 }
 
-cargarHistorial();
-cargarNotificaciones();
+/* ==========================================================
+                 INICIO GLOBAL
+========================================================== */
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const resolved = await resolveDonanteId();
+  if (!resolved) return;
+activarFormularioPerfil();
+
+  cargarPerfil();
+  cargarCentros();
+  cargarHistorial();
+  cargarNotificaciones();
+  cargarCredenciales();
+  activarNavegacion();
 });

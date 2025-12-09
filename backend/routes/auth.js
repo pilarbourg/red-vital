@@ -59,7 +59,7 @@ router.post("/auth/register", async (req, res) => {
           email,
           password, // se encripta en el hook beforeSave
           rol,
-          direccion: direccion || null,
+          direccion,
           telefono: telefono || null,
         },
         { transaction: t }

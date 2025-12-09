@@ -34,7 +34,7 @@
 
     <main class="form-container">
       <h1>REDVITAL</h1>
-
+      <h2 id="loginTitle">Inicia sesión</h2>
       <form id="loginForm" class="form">
         <label>Email:</label>
         <input id="email" type="email" placeholder="Correo electrónico" required />
@@ -67,90 +67,9 @@
         </div>
       </div>
     </footer>
-<!-- 
-  <script>
-      // Leemos parámetros de la URL (?next=...&role=...)
-      const params = new URLSearchParams(window.location.search);
-      const nextParam = params.get("next") || "";
-      const roleParam = (params.get("role") || "").toUpperCase();
 
-      // Ajustar enlace "Regístrate" para conservar next y rol
-      const registerLink = document.querySelector(".register-link a");
-      if (registerLink) {
-        const regParams = new URLSearchParams();
-        if (nextParam) regParams.set("next", nextParam);
-        if (roleParam) regParams.set("role", roleParam);
-        registerLink.href = "register.html?" + regParams.toString();
-      }
+    <div id="toast" class="toast hidden"></div>
 
-      document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const data = {
-          email: document.getElementById("email").value,
-          password: document.getElementById("password").value,
-        };
-
-        try {
-          /* const res = await fetch("/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });*/
-
-          const res = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          });
-
-
-          const json = await res.json();
-
-          if (!res.ok) {
-            alert(json.mensaje || "Error al iniciar sesión");
-            return;
-          }
-
-          // Backend devuelve { mensaje, id, rol }
-          alert(json.message);
-
-          /* if (res.ok) {
-           
-            // window.location.href = "areadonante.html";
-          }*/
-
-
-          // Guardar usuario en localStorage para que Citas / Áreas sepan quién eres
-          const user = { id: json.id, rol: json.rol };
-          localStorage.setItem("user", JSON.stringify(user));
-
-           // Decidir a dónde redirigir
-          let next = nextParam;
-
-          // Si no venimos con ?next=..., decidimos por el rol
-          if (!next) {
-            if (json.rol === "DONANTE") {
-              next = "/frontend/pages/areadonante.html";
-            } else if (json.rol === "HOSPITAL") {
-              next = "/frontend/pages/areahospitalaria.html";
-            } else if (json.rol === "ADMIN") {
-              next = "/frontend/pages/admin.html";
-            } else {
-              next = "/index.html";
-            }
-          }
-
-          // 4) Redirigir
-          window.location.href = next;
-
-        } catch (err) {
-          alert("Error conectando con el servidor.");
-          console.error(err);
-        }
-      });
-    </script> 
- -->    
     <script src="../js/login.js"></script>
     
   </body>

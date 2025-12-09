@@ -36,6 +36,7 @@ body {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
   text-decoration: none;
   background-color: #457b9d;
   border: none;
@@ -619,13 +620,13 @@ tbody tr:hover {
 }
 
 .toast.success {
-  background: #2a9d8f;
+  background: #2a9d909f;
 }
 .toast.warning {
-  background: #ffb703;
+  background: #ffb8038f;
 }
 .toast.error {
-  background: #d90429;
+  background: #d9042782;
 }
 
 .toast.show {

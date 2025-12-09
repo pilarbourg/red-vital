@@ -22,6 +22,7 @@ const InventarioSangre = require("./models/inventarioSangre")(sequelize);
 const Solicitud = require("./models/solicitud")(sequelize);
 const Admin = require("./models/admin")(sequelize);
 const Doctor = require("./models/doctor")(sequelize);
+const SecurityCode = require("./models/SecurityCode")(sequelize, Sequelize.DataTypes);
 
 // Usuario 1–1 Donante
 Usuario.hasOne(Donante, { foreignKey: "usuario_id" });
@@ -100,4 +101,5 @@ module.exports = {
   Solicitud,
   Admin,
   Doctor,
+  SecurityCode
 };

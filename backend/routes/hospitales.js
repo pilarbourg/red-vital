@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Op } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 
 const {
   Usuario,
@@ -64,39 +64,83 @@ router.get("/hospitales/:id", async (req, res) => {
   }
 });
 
-// add blood type to hospital
-router.post("/hospitales/:id/inventario", async (req, res) => {
-  //tested
-  try {
-    const { grupo_sanguineo, cantidad_unidades } = req.body;
-
-    const inventario = await InventarioSangre.create({
-      hospital_id: req.params.id,
-      grupo_sanguineo,
-      cantidad_unidades,
-    });
-
-    res.json({ message: "Blood stock added", inventario });
-  } catch (err) {
-    res.status(500).json({ error: "Error adding stock", details: err.message });
-  }
-});
 
 // get inventory by hospital
 router.get("/hospitales/:id/inventario", async (req, res) => {
-  //tested
   try {
-    const stock = await InventarioSangre.findAll({
-      where: { hospital_id: req.params.id },
+    const hospitalId = req.params.id;
+
+    const latestDates = await InventarioSangre.findAll({
+      attributes: [
+        "grupo_sanguineo",
+        [Sequelize.fn("MAX", Sequelize.col("fecha_ultima_actualizacion")), "maxFechaUltimaActualizacion"],
+      ],
+      where: { hospital_id: hospitalId },
+      group: ["grupo_sanguineo"],
+      raw: true,
     });
 
-    res.json(stock);
+    if (latestDates.length === 0) {
+      return res.json([]); // no inventory yet
+    }
+
+    const orConditions = latestDates.map(({ grupo_sanguineo, maxFechaUltimaActualizacion }) => ({
+      grupo_sanguineo,
+      fecha_ultima_actualizacion: maxFechaUltimaActualizacion,
+      hospital_id: hospitalId,
+    }));
+
+    const latestInventory = await InventarioSangre.findAll({
+      where: {
+        [Op.or]: orConditions,
+      },
+      order: [["grupo_sanguineo", "ASC"]],
+    });
+
+    res.json(latestInventory);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Error retrieving inventory", details: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Error retrieving latest inventory", details: err.message });
   }
 });
+
+// Update inventory by creating new records for each blood type updated
+router.post("/hospitales/:id/inventario", async (req, res) => {
+  try {
+    const hospitalId = req.params.id;
+    const inventario = req.body.inventario;  // <-- extract from request body
+
+    if (!Array.isArray(inventario) || inventario.length === 0) {
+      return res.status(400).json({ error: "Inventario array is required" });
+    }
+
+    // Validate input (optional but recommended)
+    for (const item of inventario) {
+      if (
+        !item.grupo_sanguineo ||
+        typeof item.cantidad !== "number" ||
+        item.cantidad < 0
+      ) {
+        return res.status(400).json({ error: "Invalid inventario data format" });
+      }
+    }
+
+    const newRecords = inventario.map((item) => ({
+      hospital_id: hospitalId,
+      grupo_sanguineo: item.grupo_sanguineo,
+      unidades_disponibles: item.cantidad,
+      fecha_ultima_actualizacion: new Date().toISOString(), 
+    }));
+
+    await InventarioSangre.bulkCreate(newRecords);
+
+    res.json({ message: "Inventario actualizado correctamente" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error updating inventario", details: err.message });
+  }
+});
+
 
 // create a blood request (solicitud)
 router.post("/hospitales/:id/solicitud", async (req, res) => {

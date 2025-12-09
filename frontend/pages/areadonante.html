@@ -178,18 +178,14 @@
         </div>
       </section>
     </div>
-    <!-- CARD ÁREA DE USUARIO -->
+    <!-- CARD ÁREA DE config -->
     <div class="container-user">
-      <section id="perfil" class="content-section active-section">
-        <div class="card user-card" id="user-card">
+      <section id="config" class="content-section">
+        <div id ="credenciales-step1"class="card user-card" id="user-card">
           <h2>Mi Perfil</h2>
           <h3>Datos del Usuario</h3>
 
           <div class="user-info">
-            <p>
-              <strong>Nombre de usuario:</strong>
-              <span id="user-username">---</span>
-            </p>
             <p><strong>Email:</strong> <span id="user-email">---</span></p>
             <p><strong>Rol:</strong> <span id="user-rol">---</span></p>
           </div>
@@ -198,14 +194,6 @@
 
           <form id="credencialesForm" class="user-form">
             <h3>Actualizar credenciales</h3>
-
-            <label for="username">Nuevo nombre de usuario:</label>
-            <input
-              type="text"
-              id="username"
-              placeholder="Introduce nuevo nombre"
-            />
-
             <label for="password">Nueva contraseña:</label>
             <input
               type="password"
@@ -216,6 +204,53 @@
             <label for="email">Nuevo email:</label>
             <input type="email" id="email" placeholder="Introduce nuevo email" />
 
+             <button id="btnConfirmarCambios" type="button" class="save-btn">
+              💾 Guardar cambios
+            </button>
+          </form>
+
+          
+          <div class="success-msg hidden" id="update-msg">
+            ✅ Datos actualizados correctamente.
+          </div>
+        </div>
+        <div id="credenciales-step2" class="hidden">
+            <h3>Introduce el código enviado a tu email</h3>
+
+            <input id="codigo-verificacion" type="text" placeholder="Código de 6 dígitos">
+
+            <button id="btnConfirmarCodigo" type="button" class="save-btn">
+          🔐 Confirmar código
+        </button>
+          </div>
+      </section>
+    </div>
+    <!-- CARD ÁREA DE Perfil -->
+    <div class="container-user">
+      <section id="perfil" class="content-section">
+        <div class="card user-card" id="user-card">
+          <h2>Mi Perfil</h2>
+          <h3>Cambiar datos del Usuario</h3>
+
+          <hr />
+
+          <form id="credencialesFormPerfil" class="user-form">
+            <h3>Actualizar datos</h3>
+            <label for="direccion">Nueva direccion:</label>
+            <input
+              type="direccion"
+              id="direccion"
+              placeholder="Introduce nueva direccion"
+            />
+
+            <label for="telefono">Nuevo numero de telefono:</label>
+            <input type="telefono" id="telefono" placeholder="Introduce nuevo telefono" />
+
+            
+            <label for="afecciones">Nuevas afecciones clínicas:</label>
+            <input type="afecciones" id="afecciones" placeholder="Introduce nuevos datos, teniendo en cuenta que se borraran los anteriores" />
+            
+
             <button type="submit" class="save-btn">💾 Guardar cambios</button>
           </form>
 
@@ -225,6 +260,7 @@
         </div>
       </section>
     </div>
+
 
     <footer class="site-footer">
       <div class="footer-content">
@@ -243,7 +279,8 @@
       </div>
     </footer>
     <!-- SCRIPT EXTERNO -->
-     <script src="../js/auth-guard.js"></script>
+    <div id="toast" class="toast hidden"></div>
+    <script src="../js/auth-guard.js"></script>
     <script src="../js/donante.js"></script>
   </body>
 </html>

@@ -35,6 +35,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnChange  = document.getElementById('btn-change');
   const btnCancel  = document.getElementById('btn-cancel');
 
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
   
   if (!citaId) {
     btnConfirm.disabled = true;
@@ -59,11 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('Error al confirmar la cita');
       }
 
-      alert('Cita confirmada. ¡Gracias por donar sangre!');
+      showToast("Cita confirmada. ¡Gracias por donar sangre!", "success");
       window.location.href = '../../index.html';
     } catch (err) {
       console.error(err);
-      alert('No se ha podido confirmar la cita.');
+      showToast("Error al confirmar la cita", "error");
     }
   });
 
@@ -103,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = `appointments.html?${backParams.toString()}`;
     } catch (err) {
       console.error(err);
-      alert('No se ha podido cambiar la cita.');
+      showToast("Error al cambiar la cita", "error");
     }
   });
 
@@ -124,11 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('Error al cancelar la cita');
       }
 
-      alert('Cita cancelada.');
+      showToast("Cita cancelada correctamente", "success");
       window.location.href = '../../index.html';
     } catch (err) {
       console.error(err);
-      alert('No se ha podido cancelar la cita.');
+      showToast("Error al cancelar la cita", "error");
     }
   });
 });

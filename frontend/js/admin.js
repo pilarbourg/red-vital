@@ -1,229 +1,412 @@
-const express = require("express");
-const router = express.Router();
-const { body, validationResult } = require("express-validator");
+document.addEventListener("DOMContentLoaded", () => {
+  const saved = requireRole("ADMIN", "/frontend/pages/areaadmin.html");
+  if (!saved) return;
 
-
-const { Usuario, Donante, Hospital, Solicitud, Donacion } = require("../db");
-
-
-router.get("/dashboard", async (req, res) => {
-  try {
-    const [
-      totalUsuarios,
-      totalDonantes,
-      totalHospitales,
-      totalSolicitudes,
-      solicitudesPendientes,
-      solicitudesAlta,
-      totalDonaciones,
-    ] = await Promise.all([
-      Usuario.count(),
-      Donante ? Donante.count() : Promise.resolve(0),
-      Hospital ? Hospital.count() : Promise.resolve(0),
-      Solicitud ? Solicitud.count() : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { estado: "PENDIENTE" } })
-        : Promise.resolve(0),
-      Solicitud
-        ? Solicitud.count({ where: { urgencia: "ALTA" } })
-        : Promise.resolve(0),
-      Donacion ? Donacion.count() : Promise.resolve(0),
-    ]);
-
-    res.json({
-      totalUsuarios,
-      totalDonantes,
-      totalHospitales,
-      totalSolicitudes,
-      solicitudesPendientes,
-      solicitudesAlta,
-      totalDonaciones,
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      localStorage.removeItem("user"); 
+      const next = encodeURIComponent("/frontend/pages/areaadmin.html");
+      window.location.href = `login.html?role=ADMIN&next=${next}`;
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error al obtener datos del dashboard" });
   }
-});
 
+  const $stat = (id) => document.getElementById(id);
 
-router.get("/usuarios", async (req, res) => {
-  try {
-    const { rol, activo } = req.query;
+  const API_BASE = "/api/admin";
 
-    const where = {};
-    if (rol) where.rol = rol;    
-    if (typeof activo !== "undefined") {
-      where.activo = activo === "true";
-    }
-
-    const usuarios = await Usuario.findAll({
-      where,
-      order: [["id", "ASC"]],
+  const apiFetch = async (endpoint, options = {}) => {
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    };
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
     });
 
-    res.json(usuarios);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error al listar usuarios" });
-  }
-});
-
-
-router.get("/usuarios/:id", async (req, res) => {
-  try {
-    const usuario = await Usuario.findByPk(req.params.id);
-    if (!usuario) {
-      return res.status(404).json({ mensaje: "Usuario no encontrado" });
-    }
-    res.json(usuario);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error al obtener usuario" });
-  }
-});
-
-
-router.put(
-  "/usuarios/:id",
-  [
-    body("email").optional().isEmail().withMessage("Email no válido"),
-    body("rol")
-      .optional()
-      .isIn(["DONANTE", "HOSPITAL", "ADMIN"])
-      .withMessage("Rol no válido"),
-    body("activo")
-      .optional()
-      .isBoolean()
-      .withMessage("El campo 'activo' debe ser booleano"),
-  ],
-  async (req, res) => {
+    let data = {};
     try {
-      const errores = validationResult(req);
-      if (!errores.isEmpty()) {
-        return res.status(400).json({ errores: errores.array() });
-      }
+      data = await response.json();
+    } catch {}
 
-      const usuario = await Usuario.findByPk(req.params.id);
-      if (!usuario) {
-        return res.status(404).json({ mensaje: "Usuario no encontrado" });
-      }
+    if (!response.ok) throw new Error(data.mensaje || "Error en la petición");
 
-      const { nombre, email, rol, activo } = req.body;
+    return data;
+  };
 
-      // Si se intenta cambiar el email, comprobar que no exista ya
-      if (email && email !== usuario.email) {
-        const existe = await Usuario.findOne({ where: { email } });
-        if (existe) {
-          return res
-            .status(400)
-            .json({ mensaje: "Ese email ya está siendo utilizado" });
-        }
-        usuario.email = email;
-      }
+  const cargarDashboard = async () => {
+    try {
+      const info = await apiFetch("/dashboard");
 
-      if (typeof nombre !== "undefined") usuario.nombre = nombre;
-      if (typeof rol !== "undefined") usuario.rol = rol;
-      if (typeof activo !== "undefined") usuario.activo = activo;
-
-      await usuario.save();
-
-      res.json({ mensaje: "Usuario actualizado correctamente", usuario });
+      $stat("statTotalUsuarios").textContent = info.totalUsuarios ?? 0;
+      $stat("statTotalDonantes").textContent = info.totalDonantes ?? 0;
+      $stat("statTotalHospitales").textContent = info.totalHospitales ?? 0;
+      $stat("statTotalSolicitudes").textContent = info.totalSolicitudes ?? 0;
+      $stat("statSolPendientes").textContent = info.solicitudesPendientes ?? 0;
+      $stat("statSolAlta").textContent = info.solicitudesAlta ?? 0;
+      $stat("statTotalDonaciones").textContent = info.totalDonaciones ?? 0;
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensaje: "Error al actualizar usuario" });
+      alert("Error al cargar el dashboard");
     }
-  }
-);
+  };
 
+  const filtroRol = document.getElementById("filtroRol");
+  const filtroActivos = document.getElementById("filtroActivos");
+  const btnRefrescarUsuarios = document.getElementById("btnRefrescarUsuarios");
+  const tablaUsuariosBody = document.getElementById("tablaUsuariosBody");
 
-router.delete("/usuarios/:id", async (req, res) => {
-  try {
-    const usuario = await Usuario.findByPk(req.params.id);
-    if (!usuario) {
-      return res.status(404).json({ mensaje: "Usuario no encontrado" });
-    }
+  const cargarUsuarios = async () => {
+    if (!tablaUsuariosBody) return;
 
-    await usuario.destroy();
-
-    res.json({ mensaje: "Usuario eliminado correctamente" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error al eliminar usuario" });
-  }
-});
-
-
-router.get("/solicitudes", async (req, res) => {
-  try {
-    const { estado, prioridad } = req.query;
-
-    const where = {};
-    if (estado) where.estado = estado.toUpperCase();
-    if (prioridad) where.urgencia = prioridad.toUpperCase();;
-
-    const solicitudes = await Solicitud.findAll({
-      where,
-      include: [
-        {
-          model: Hospital,
-          attributes: ["id", "nombre"],
-        },
-      ],
-      order: [["id", "DESC"]],
-    });
-
-    res.json(
-  solicitudes.map((s) => ({
-    id: s.id,
-    tipoSangre: s.grupo_sanguineo,
-    cantidad: s.cantidad_unidades,
-    prioridad: s.urgencia.toLowerCase(), // "ALTA" -> "alta"
-    estado: s.estado.toLowerCase(),      // "PENDIENTE" -> "pendiente"
-    Hospital: { nombre: s.Hospital.nombre },
-    createdAt: s.createdAt,
-  }))
-);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error al listar solicitudes" });
-  }
-});
-
-
-router.put(
-  "/solicitudes/:id",
-  [
-    body("estado")
-      .isIn(["pendiente", "parcial", "cubierta", "cancelada"])
-      .withMessage("Estado no válido"),
-    body("prioridad")
-      .isIn(["alta", "media", "baja"])
-      .withMessage("Prioridad no válida"),
-  ],
-  async (req, res) => {
     try {
-      const errores = validationResult(req);
-      if (!errores.isEmpty()) {
-        return res.status(400).json({ errores: errores.array() });
+      const params = new URLSearchParams();
+      if (filtroRol?.value) params.set("rol", filtroRol.value);
+      if (filtroActivos?.checked) params.set("activo", "true");
+
+      const usuarios = await apiFetch(`/admin/usuarios?${params.toString()}`);
+      tablaUsuariosBody.innerHTML = "";
+
+      for (const u of usuarios) {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${u.id}</td>
+          <td><input type="text" value="${
+            u.nombre || ""
+          }" data-field="nombre" /></td>
+          <td><input type="email" value="${
+            u.email || ""
+          }" data-field="email" /></td>
+          <td>
+            <select data-field="rol">
+              <option value="DONANTE" ${
+                u.rol === "DONANTE" ? "selected" : ""
+              }>Donante</option>
+              <option value="HOSPITAL" ${
+                u.rol === "HOSPITAL" ? "selected" : ""
+              }>Hospital</option>
+              <option value="ADMIN" ${
+                u.rol === "ADMIN" ? "selected" : ""
+              }>Admin</option>
+            </select>
+          </td>
+          <td><input type="checkbox" data-field="activo" ${
+            u.activo ? "checked" : ""
+          } /></td>
+          <td>
+            <button class="btnGuardarUsuario" data-id="${u.id}">Guardar</button>
+            <button class="btnEliminarUsuario" data-id="${
+              u.id
+            }">Eliminar</button>
+          </td>
+        `;
+
+        tablaUsuariosBody.appendChild(tr);
       }
 
-      const solicitud = await Solicitud.findByPk(req.params.id);
-      if (!solicitud) {
-        return res.status(404).json({ mensaje: "Solicitud no encontrada" });
-      }
-
-      const { estado, urgencia } = req.body;
-      if (typeof estado !== "undefined") solicitud.estado = estado;
-      if (typeof prioridad !== "undefined") solicitud.urgencia = urgencia;
-
-      await solicitud.save();
-
-      res.json({ mensaje: "Solicitud actualizada correctamente", solicitud });
+      tablaUsuariosBody
+        .querySelectorAll(".btnGuardarUsuario")
+        .forEach((btn) => {
+          btn.addEventListener("click", (e) =>
+            guardarUsuarioFila(e.currentTarget.dataset.id)
+          );
+        });
+      tablaUsuariosBody
+        .querySelectorAll(".btnEliminarUsuario")
+        .forEach((btn) => {
+          btn.addEventListener("click", (e) =>
+            eliminarUsuario(e.currentTarget.dataset.id)
+          );
+        });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensaje: "Error al actualizar solicitud" });
+      alert("Error al cargar usuarios");
+    }
+  };
+
+  const guardarUsuarioFila = async (id) => {
+    if (!id) return;
+    const fila = Array.from(tablaUsuariosBody.querySelectorAll("tr")).find(
+      (tr) => tr.querySelector(".btnGuardarUsuario")?.dataset.id === id
+    );
+    if (!fila) return;
+
+    const payload = {};
+    fila.querySelectorAll("input, select").forEach((el) => {
+      const field = el.dataset.field;
+      if (!field) return;
+      payload[field] = el.type === "checkbox" ? el.checked : el.value;
+    });
+
+    try {
+      await apiFetch(`/admin/usuarios/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      alert("Usuario actualizado");
+      cargarUsuarios();
+    } catch (error) {
+      console.error(error);
+      alert("Error al actualizar usuario");
+    }
+  };
+
+  const eliminarUsuario = async (id) => {
+    if (!confirm("¿Seguro que quieres eliminar este usuario?")) return;
+    try {
+      await apiFetch(`/admin/usuarios/${id}`, { method: "DELETE" });
+      alert("Usuario eliminado");
+      cargarUsuarios();
+    } catch (error) {
+      console.error(error);
+      alert("Error al eliminar usuario");
+    }
+  };
+
+  btnRefrescarUsuarios?.addEventListener("click", cargarUsuarios);
+
+  const filtroEstadoSol = document.getElementById("filtroEstadoSol");
+  const filtroPrioridadSol = document.getElementById("filtroPrioridadSol");
+  const btnRefrescarSolicitudes = document.getElementById(
+    "btnRefrescarSolicitudes"
+  );
+  const tablaSolicitudesBody = document.getElementById("tablaSolicitudesBody");
+
+  const cargarSolicitudes = async () => {
+    if (!tablaSolicitudesBody) return;
+
+    try {
+      const params = new URLSearchParams();
+      if (filtroEstadoSol?.value)
+        params.set("estado", filtroEstadoSol.value.toUpperCase());
+      if (filtroPrioridadSol?.value)
+        params.set("urgencia", filtroPrioridadSol.value.toUpperCase());
+
+      const solicitudes = await apiFetch(
+        `/admin/solicitudes?${params.toString()}`
+      );
+      tablaSolicitudesBody.innerHTML = "";
+
+      for (const s of solicitudes) {
+        const tr = document.createElement("tr");
+        const fecha = s.createdAt
+          ? new Date(s.createdAt).toLocaleString()
+          : "-";
+
+        tr.innerHTML = `
+          <td>${s.id}</td>
+          <td>${s.Hospital?.nombre || "-"}</td>
+          <td>${s.grupo_sanguineo}</td>
+          <td>${s.unidades_disponibles}</td>
+          <td>
+            <select class="selUrgencia" data-id="${s.id}">
+              <option value="ALTA" ${
+                s.urgencia === "ALTA" ? "selected" : ""
+              }>Alta</option>
+              <option value="MEDIA" ${
+                s.urgencia === "MEDIA" ? "selected" : ""
+              }>Media</option>
+              <option value="BAJA" ${
+                s.urgencia === "BAJA" ? "selected" : ""
+              }>Baja</option>
+            </select>
+          </td>
+          <td>
+            <select class="selEstado" data-id="${s.id}">
+              <option value="PENDIENTE" ${
+                s.estado === "PENDIENTE" ? "selected" : ""
+              }>Pendiente</option>
+              <option value="EN_PROCESO" ${
+                s.estado === "EN_PROCESO" ? "selected" : ""
+              }>En proceso</option>
+              <option value="COMPLETADA" ${
+                s.estado === "COMPLETADA" ? "selected" : ""
+              }>Completada</option>
+            </select>
+          </td>
+          <td>${fecha}</td>
+          <td>
+            <button class="btnGuardarSol" data-id="${s.id}">Guardar</button>
+          </td>
+        `;
+        tablaSolicitudesBody.appendChild(tr);
+      }
+
+      tablaSolicitudesBody.querySelectorAll(".btnGuardarSol").forEach((btn) => {
+        btn.addEventListener("click", (e) =>
+          guardarSolicitud(e.currentTarget.dataset.id)
+        );
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Error al cargar solicitudes");
+    }
+  };
+  
+
+  const guardarSolicitud = async (id) => {
+    const fila = Array.from(tablaSolicitudesBody.querySelectorAll("tr")).find(
+      (tr) => tr.querySelector(".btnGuardarSol")?.dataset.id === id
+    );
+    if (!fila) return;
+
+    const payload = {
+      estado: fila.querySelector(".selEstado")?.value,
+      urgencia: fila.querySelector(".selUrgencia")?.value,
+    };
+
+    try {
+      await apiFetch(`/admin/solicitudes/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      alert("Solicitud actualizada");
+      cargarSolicitudes();
+    } catch (error) {
+      console.error(error);
+      alert("Error al actualizar solicitud");
+    }
+  };
+
+  btnRefrescarSolicitudes?.addEventListener("click", cargarSolicitudes);
+
+  const btnAdd = document.getElementById("btnAdd");
+  const hName = document.getElementById("hName");
+  const hLoc = document.getElementById("hLoc");
+  const hEmail = document.getElementById("hEmail");
+
+  btnAdd.addEventListener("click", async () => {
+    const name = hName.value.trim();
+    const location = hLoc.value.trim();
+    const email = hEmail.value.trim();
+
+    if (!name || !location || !email) {
+      alert("Completa todos los campos para crear un hospital");
+      return;
+    }
+
+    try {
+      await apiFetch("/hospitales", {
+        method: "POST",
+        body: JSON.stringify({ nombre: name, localizacion: location, email }),
+      });
+
+      alert("Hospital creado correctamente");
+      hName.value = "";
+      hLoc.value = "";
+      hEmail.value = "";
+    } catch (err) {
+      console.error(err);
+      alert("Error al crear hospital");
+    }
+  });
+
+  const tblDonantesBody = document.querySelector("#tblDonantes tbody");
+
+  const cargarDonantes = async (query = "") => {
+    try {
+      const params = new URLSearchParams();
+      if (query) params.set("search", query);
+
+      const donantes = await apiFetch(
+        `/usuarios/donantes?${params.toString()}`
+      );
+      tblDonantesBody.innerHTML = "";
+
+      donantes.forEach((d) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.nombre}</td>
+          <td>${d.email}</td>
+          <td>${d.grupo_sanguineo || "-"}</td>
+          <td>${d.ultima_donacion || "-"}</td>
+        `;
+        tblDonantesBody.appendChild(tr);
+      });
+
+    } catch (err) {
+      console.error(err);
+      alert("Error al cargar donantes");
+    }
+  };
+
+  const tblHospitalesBody = document.querySelector("#tblHospitales tbody");
+
+  const cargarHospitales = async () => {
+    try {
+      const hospitales = await apiFetch("/usuarios/hospitales");
+      tblHospitalesBody.innerHTML = "";
+
+      hospitales.forEach((h) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${h.nombre}</td>
+            <td>${h.email}</td>
+            <td>${h.direccion || "-"}</td>
+            <td>${h.ciudad || "-"}</td>
+          `;
+        tblHospitalesBody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Error al cargar hospitales");
+    }
+  };
+
+  const tblInvHospital = document.querySelector("#tblInvHospital tbody");
+
+  async function cargarInventarioHospital() {
+    try {
+      const data = await apiFetch("/inventarios/ultimos-por-grupo"); 
+
+      tblInvHospital.innerHTML = "";
+
+      data.forEach(({ hospital, inventarios }) => {
+        const tr = document.createElement("tr");
+
+        const inventarioHTML = inventarios.length > 0
+          ? `
+            <table class="subtable">
+              <tr><th>Grupo</th><th>Unidades</th><th>Última actualización</th></tr>
+              ${inventarios.map(i => `
+                <tr>
+                  <td>${i.grupo_sanguineo}</td>
+                  <td>${i.unidades_disponibles}</td>
+                  <td>${new Date(i.fecha_ultima_actualizacion).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </table>
+          `
+          : `<em>No hay inventario disponible</em>`;
+
+        tr.innerHTML = `
+          <td><strong>${hospital.nombre}</strong></td>
+          <td>
+            <details>
+              <summary>Ver inventario</summary>
+              ${inventarioHTML}
+            </details>
+          </td>
+        `;
+
+        tblInvHospital.appendChild(tr);
+      });
+
+
+    } catch (err) {
+      console.error(err);
+      alert("Error cargando inventario de sangre");
     }
   }
-);
 
-module.exports = router;
+
+
+  cargarInventarioHospital();
+  cargarDonantes();
+  cargarHospitales();
+  cargarDashboard();
+  cargarUsuarios();
+  cargarSolicitudes();
+});

@@ -1,10 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // 1) Comprobar rol HOSPITAL
   const saved = requireRole("HOSPITAL", "/frontend/pages/areahospitalaria.html");
-  if (!saved) return; // ya ha redirigido a login
+  if (!saved) return;
 
-  // 2) Obtener el hospital ligado a este usuario
   let HOSPITAL_ID = null;
   try {
     const res = await fetch(`/api/hospitales/byUsuario/${saved.id}`);
@@ -30,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "login.html";
     });
   }
-  
 
   const addDonationBtn = document.getElementById("addDonationBtn");
   const donationForm = document.getElementById("donationForm");
@@ -177,9 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     if (selectedCheckboxes.length === 0) {
       showToast(
-        "Por favor selecciona al menos un donante antes de enviar",
-        "warning"
-      );
+        "Por favor selecciona al menos un donante antes de enviar", "warning");
       return;
     }
 
@@ -288,6 +283,84 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   loadSolicitudes();
+
+  const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+  async function loadInventory() {
+    try {
+      const res = await fetch(`/api/hospitales/${HOSPITAL_ID}/inventario`);
+      if (!res.ok) throw new Error("Error fetching inventory");
+      const inventory = await res.json();
+      
+      const invMap = {};
+      inventory.forEach(item => {
+        invMap[item.grupo_sanguineo] = item;
+      });
+
+      const tbody = document.getElementById("inventoryTableBody");
+      tbody.innerHTML = "";
+
+      BLOOD_GROUPS.forEach(group => {
+        const item = invMap[group] || { id: null, grupo_sanguineo: group, unidades_disponibles: 0 };
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${item.grupo_sanguineo}</td>
+          <td>
+            <input 
+              type="number" 
+              min="0" 
+              value="${item.unidades_disponibles}" 
+              data-id="${item.id || ''}" 
+              data-grupo="${item.grupo_sanguineo}" 
+              class="quantity-input" 
+            />
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (error) {
+      console.error(error);
+      showToast("Error al cargar inventario", "error");
+    }
+  }
+
+
+  loadInventory();
+
+  document.getElementById("updateInventoryBtn").addEventListener("click", async () => {
+    const inputs = document.querySelectorAll(".quantity-input");
+
+    const inventario = [];
+    for (const input of inputs) {
+      const grupo = input.dataset.grupo;
+      const cantidad = parseInt(input.value);
+
+      if (isNaN(cantidad) || cantidad < 0) {
+        showToast(`Cantidad inválida para grupo ${grupo}`, "error");
+        return;
+      }
+      
+      inventario.push({ grupo_sanguineo: grupo, cantidad: cantidad });
+    }
+
+    try {
+      const res = await fetch(`/api/hospitales/${HOSPITAL_ID}/inventario`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inventario }),
+      });
+
+      if (!res.ok) throw new Error("Error creando nuevo inventario");
+      showToast("Inventario actualizado exitosamente ✔", "success");
+      await loadInventory();
+
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Error actualizando inventario", "error");
+    }
+  });
+
 
   document
     .querySelector(".btn-create.btn-search")

@@ -10,6 +10,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const titleEl = document.getElementById("loginTitle");
   const registerLink = document.getElementById("goRegister"); 
 
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className = "toast";
+    toast.classList.add(type);
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
+
   // Ajustar título según rol 
   if (forcedRole && titleEl) {
     if (forcedRole === "ADMIN") {
@@ -38,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = passInput ? passInput.value : "";
 
     if (!email || !password) {
-      alert("Introduce email y contraseña");
+      showToast("Introduce email y contraseña", "warning");
       return;
     }
 
@@ -52,15 +65,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.mensaje || "Error al iniciar sesión");
+        showToast("Error al iniciar sesión", "error");
         return;
       }
 
       // Si estoy entrando a un área concreta, comprobar rol
       if (forcedRole && data.rol && data.rol.toUpperCase() !== forcedRole) {
-        alert(
-          `Esta cuenta es de tipo ${data.rol}, pero estás intentando entrar al área ${forcedRole}.`
-        );
+        showToast("Estás intentando acceder a una área a la cual no tienes permiso ", "error");
         return;
       }
 
@@ -90,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = next;
     } catch (err) {
       console.error(err);
-      alert("Error de conexión con el servidor");
+      showToast("Error de conexión con el servidor", "error");
     }
   });
 });
